@@ -10,7 +10,7 @@ pub struct Ident(u32);
 
 pub struct ItemName {
     name: Spanned<Ident>,
-    Ty_params:Vec<Spanned<Ident>>,
+    type_params:Vec<Spanned<Ident>>,
 }
 
 pub struct Struct {
@@ -43,7 +43,7 @@ pub enum Linkage {
     External,
 }
 
-pub struct Ty {
+pub enum Ty {
     Name(Spanned<Ident>),
     Nil,
     I8,  
@@ -88,8 +88,14 @@ pub enum Expression {
     },
     Binary {
         lft:Box<Spanned<Expression>>,
-        op: Operator,
+        op: Op,
         rft:Box<Spanned<Expression>>,
+    },
+
+
+    Cast {
+        expr: Box<Spanned<Expression>>,
+        to: Spanned<Ty>,
     },
     
     Call {
@@ -133,9 +139,24 @@ pub enum Var {
     }
 }
 
+pub enum Op {
+    NEq,
+    Equal,
+    LT,
+    LTE,
+    GTE,
+    GT,
+    Plus,
+    Minus,
+    Star,
+    Slash,
+}
 
-
-
+#[derive(Debug, PartialOrd, Clone, PartialEq, Hash)]
+pub enum UnaryOp {
+    Bang,
+    Minus,
+}
 
 
 #[derive(Debug,Clone,PartialEq)]
@@ -159,7 +180,7 @@ pub enum Size {
 
 impl Display for Number {
     fn fmt(&self, f:&mut fmt::Formatter) -> fmt::Result {
-        write!(f,"{}",self.value);
+        write!(f,"{}",self.value)?;
 
         match self.ty {
             Some((ref sign,ref size)) => write!(f,"{}{}",sign,size),
