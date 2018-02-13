@@ -1,5 +1,5 @@
 extern crate underscore_util as util;
 
-mod lexer;
+pub mod lexer;
 mod tokens;
 mod ast;

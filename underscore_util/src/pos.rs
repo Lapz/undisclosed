@@ -6,8 +6,8 @@ use std::str::Chars;
 /// Represents a Span in the source file along with its value
 #[derive(Debug, Clone)]
 pub struct Spanned<T> {
-    span: Span,
-    value: T,
+    pub span: Span,
+    pub value: T,
 }
 
 /// A span between two locations in a source file
@@ -51,7 +51,7 @@ impl<'a> CharPosition<'a> {
     pub fn new(input: &'a str) -> Self {
         CharPosition {
             pos: Position {
-                line: 0,
+                line: 1,
                 column: 1,
                 absolute: 0,
             },

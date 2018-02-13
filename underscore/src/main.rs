@@ -2,27 +2,26 @@ extern crate underscore_syntax;
 
 extern crate underscore_util;
 
-use underscore_util::pos::{Position, Span};
 use underscore_util::emitter::Reporter;
+use underscore_syntax::lexer::Lexer;
+use std::io::{self, Write};
 
 fn main() {
     let reporter = Reporter::new();
 
-    reporter.error(
-        "Expected !",
-        Span {
-            start: Position {
-                line: 1,
-                column: 1,
-                absolute: 1,
-            },
-            end: Position {
-                line: 1,
-                column: 4,
-                absolute: 5,
-            },
-        },
-    );
+    let mut input = String::from(
+        "
+    65
+    /* */
 
-    reporter.emit("Hello World");
+    \"
+    ",
+    );
+    // io::stdin()
+    //     .read_line(&mut input)
+    //     .expect("Couldn't read input");
+
+    let tokens = Lexer::new(&input, reporter.clone()).lex();
+
+    reporter.emit(&input)
 }
