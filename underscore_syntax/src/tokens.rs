@@ -1,8 +1,8 @@
-use std::fmt::{self,Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use ast::Number;
 
 pub struct Token<'a> {
-    pub token:TokenType<'a>,
+    pub token: TokenType<'a>,
 }
 impl<'a> Display for Token<'a> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -16,11 +16,11 @@ pub enum TokenType<'a> {
     STRING(String),
     CHAR(char),
     Number(Number),
-    I8, // i8
+    I8,  // i8
     I32, // 32
     I64, // i64
-    U8, // u8
-    U32,// u32
+    U8,  // u8
+    U32, // u32
     U64, // u64
     // Assignment
     ASSIGN,      // =
@@ -60,37 +60,36 @@ pub enum TokenType<'a> {
     LESSTHANEQUAL,    // <=
     GREATERTHANEQUAL, // =>
     // Keywords,
-    FUNCTION, // fn
-    BREAK, // break
-    CONTINUE, // continue
-    LET, // let
-    IF, // if 
-    ELSE, // else 
-    RETURN, // return 
-    TRUE(bool), // true
-    FALSE(bool), // false 
-    FOR, // for 
-    WHILE, // while
-    NIL, // nil
-    TYPE, // type 
-    EXTERNAL, // EXTERNAL
+    FUNCTION,    // fn
+    BREAK,       // break
+    CONTINUE,    // continue
+    LET,         // let
+    IF,          // if
+    ELSE,        // else
+    RETURN,      // return
+    TRUE(bool),  // true
+    FALSE(bool), // false
+    FOR,         // for
+    WHILE,       // while
+    NIL,         // nil
+    TYPE,        // type
+    EXTERNAL,    // EXTERNAL
     // Other
     EOF,
 }
-
 
 impl<'a> Display for TokenType<'a> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
             TokenType::Number(ref n) => write!(f, "{}", n),
-            TokenType::I8 =>  write!(f, "i8"),
-            TokenType::I32=>  write!(f, "i32"),
-            TokenType::I64 =>  write!(f, "i64"),
-            TokenType::U8 =>  write!(f, "u8"),
-            TokenType::U32=>  write!(f, "u32"),
-            TokenType::U64 =>  write!(f, "u64"),
+            TokenType::I8 => write!(f, "i8"),
+            TokenType::I32 => write!(f, "i32"),
+            TokenType::I64 => write!(f, "i64"),
+            TokenType::U8 => write!(f, "u8"),
+            TokenType::U32 => write!(f, "u32"),
+            TokenType::U64 => write!(f, "u64"),
             TokenType::IDENTIFIER(s) => write!(f, "id {}", s),
-            TokenType::CHAR(ref c) => write!(f,"{}",c),
+            TokenType::CHAR(ref c) => write!(f, "{}", c),
             TokenType::STRING(ref s) => write!(f, "{}", s),
             TokenType::ASSIGN => write!(f, "="),
             TokenType::STARASSIGN => write!(f, "*="),
@@ -113,7 +112,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::BANGEQUAL => write!(f, "!="),     // !=
             TokenType::LESSTHANEQUAL => write!(f, "<="), // <=
             TokenType::GREATERTHANEQUAL => write!(f, "=>"), // =>
-           
+
             TokenType::COMMA => write!(f, ","),     // ,
             TokenType::COMMENT => write!(f, "//"),  // //
             TokenType::SEMICOLON => write!(f, ";"), //
