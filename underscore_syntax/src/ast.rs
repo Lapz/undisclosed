@@ -158,8 +158,8 @@ pub enum UnaryOp {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Number {
-    value: u64,
-    ty: Option<(Sign, Size)>, // Option because not all numbers are declared like 10u32
+    pub value: u64,
+    pub ty: Option<(Sign, Size)>, // Option because not all numbers are declared like 10u32
 }
 
 #[derive(PartialEq, Debug, Clone)]

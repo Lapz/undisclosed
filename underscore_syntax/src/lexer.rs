@@ -1,4 +1,5 @@
 use tokens::{Token, TokenType};
+use ast::{Number, Sign, Size};
 use util::pos::{CharPosition, Position, Span, Spanned};
 use util::emitter::Reporter;
 use std::fmt::{Display, Formatter};
@@ -7,17 +8,21 @@ use std::fmt;
 #[derive(Debug)]
 pub enum LexerError {
     UnclosedString,
-    UnclosedBlockComment(String),
+    UnclosedChar,
+    UnclosedBlockComment,
     EOF,
     Unexpected(char, Position),
+    InvalidNumberTy(String),
 }
 
 impl Display for LexerError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
             LexerError::UnclosedString => write!(f, "Unclosed string"),
+            LexerError::UnclosedChar => write!(f, "Unclosed char literal"),
             LexerError::EOF => write!(f, "Unexpected EOF"),
-            LexerError::UnclosedBlockComment(ref e) => write!(f, "Unclosed block comment {}", e),
+            LexerError::InvalidNumberTy(ref e) => write!(f, "Invalid number suffix '{}' ", e),
+            LexerError::UnclosedBlockComment => write!(f, "Unclosed block comment"),
             LexerError::Unexpected(ref c, ref p) => write!(f, "Unexpected char {} on {}", c, p),
         }
     }
@@ -27,9 +32,11 @@ impl Into<String> for LexerError {
     fn into(self) -> String {
         match self {
             LexerError::UnclosedString => format!("Unclosed string"),
+            LexerError::UnclosedChar => format!("Unclosed char literal"),
             LexerError::EOF => format!("Unexpected EOF"),
-            LexerError::UnclosedBlockComment(ref e) => format!("Unclosed block comment"),
-            LexerError::Unexpected(ref c, _) => format!("Unexpected char {} ", c),
+            LexerError::InvalidNumberTy(ref e) => format!("Invalid number suffix '{}' ", e),
+            LexerError::UnclosedBlockComment => format!("Unclosed block comment"),
+            LexerError::Unexpected(ref c, _) => format!("Unexpected char '{}' ", c),
         }
     }
 }
@@ -125,7 +132,7 @@ impl<'a> Lexer<'a> {
                 }
                 Some((_, _)) => continue,
 
-                None => return Err(LexerError::UnclosedBlockComment(String::from("Unclosed"))),
+                None => return Err(LexerError::UnclosedBlockComment),
             }
         }
     }
@@ -149,40 +156,113 @@ impl<'a> Lexer<'a> {
         Err(LexerError::UnclosedString)
     }
 
-    // fn number(&mut self, start: Position) -> Result<Token<'a>, LexerError> {
-    //     let (end, int) = self.take_whilst(start, |c| c.is_numeric());
+    fn escape_code(&mut self) -> Result<char, LexerError> {
+        match self.advance() {
+            Some((_, 't')) => Ok('\t'),
+            Some((_, 'n')) => Ok('\n'),
+            Some((_, 'r')) => Ok('\r'),
+            Some((_, '\\')) => Ok('\\'),
+            Some((_, '"')) => Ok('"'),
+            Some((next, ch)) => Err(LexerError::Unexpected(ch, next)),
+            None => Err(LexerError::EOF),
+        }
+    }
 
-    //     let (_, token) = match self.lookahead {
-    //         Some((_, '.')) => {
-    //             self.advance();
+    fn char_literal(&mut self, start: Position) -> Result<Spanned<Token<'a>>, LexerError> {
+        if let Some((_, ch)) = self.advance() {
+            match ch {
+                '\\' => {
+                    let token = TokenType::CHAR(self.escape_code()?);
 
-    //             let (_, float) = self.take_whilst(start, |c| c.is_numeric());
+                    if !self.peek(|c| c == '\'') {
+                        return Err(LexerError::UnclosedChar);
+                    }
 
-    //             match self.lookahead {
-    //                 Some((_, ch)) if ch.is_alphabetic() => {
-    //                     return Err(LexerError::Unexpected(ch, start)); // Rejects floats like 10.k
-    //                 }
+                    let (end, _) = self.advance().unwrap();
 
-    //                 _ => (start, xTokenType::FLOAT(float.parse().unwrap())),
-    //             }
-    //         }
+                    Ok(spans(token, start, end))
+                }
 
-    //         Some((_, ch)) if ch.is_alphabetic() => return Err(LexerError::Unexpected(ch, start)),
-    //         None | Some(_) => {
-    //             if let Ok(val) = int.parse() {
-    //                 (end, TokenType::INT(val))
-    //             } else {
-    //                 return Err(LexerError::EOF); // change
-    //             }
-    //         }
-    //     };
+                '\'' => return Err(LexerError::UnclosedChar),
+                ch => {
+                    let token = TokenType::CHAR(ch);
 
-    //     Ok(Token { token: token })
-    // }
+                    if !self.peek(|c| c == '\'') {
+                        return Err(LexerError::UnclosedChar);
+                    }
+
+                    let (end, _) = self.advance().unwrap();
+
+                    Ok(spans(token, start, end))
+                }
+            }
+        } else {
+            Err(LexerError::UnclosedChar)
+        }
+    }
+
+    fn number(&mut self, start: Position) -> Option<Spanned<Token<'a>>> {
+        let (end, int) = self.take_whilst(start, |c| c.is_numeric());
+
+        let (token, start, end) = match self.lookahead {
+            Some((start, 'u')) | Some((start, 'i')) => {
+                let (end, ty) = self.take_whilst(start, |c| c.is_alphanumeric());
+
+                let (sign, size) = match ty {
+                    "i8" => (Sign::Signed, Size::Bit8),
+                    "i32" => (Sign::Signed, Size::Bit32),
+                    "i64" => (Sign::Signed, Size::Bit64),
+                    "u8" => (Sign::Unsigned, Size::Bit8),
+                    "u32" => (Sign::Unsigned, Size::Bit32),
+                    "u64" => (Sign::Unsigned, Size::Bit64),
+                    _ => {
+                        let e: String = LexerError::InvalidNumberTy(ty.into()).into();
+                        self.span_error(e, start, end);
+                        return None;
+                    }
+                };
+
+                let value: u64 = int.parse().unwrap();
+
+                (
+                    TokenType::Number(Number {
+                        value,
+                        ty: Some((sign, size)),
+                    }),
+                    start,
+                    end,
+                )
+            }
+
+            Some((start, ch)) if ch.is_alphabetic() => {
+                let msg = format!("Unexpected char '{}'", ch);
+                self.span_error(msg, start, start);
+                return None;
+            }
+
+            None | Some(_) => {
+                if let Ok(val) = int.parse() {
+                    (
+                        TokenType::Number(Number {
+                            value: val,
+                            ty: None,
+                        }),
+                        start,
+                        end,
+                    )
+                } else {
+                    self.span_error("Cannot parse integer, probable overflow", start, start);
+
+                    return None; // change
+                }
+            }
+        };
+
+        Some(spans(token, start, end))
+    }
 
     fn identifier(&mut self, start: Position) -> Spanned<Token<'a>> {
         let (end, ident) = self.take_whilst(start, is_letter_ch);
-
         spans(look_up_identifier(ident), start, end)
     }
 
@@ -205,7 +285,15 @@ impl<'a> Lexer<'a> {
                 '"' => match self.string_literal(start) {
                     Ok(token) => Some(token),
                     Err(e) => {
-                        let msg:String = e.into();
+                        let msg: String = e.into();
+                        self.error(msg, start);
+                        None
+                    }
+                },
+                '\'' => match self.char_literal(start) {
+                    Ok(token) => Some(token),
+                    Err(e) => {
+                        let msg: String = e.into();
                         self.error(msg, start);
                         None
                     }
@@ -284,7 +372,7 @@ impl<'a> Lexer<'a> {
                     }
                 }
 
-                // ch if ch.is_numeric() => self.number(start),
+                ch if ch.is_numeric() => self.number(start),
                 ch if is_letter_ch(ch) => Some(self.identifier(start)),
                 ch if ch.is_whitespace() => continue,
                 ch => {
@@ -357,6 +445,12 @@ fn look_up_identifier(id: &str) -> TokenType {
         "true" => TokenType::TRUE(true),
         "false" => TokenType::FALSE(false),
         "nil" => TokenType::NIL,
+        "u8" => TokenType::U8,
+        "u32" => TokenType::U32,
+        "u64" => TokenType::U64,
+        "i8" => TokenType::I8,
+        "i32" => TokenType::I32,
+        "i64" => TokenType::I64,
         _ => TokenType::IDENTIFIER(id),
     }
 }

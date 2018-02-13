@@ -1,6 +1,7 @@
 use std::fmt::{self, Display, Formatter};
 use ast::Number;
 
+#[derive(Debug)]
 pub struct Token<'a> {
     pub token: TokenType<'a>,
 }
