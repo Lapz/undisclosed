@@ -22,7 +22,7 @@ impl Display for LexerError {
         match *self {
             LexerError::UnclosedString => write!(f, "Unclosed string"),
             LexerError::UnclosedChar => write!(f, "Unclosed char literal"),
-            LexerError::EmptyCharLit => write!(f,"Empty char literal"),
+            LexerError::EmptyCharLit => write!(f, "Empty char literal"),
             LexerError::InvalidCharLit => write!(f, "Invalid escape sequence"),
             LexerError::EOF => write!(f, "Unexpected EOF"),
             LexerError::InvalidNumberTy(ref e) => write!(f, "Invalid number suffix '{}' ", e),
@@ -169,7 +169,7 @@ impl<'a> Lexer<'a> {
             Some((_, 'r')) => Some('\r'),
             Some((_, '\\')) => Some('\\'),
             Some((_, '"')) => Some('"'),
-            Some((next, ch)) => None,
+            Some((_, _)) => None,
             None => None,
         }
     }

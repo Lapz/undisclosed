@@ -1,11 +1,11 @@
 use std::fmt::{self, Display};
 use util::pos::{Span, Spanned};
-
 pub struct Program {
     structs: Vec<Struct>,
     functions: Vec<Function>,
 }
 
+#[derive(Hash, Copy, Clone, PartialEq, Eq)]
 pub struct Ident(u32);
 
 pub struct ItemName {

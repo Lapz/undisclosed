@@ -3,7 +3,11 @@ extern crate underscore_syntax;
 extern crate underscore_util;
 
 use underscore_util::emitter::Reporter;
+use underscore_util::symbol::{FactoryMap, Table};
 use underscore_syntax::lexer::Lexer;
+use underscore_syntax::parser::Parser;
+use std::rc::Rc;
+
 use std::io;
 
 fn main() {
@@ -18,4 +22,10 @@ fn main() {
     let tokens = Lexer::new(&input, reporter.clone()).lex();
 
     reporter.emit(&input);
+
+    let strings = Rc::new(FactoryMap::new());
+
+    let mut table = Table::new(Rc::clone(&strings));
+
+    let _parser = Parser::new(tokens, &mut table);
 }

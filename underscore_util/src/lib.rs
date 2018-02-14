@@ -3,3 +3,4 @@ extern crate ansi_term;
 
 pub mod pos;
 pub mod emitter;
+pub mod symbol;

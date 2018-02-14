@@ -35,7 +35,7 @@ pub struct Reporter {
 
 impl Reporter {
     pub fn new() -> Reporter {
-        Self::default()
+        Default::default()
     }
 
     pub fn global_error(&self, msg: &str) {

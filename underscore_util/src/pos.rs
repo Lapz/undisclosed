@@ -98,9 +98,3 @@ impl Position {
         self
     }
 }
-
-impl<T> Spanned<T> {
-    fn new(span: Span, value: T) -> Self {
-        Spanned { span, value }
-    }
-}

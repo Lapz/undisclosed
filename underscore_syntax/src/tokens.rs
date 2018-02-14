@@ -30,11 +30,11 @@ pub enum TokenType<'a> {
     STARASSIGN,  // *=
     SLASHASSIGN, // /=
     // Operators
-    PLUS,        // +
-    MINUS,       // -
-    BANG,        // !
-    STAR,        // *
-    SLASH,       // /
+    PLUS,  // +
+    MINUS, // -
+    BANG,  // !
+    STAR,  // *
+    SLASH, // /
 
     // Puntuation
     FRETURN,   // ->
@@ -100,7 +100,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::BANG => write!(f, "!"),
             TokenType::STAR => write!(f, "*"),
             TokenType::SLASH => write!(f, "\\"),
-           
+
             TokenType::DOT => write!(f, "."),
             TokenType::COLON => write!(f, ":"),
             TokenType::QUESTION => write!(f, "?"),
