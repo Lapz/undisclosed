@@ -13,6 +13,7 @@ pub enum LexerError {
     EOF,
     Unexpected(char, Position),
     InvalidNumberTy(String),
+    InvalidCharLit,
 }
 
 impl Display for LexerError {
@@ -20,6 +21,7 @@ impl Display for LexerError {
         match *self {
             LexerError::UnclosedString => write!(f, "Unclosed string"),
             LexerError::UnclosedChar => write!(f, "Unclosed char literal"),
+            LexerError::InvalidCharLit => write!(f,"Invalid escape sequence"),
             LexerError::EOF => write!(f, "Unexpected EOF"),
             LexerError::InvalidNumberTy(ref e) => write!(f, "Invalid number suffix '{}' ", e),
             LexerError::UnclosedBlockComment => write!(f, "Unclosed block comment"),
@@ -33,6 +35,7 @@ impl Into<String> for LexerError {
         match self {
             LexerError::UnclosedString => format!("Unclosed string"),
             LexerError::UnclosedChar => format!("Unclosed char literal"),
+            LexerError::InvalidCharLit => format!("Invalid escape sequence"),
             LexerError::EOF => format!("Unexpected EOF"),
             LexerError::InvalidNumberTy(ref e) => format!("Invalid number suffix '{}' ", e),
             LexerError::UnclosedBlockComment => format!("Unclosed block comment"),
@@ -156,49 +159,42 @@ impl<'a> Lexer<'a> {
         Err(LexerError::UnclosedString)
     }
 
-    fn escape_code(&mut self) -> Result<char, LexerError> {
+    fn escape_code(&mut self) -> Option<char> {
         match self.advance() {
-            Some((_, 't')) => Ok('\t'),
-            Some((_, 'n')) => Ok('\n'),
-            Some((_, 'r')) => Ok('\r'),
-            Some((_, '\\')) => Ok('\\'),
-            Some((_, '"')) => Ok('"'),
-            Some((next, ch)) => Err(LexerError::Unexpected(ch, next)),
-            None => Err(LexerError::EOF),
+            Some((_, 't')) => Some('\t'),
+            Some((_, 'n')) => Some('\n'),
+            Some((_, 'r')) => Some('\r'),
+            Some((_, '\\')) => Some('\\'),
+            Some((_, '"')) => Some('"'),
+            Some((next, ch)) => None,
+            None => None,
         }
     }
 
     fn char_literal(&mut self, start: Position) -> Result<Spanned<Token<'a>>, LexerError> {
-        if let Some((_, ch)) = self.advance() {
-            match ch {
-                '\\' => {
-                    let token = TokenType::CHAR(self.escape_code()?);
+        let token = match self.advance() {
+            Some((_,'\\')) => {
+                self.escape_code()
+            },
 
-                    if !self.peek(|c| c == '\'') {
-                        return Err(LexerError::UnclosedChar);
-                    }
+            Some((_,'\'')) => return Err(LexerError::UnclosedChar),
+            Some((_,ch)) => Some(ch),
+            None => return Err(LexerError::EOF),
+        };
 
-                    let (end, _) = self.advance().unwrap();
-
-                    Ok(spans(token, start, end))
-                }
-
-                '\'' => return Err(LexerError::UnclosedChar),
-                ch => {
-                    let token = TokenType::CHAR(ch);
-
-                    if !self.peek(|c| c == '\'') {
-                        return Err(LexerError::UnclosedChar);
-                    }
-
-                    let (end, _) = self.advance().unwrap();
-
-                    Ok(spans(token, start, end))
-                }
-            }
-        } else {
-            Err(LexerError::UnclosedChar)
+        if !self.peek(|c| c == '\'') {
+            return Err(LexerError::UnclosedChar);
         }
+
+        let (end, _) = self.advance().unwrap();
+
+        if token.is_none() {
+            return Err(LexerError::InvalidCharLit)
+        }
+
+        Ok(spans(TokenType::CHAR(token.unwrap()), start, end))
+
+    
     }
 
     fn number(&mut self, start: Position) -> Option<Spanned<Token<'a>>> {
@@ -294,7 +290,8 @@ impl<'a> Lexer<'a> {
                     Ok(token) => Some(token),
                     Err(e) => {
                         let msg: String = e.into();
-                        self.error(msg, start);
+                        let end = self.end;
+                        self.span_error(msg, start,end);
                         None
                     }
                 },
