@@ -21,7 +21,7 @@ impl Display for LexerError {
         match *self {
             LexerError::UnclosedString => write!(f, "Unclosed string"),
             LexerError::UnclosedChar => write!(f, "Unclosed char literal"),
-            LexerError::InvalidCharLit => write!(f,"Invalid escape sequence"),
+            LexerError::InvalidCharLit => write!(f, "Invalid escape sequence"),
             LexerError::EOF => write!(f, "Unexpected EOF"),
             LexerError::InvalidNumberTy(ref e) => write!(f, "Invalid number suffix '{}' ", e),
             LexerError::UnclosedBlockComment => write!(f, "Unclosed block comment"),
@@ -173,12 +173,10 @@ impl<'a> Lexer<'a> {
 
     fn char_literal(&mut self, start: Position) -> Result<Spanned<Token<'a>>, LexerError> {
         let token = match self.advance() {
-            Some((_,'\\')) => {
-                self.escape_code()
-            },
+            Some((_, '\\')) => self.escape_code(),
 
-            Some((_,'\'')) => return Err(LexerError::UnclosedChar),
-            Some((_,ch)) => Some(ch),
+            Some((_, '\'')) => return Err(LexerError::UnclosedChar),
+            Some((_, ch)) => Some(ch),
             None => return Err(LexerError::EOF),
         };
 
@@ -189,12 +187,10 @@ impl<'a> Lexer<'a> {
         let (end, _) = self.advance().unwrap();
 
         if token.is_none() {
-            return Err(LexerError::InvalidCharLit)
+            return Err(LexerError::InvalidCharLit);
         }
 
         Ok(spans(TokenType::CHAR(token.unwrap()), start, end))
-
-    
     }
 
     fn number(&mut self, start: Position) -> Option<Spanned<Token<'a>>> {
@@ -291,7 +287,7 @@ impl<'a> Lexer<'a> {
                     Err(e) => {
                         let msg: String = e.into();
                         let end = self.end;
-                        self.span_error(msg, start,end);
+                        self.span_error(msg, start, end);
                         None
                     }
                 },
