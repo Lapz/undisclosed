@@ -14,6 +14,7 @@ pub enum LexerError {
     Unexpected(char, Position),
     InvalidNumberTy(String),
     InvalidCharLit,
+    EmptyCharLit,
 }
 
 impl Display for LexerError {
@@ -21,6 +22,7 @@ impl Display for LexerError {
         match *self {
             LexerError::UnclosedString => write!(f, "Unclosed string"),
             LexerError::UnclosedChar => write!(f, "Unclosed char literal"),
+            LexerError::EmptyCharLit => write!(f,"Empty char literal"),
             LexerError::InvalidCharLit => write!(f, "Invalid escape sequence"),
             LexerError::EOF => write!(f, "Unexpected EOF"),
             LexerError::InvalidNumberTy(ref e) => write!(f, "Invalid number suffix '{}' ", e),
@@ -36,6 +38,7 @@ impl Into<String> for LexerError {
             LexerError::UnclosedString => format!("Unclosed string"),
             LexerError::UnclosedChar => format!("Unclosed char literal"),
             LexerError::InvalidCharLit => format!("Invalid escape sequence"),
+            LexerError::EmptyCharLit => format!("Empty char literal"),
             LexerError::EOF => format!("Unexpected EOF"),
             LexerError::InvalidNumberTy(ref e) => format!("Invalid number suffix '{}' ", e),
             LexerError::UnclosedBlockComment => format!("Unclosed block comment"),
@@ -175,7 +178,7 @@ impl<'a> Lexer<'a> {
         let token = match self.advance() {
             Some((_, '\\')) => self.escape_code(),
 
-            Some((_, '\'')) => return Err(LexerError::UnclosedChar),
+            Some((_, '\'')) => return Err(LexerError::EmptyCharLit),
             Some((_, ch)) => Some(ch),
             None => return Err(LexerError::EOF),
         };
@@ -272,13 +275,12 @@ impl<'a> Lexer<'a> {
                 ')' => Some(span(TokenType::RPAREN, start)),
                 ',' => Some(span(TokenType::COMMA, start)),
                 ':' => Some(span(TokenType::COLON, start)),
-                '^' => Some(span(TokenType::EXPONENTIAL, start)),
-                '%' => Some(span(TokenType::MODULO, start)),
                 '"' => match self.string_literal(start) {
                     Ok(token) => Some(token),
                     Err(e) => {
                         let msg: String = e.into();
-                        self.error(msg, start);
+                        let end = self.end;
+                        self.span_error(msg, start, end);
                         None
                     }
                 },
@@ -370,8 +372,7 @@ impl<'a> Lexer<'a> {
                 ch if ch.is_whitespace() => continue,
                 ch => {
                     let msg = format!("Unexpected char '{}'", ch);
-                    let end = self.end;
-                    self.span_error(msg, start, end);
+                    self.error(msg, start);
                     None
                 }
             };
@@ -414,6 +415,7 @@ fn token_with_info(token: TokenType) -> Token {
     Token { token }
 }
 
+#[inline]
 fn is_letter_ch(ch: char) -> bool {
     ch.is_alphanumeric() || ch == '_'
 }
