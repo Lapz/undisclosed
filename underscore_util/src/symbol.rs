@@ -9,13 +9,13 @@ use std::hash::Hash;
 #[derive(Debug, Clone)]
 /// Maps any T to a string
 pub struct FactoryMap<T: Copy + Eq + Hash> {
-    next: RefCell<u64>,
-    mappings: RefCell<HashMap<T, String>>,
+    pub next: RefCell<u32>,
+    pub mappings: RefCell<HashMap<T, String>>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Table<K: Clone + Hash + Eq + Copy, V: Clone> {
-    strings: Rc<FactoryMap<K>>,
+    pub strings: Rc<FactoryMap<K>>,
     table: HashMap<K, Vec<V>>,
     scopes: Vec<Option<K>>,
 }

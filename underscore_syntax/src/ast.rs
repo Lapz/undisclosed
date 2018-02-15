@@ -6,7 +6,7 @@ pub struct Program {
 }
 
 #[derive(Hash, Copy, Clone, PartialEq, Eq)]
-pub struct Ident(u32);
+pub struct Ident(pub u32);
 
 pub struct ItemName {
     name: Spanned<Ident>,

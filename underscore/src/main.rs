@@ -27,5 +27,7 @@ fn main() {
 
     let mut table = Table::new(Rc::clone(&strings));
 
-    let _parser = Parser::new(tokens,reporter.clone(), &mut table);
+    let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
+
+    reporter.emit(&input);
 }
