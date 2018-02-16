@@ -83,6 +83,14 @@ impl Display for Span {
         write!(f, "{} -> {}", self.start, self.end)
     }
 }
+
+impl Span {
+    fn to(mut self, other: Span) -> Self {
+        self.end.line += other.end.line;
+        self.end.column += other.end.column;
+        self
+    }
+}
 impl Position {
     pub fn shift(mut self, ch: char) -> Self {
         if ch == '\n' {
