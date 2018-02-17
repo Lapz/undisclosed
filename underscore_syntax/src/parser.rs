@@ -378,7 +378,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             self.parse_if_statement()
         } else if self.recognise(TokenType::RETURN) {
             self.parse_return_statement()
-        } else if self.recognise(&TokenType::WHILE) {
+        } else if self.recognise(TokenType::WHILE) {
             self.parse_while_statement()
         } else if self.recognise(TokenType::TYPE) {
             self.parse_ty_alias()
@@ -501,6 +501,42 @@ impl<'a, 'b> Parser<'a, 'b> {
 
 impl<'a, 'b> Parser<'a, 'b> {
     fn parse_expression(&mut self) -> ParserResult<Spanned<Expression>> {
+        self.parse_assignment()
+    }
+
+    fn parse_assignment(&mut self) -> ParserResult<Spanned<Expression>> {
+       unimplemented!()
+    }
+
+    fn parse_and(&mut self) -> ParserResult<Spanned<Expression>> {
         unimplemented!()
     }
-}
+
+    fn parse_or(&mut self) -> ParserResult<Spanned<Expression>> {
+        unimplemented!()
+    }
+
+    fn parse_equailty(&mut self) -> ParserResult<Spanned<Expression>> {
+        unimplemented!()
+    }
+
+    fn parse_comparison(&mut self) -> ParserResult<Spanned<Expression>> {
+        unimplemented!()
+    }
+
+    fn addition(&mut self) -> ParserResult<Spanned<Expression>> {
+        unimplemented!()
+    }
+
+    fn multiplication(&mut self) -> ParserResult<Spanned<Expression>> {
+        unimplemented!()
+    }
+
+    fn call(&mut self) -> ParserResult<Spanned<Expression>> {
+        unimplemented!()
+    }
+
+    fn primary(&mut self) -> ParserResult<Spanned<Expression>> {
+        unimplemented!()
+    }
+ }
