@@ -29,7 +29,5 @@ fn main() {
 
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
-    parser.parse_generic_params();
-
     reporter.emit(&input);
 }

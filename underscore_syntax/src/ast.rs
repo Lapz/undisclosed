@@ -9,8 +9,8 @@ pub struct Program {
 pub struct Ident(pub u32);
 
 pub struct ItemName {
-    name: Spanned<Ident>,
-    type_params: Vec<Spanned<Ident>>,
+    pub name: Spanned<Ident>,
+    pub type_params: Vec<Spanned<Ident>>,
 }
 
 pub struct Struct {
@@ -26,16 +26,16 @@ pub struct Field {
 
 pub struct Function {
     span: Span,
-    name: ItemName,
+    name: Spanned<ItemName>,
     params: Vec<Spanned<FunctionParams>>,
-    returns: Spanned<Ty>,
+    returns: Option<Spanned<Ty>>,
     body: Spanned<Statement>,
     linkage: Linkage,
 }
 
 pub struct FunctionParams {
-    name: Spanned<Ident>,
-    ty: Spanned<Ty>,
+    pub name: Spanned<Ident>,
+    pub ty: Spanned<Ty>,
 }
 
 pub enum Linkage {
@@ -44,7 +44,7 @@ pub enum Linkage {
 }
 
 pub enum Ty {
-    Name(Spanned<Ident>),
+    Name(Spanned<Ident>, Vec<Spanned<Ty>>),
     Nil,
     I8,
     I32,

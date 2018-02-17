@@ -1,4 +1,5 @@
-use ast::{Function, FunctionParams, Ident, ItemName};
+use ast::{Function, FunctionParams, Ident, ItemName, Ty,Linkage};
+use ast::{Statement,Expression,Op,UnaryOp,Number,Var};
 use std::iter::Peekable;
 use std::vec::IntoIter;
 use util::pos::{Span, Spanned};
@@ -6,7 +7,6 @@ use tokens::{Token, TokenType};
 use util::symbol::Table;
 use util::emitter::Reporter;
 use std::hash::Hash;
-
 
 pub struct Parser<'a, 'b> {
     reporter: Reporter,
@@ -22,19 +22,7 @@ pub enum ParserError {
     Break(String),
 }
 
-pub enum ParserResult<T> {
-    Ok(T),
-    Err,
-}
-
-impl <T> ParserResult<T> {
-    pub fn unwrap(self) -> T {
-        match self {
-            ParserResult::Ok(t) => t,
-            ParserResult::Err => panic!("called `ParserResult::unwrap()` on an `Err` value"),
-        }
-    }
-}
+pub type ParserResult<T> = Result<T, ()>;
 
 impl<'a, 'b> Parser<'a, 'b> {
     pub fn new(
@@ -108,18 +96,18 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Token { ref token },
             }) => {
                 if token == token_to_check {
-                    return ParserResult::Ok(());
+                    return Ok(());
                 }
 
                 let msg = format!("{} but instead found {}", msg, token);
 
                 self.error(msg, *span);
 
-                ParserResult::Err
+                Err(())
             }
             None => {
                 self.reporter.global_error("Unexpected EOF");
-                ParserResult::Err
+                Err(())
             }
         }
     }
@@ -135,18 +123,18 @@ impl<'a, 'b> Parser<'a, 'b> {
                 ref span,
             }) => {
                 if token == token_to_check {
-                    return ParserResult::Ok(*span);
+                    return Ok(*span);
                 }
 
                 let msg = format!("{} but instead found {}", msg, token);
 
                 self.error(msg, *span);
 
-                ParserResult::Err
+                Err(())
             }
             None => {
                 self.reporter.global_error("Unexpected EOF");
-                ParserResult::Err
+                Err(())
             }
         }
     }
@@ -158,13 +146,11 @@ impl<'a, 'b> Parser<'a, 'b> {
                     Token {
                         token: TokenType::IDENTIFIER(ident),
                     },
-                    ref span
-            }) => {
-                ParserResult::Ok(Spanned {
-                    span:*span,
-                    value:self.ident(ident)
-                })
-            },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: self.ident(ident),
+            }),
             Some(Spanned {
                 value: Token { ref token },
                 ref span,
@@ -173,47 +159,224 @@ impl<'a, 'b> Parser<'a, 'b> {
 
                 self.error(msg, *span);
 
-                ParserResult::Err
+                Err(())
             }
             None => {
                 self.reporter.global_error("Unexpected EOF");
-                ParserResult::Err
+                Err(())
+            }
+        }
+    }
+
+    fn consume_get_ident_and_span(&mut self, msg: &str) -> ParserResult<(Span, Spanned<Ident>)> {
+        match self.advance() {
+            Some(Spanned {
+                value:
+                    Token {
+                        token: TokenType::IDENTIFIER(ident),
+                    },
+                ref span,
+            }) => Ok((
+                *span,
+                Spanned {
+                    span: *span,
+                    value: self.ident(ident),
+                },
+            )),
+            Some(Spanned {
+                value: Token { ref token },
+                ref span,
+            }) => {
+                let msg = format!("{} but instead found {}", msg, token);
+
+                self.error(msg, *span);
+
+                Err(())
+            }
+            None => {
+                self.reporter.global_error("Unexpected EOF");
+                Err(())
             }
         }
     }
 }
 
 impl<'a, 'b> Parser<'a, 'b> {
-    fn parse_function(&mut self) -> Spanned<Function> {
+    fn parse_function(&mut self) -> ParserResult<Spanned<Function>> {
+
+        let linkage = if self.recognise(TokenType::EXTERNAL) {
+            Linkage::External
+        }else {
+            Linkage::Normal
+        };
+
         let fn_span = self.consume_get_span(&TokenType::FUNCTION, "Expected a 'fn'");
-        unimplemented!()
+
+        let name = self.parse_item_name();
+
+        let params = self.parse_fn_params()?;
+
+        let returns = if self.recognise(&TokenType::FRETURN) {
+            self.advance();
+            Some(self.parse_type()?);
+        }else {
+            None
+        };
+
+        let body = self.parse_statement()?;
+
+
+        Ok(Spanned{
+            span:fn_span.to(body.get_span()),
+            value:Function {
+                span:ffn_span.to(body.get_span()),
+                name,
+                params,
+                body,
+                linkage
+            }
+        })
     }
 
-    fn parse_item_name(&mut self) -> Spanned<ItemName> {
-        let item_name = self.consume_get_ident("Expected an identifier");
+    fn parse_item_name(&mut self) -> ParserResult<Spanned<ItemName>> {
+        let (open_span, name) = self.consume_get_ident_and_span("Expected an identifier")?;
 
-        let type_params = self.parse_generic_params().unwrap_or(vec![]);
+        let (type_params, end_span) = self.parse_generic_params()?;
 
-        unimplemented!()
+        Ok(Spanned {
+            span: open_span.to(end_span.unwrap_or(open_span)),
+            value: ItemName { name, type_params },
+        })
     }
 
-    pub fn parse_generic_params(&mut self) -> Option<Vec<Spanned<Ident>>> {
+    fn parse_generic_params(&mut self) -> ParserResult<(Vec<Spanned<Ident>>, Option<Span>)> {
         if self.recognise(TokenType::LESSTHAN) {
-            let span = self.consume_get_span(&TokenType::LESSTHAN, "Expected a '<' ");
+            let open_span = self.consume_get_span(&TokenType::LESSTHAN, "Expected a '<' ")?;
             let mut generic_param = Vec::new();
 
-            while self.recognise(TokenType::COMMA) {
-                generic_param.push(self.consume_get_ident("Expected an Identifier").unwrap());
+            loop {
+                generic_param.push(self.consume_get_ident("Expected an Identifier")?);
+
+                if self.recognise(TokenType::COMMA) {
+                    self.advance();
+                } else {
+                    break;
+                }
             }
 
-            self.consume(
+            let close_span = self.consume_get_span(
                 &TokenType::GREATERTHAN,
                 "Expected a '>' to close generic params",
-            ).unwrap();
+            )?;
 
-            Some(generic_param)
+            Ok((generic_param, Some(open_span.to(close_span))))
         } else {
-            None
+            Ok((vec![], None))
         }
+    }
+
+    fn parse_fn_params(&mut self) -> ParserResult<Vec<Spanned<FunctionParams>>> {
+        let open_span =
+            self.consume_get_span(&TokenType::LPAREN, "Expected a '(' after function name")?;
+
+        let mut params = Vec::new();
+
+        loop {
+            let (open_span, name) = self.consume_get_ident_and_span("Expected a param name")?;
+
+            self.consume(&TokenType::COLON, "Expected a colon")?;
+
+            let ty = self.parse_type()?;
+
+            params.push(Spanned {
+                span: open_span.to(ty.get_span()),
+                value: FunctionParams { name, ty },
+            });
+
+            if self.recognise(TokenType::COMMA) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        let close_span = self.consume(&TokenType::RPAREN, "Expected a '(' after function params")?;
+
+        Ok(params)
+    }
+
+    fn parse_type(&mut self) -> ParserResult<Spanned<Ty>> {
+        if self.recognise(TokenType::I8) {
+            Ok(Spanned {
+                value: Ty::I8,
+                span: self.consume_get_span(&TokenType::I8, "Expected an i8")?,
+            })
+        } else if self.recognise(TokenType::I32) {
+            Ok(Spanned {
+                value: Ty::I32,
+                span: self.consume_get_span(&TokenType::I32, "Expected an i32")?,
+            })
+        } else if self.recognise(TokenType::I64) {
+            Ok(Spanned {
+                value: Ty::I64,
+                span: self.consume_get_span(&TokenType::I64, "Expected an i64")?,
+            })
+        } else if self.recognise(TokenType::U8) {
+            Ok(Spanned {
+                value: Ty::I8,
+                span: self.consume_get_span(&TokenType::U8, "Expected an u8")?,
+            })
+        } else if self.recognise(TokenType::I32) {
+            Ok(Spanned {
+                value: Ty::I32,
+                span: self.consume_get_span(&TokenType::U32, "Expected an u32")?,
+            })
+        } else if self.recognise(TokenType::I64) {
+            Ok(Spanned {
+                value: Ty::I64,
+                span: self.consume_get_span(&TokenType::U64, "Expected an u64")?,
+            })
+        } else if self.recognise(TokenType::BOOL) {
+            Ok(Spanned {
+                value: Ty::Bool,
+                span: self.consume_get_span(&TokenType::BOOL, "Expected a bool")?,
+            })
+        } else if self.recognise(TokenType::NIL) {
+            Ok(Spanned {
+                value: Ty::Nil,
+                span: self.consume_get_span(&TokenType::NIL, "Expected nil")?,
+            })
+        } else {
+            let ident = self.consume_get_ident("Expected an identifer")?;
+
+            let mut types = vec![];
+
+            let mut close_span = None;
+
+            if self.recognise(TokenType::LESSTHAN) {
+                let open_span = self.consume_get_span(&TokenType::LESSTHAN, "Expected a lparen")?;
+
+                loop {
+                    types.push(self.parse_type()?);
+                    if self.recognise(TokenType::COMMA) {
+                        self.advance();
+                    } else {
+                        break;
+                    }
+                }
+
+                close_span = Some(self.consume_get_span(&TokenType::GREATERTHAN, "Expected a '>' ")?);
+            }
+
+            Ok(Spanned {
+                span:ident.get_span().to(close_span.unwrap_or(ident.get_span())),
+                value:Ty::Name(ident,types)
+            })
+        }
+    }
+
+
+    fn parse_statement(&mut self) -> ParserResult<Spanned<Statement>> {
+        unimplemented!()
     }
 }

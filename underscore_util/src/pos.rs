@@ -85,10 +85,16 @@ impl Display for Span {
 }
 
 impl Span {
-    fn to(mut self, other: Span) -> Self {
+    pub fn to(mut self, other: Span) -> Self {
         self.end.line += other.end.line;
         self.end.column += other.end.column;
         self
+    }
+}
+
+impl<T> Spanned<T> {
+    pub fn get_span(&self) -> Span {
+        self.span
     }
 }
 impl Position {
