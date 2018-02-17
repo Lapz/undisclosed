@@ -25,12 +25,12 @@ pub struct Field {
 }
 
 pub struct Function {
-    span: Span,
-    name: Spanned<ItemName>,
-    params: Vec<Spanned<FunctionParams>>,
-    returns: Option<Spanned<Ty>>,
-    body: Spanned<Statement>,
-    linkage: Linkage,
+    pub span: Span,
+    pub name: Spanned<ItemName>,
+    pub params: Vec<Spanned<FunctionParams>>,
+    pub returns: Option<Spanned<Ty>>,
+    pub body: Spanned<Statement>,
+    pub linkage: Linkage,
 }
 
 pub struct FunctionParams {
@@ -56,7 +56,7 @@ pub enum Ty {
 }
 
 pub enum Statement {
-    Block(Vec<Spanned<Expression>>),
+    Block(Vec<Spanned<Statement>>),
     Break,
     Continue,
     Expr(Spanned<Expression>),
@@ -71,17 +71,12 @@ pub enum Statement {
         body: Box<Spanned<Statement>>,
     },
     TyAlias {
-        alias: Ident,
+        alias: Spanned<Ident>,
         ty: Spanned<Ty>,
     },
 }
 
 pub enum Expression {
-    Array {
-        init: Box<Spanned<Expression>>,
-        items: Vec<Spanned<Expression>>,
-        ty: Spanned<Ty>,
-    },
     Assign {
         name: Spanned<Ident>,
         value: Box<Spanned<Expression>>,
