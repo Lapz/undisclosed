@@ -104,7 +104,7 @@ pub enum Expression {
     Literal(Literal),
 
     Unary {
-        op: UnaryOp,
+        op: Spanned<UnaryOp>,
         expr: Box<Spanned<Expression>>,
     },
 

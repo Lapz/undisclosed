@@ -192,6 +192,43 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
+    fn get_unary_op(&mut self) -> ParserResult<Spanned<UnaryOp>> {
+        match self.advance() {
+            Some(Spanned {
+                value: Token {
+                    token: TokenType::BANG,
+                },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: UnaryOp::Minus,
+            }),
+            Some(Spanned {
+                value: Token {
+                    token: TokenType::MINUS,
+                },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: UnaryOp::Minus,
+            }),
+            Some(Spanned {
+                value: Token { ref token },
+                ref span,
+            }) => {
+                let msg = format!("Expected '!' or '-' but instead found {}", token);
+
+                self.error(msg, *span);
+
+                Err(())
+            }
+            None => {
+                self.reporter.global_error("Unexpected EOF");
+                Err(())
+            }
+        }
+    }
+
     fn get_binary_op(&mut self) -> ParserResult<Spanned<Op>> {
         match self.advance() {
             Some(Spanned {
@@ -275,7 +312,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                 ref span,
             }) => {
                 let msg = format!(
-                    "Expected one of '+' '-' '/' '*' '=' '<' '>' '<=' '=>' but instead found {}",
+                    "Expected one of '!' '+' '-' '/' '*' '=' '<' '>' '<=' '=>' but instead found {}",
                     token
                 );
 
@@ -677,10 +714,13 @@ impl PrefixParselet for NameParselet {
                 }),
             })
         } else {
-            Ok(Expression::Var(Spanned {
+            Ok(Spanned {
                 span: ident.get_span(),
-                value: Var::Simple(ident),
-            }))
+                value: Expression::Var(Spanned {
+                    span: ident.get_span(),
+                    value: Var::Simple(ident),
+                }),
+            })
         }
     }
 }
@@ -689,6 +729,11 @@ struct PrefixOperatorParselet;
 
 impl PrefixParselet for PrefixOperatorParselet {
     fn parse(&self, parser: &mut Parser) -> ParserResult<Spanned<Expression>> {
-        unimplemented!()
+        let op = parser.get_unary_op()?;
+        let expr = Box::new(parser.parse_expression()?);
+        Ok(Spanned {
+            span: op.get_span().to(expr.get_span()),
+            value: Expression::Unary { op, expr },
+        })
     }
 }
