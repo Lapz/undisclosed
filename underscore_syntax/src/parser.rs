@@ -81,7 +81,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         self.tokens.next()
     }
 
-    fn consume(&mut self, token_to_check: &TokenType<'a>, msg: &str) -> ParserResult<()> {
+    pub fn consume(&mut self, token_to_check: &TokenType<'a>, msg: &str) -> ParserResult<()> {
         match self.advance() {
             Some(Spanned {
                 ref span,
@@ -131,7 +131,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-    fn consume_get_ident(&mut self, msg: &str) -> ParserResult<Spanned<Ident>> {
+    pub fn consume_get_ident(&mut self, msg: &str) -> ParserResult<Spanned<Ident>> {
         match self.advance() {
             Some(Spanned {
                 value:
@@ -180,6 +180,104 @@ impl<'a, 'b> Parser<'a, 'b> {
                 ref span,
             }) => {
                 let msg = format!("{} but instead found {}", msg, token);
+
+                self.error(msg, *span);
+
+                Err(())
+            }
+            None => {
+                self.reporter.global_error("Unexpected EOF");
+                Err(())
+            }
+        }
+    }
+
+    fn get_binary_op(&mut self) -> ParserResult<Spanned<Op>> {
+        match self.advance() {
+            Some(Spanned {
+                value: Token {
+                    token: TokenType::GREATERTHAN,
+                },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: Op::GT,
+            }),
+            Some(Spanned {
+                value: Token {
+                    token: TokenType::LESSTHAN,
+                },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: Op::LT,
+            }),
+            Some(Spanned {
+                value:
+                    Token {
+                        token: TokenType::GREATERTHANEQUAL,
+                    },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: Op::GTE,
+            }),
+            Some(Spanned {
+                value:
+                    Token {
+                        token: TokenType::LESSTHANEQUAL,
+                    },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: Op::LTE,
+            }),
+            Some(Spanned {
+                value: Token {
+                    token: TokenType::PLUS,
+                },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: Op::Plus,
+            }),
+            Some(Spanned {
+                value: Token {
+                    token: TokenType::MINUS,
+                },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: Op::Minus,
+            }),
+            Some(Spanned {
+                value: Token {
+                    token: TokenType::STAR,
+                },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: Op::Star,
+            }),
+
+            Some(Spanned {
+                value: Token {
+                    token: TokenType::SLASH,
+                },
+                ref span,
+            }) => Ok(Spanned {
+                span: *span,
+                value: Op::Slash,
+            }),
+
+            Some(Spanned {
+                value: Token { ref token },
+                ref span,
+            }) => {
+                let msg = format!(
+                    "Expected one of '+' '-' '/' '*' '=' '<' '>' '<=' '=>' but instead found {}",
+                    token
+                );
 
                 self.error(msg, *span);
 
@@ -501,11 +599,11 @@ impl<'a, 'b> Parser<'a, 'b> {
 
 impl<'a, 'b> Parser<'a, 'b> {
     fn parse_expression(&mut self) -> ParserResult<Spanned<Expression>> {
-        self.parse_assignment()
+        unimplemented!()
     }
 
     fn parse_assignment(&mut self) -> ParserResult<Spanned<Expression>> {
-       unimplemented!()
+        unimplemented!()
     }
 
     fn parse_and(&mut self) -> ParserResult<Spanned<Expression>> {
@@ -539,4 +637,58 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn primary(&mut self) -> ParserResult<Spanned<Expression>> {
         unimplemented!()
     }
- }
+}
+
+trait PrefixParselet {
+    fn parse(&self, parser: &mut Parser) -> ParserResult<Spanned<Expression>>;
+}
+
+struct NameParselet;
+
+impl PrefixParselet for NameParselet {
+    fn parse(&self, parser: &mut Parser) -> ParserResult<Spanned<Expression>> {
+        let ident = parser.consume_get_ident("Expected an Identifer")?;
+
+        if parser.recognise(TokenType::DOT) {
+            parser.consume(&TokenType::DOT, "Expected '.' ")?;
+
+            let value = parser.consume_get_ident("Expected an Identifer")?;
+
+            Ok(Spanned {
+                span: ident.get_span().to(value.get_span()),
+                value: Expression::Var(Spanned {
+                    span: ident.get_span().to(value.get_span()),
+                    value: Var::Field { ident, value },
+                }),
+            })
+        } else if parser.recognise(TokenType::LBRACKET) {
+            parser.consume(&TokenType::LBRACKET, "Expected '[' ")?;
+            let expr = Box::new(parser.parse_expression()?);
+            let close_span = parser.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
+
+            Ok(Spanned {
+                span: ident.get_span().to(close_span),
+                value: Expression::Var(Spanned {
+                    span: ident.get_span().to(close_span),
+                    value: Var::SubScript {
+                        expr,
+                        target: ident,
+                    },
+                }),
+            })
+        } else {
+            Ok(Expression::Var(Spanned {
+                span: ident.get_span(),
+                value: Var::Simple(ident),
+            }))
+        }
+    }
+}
+
+struct PrefixOperatorParselet;
+
+impl PrefixParselet for PrefixOperatorParselet {
+    fn parse(&self, parser: &mut Parser) -> ParserResult<Spanned<Expression>> {
+        unimplemented!()
+    }
+}

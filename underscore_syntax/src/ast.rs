@@ -82,9 +82,9 @@ pub enum Expression {
         value: Box<Spanned<Expression>>,
     },
     Binary {
-        lft: Box<Spanned<Expression>>,
-        op: Op,
-        rft: Box<Spanned<Expression>>,
+        lhs: Box<Spanned<Expression>>,
+        op: Spanned<Op>,
+        rhs: Box<Spanned<Expression>>,
     },
 
     Cast {
@@ -122,13 +122,13 @@ pub enum Literal {
 
 pub enum Var {
     Field {
-        expr: Box<Spanned<Expression>>,
         ident: Spanned<Ident>,
+        value: Spanned<Ident>,
     },
     Simple(Spanned<Ident>),
     SubScript {
         expr: Box<Spanned<Expression>>,
-        target: Box<Spanned<Expression>>,
+        target: Spanned<Ident>,
     },
 }
 
