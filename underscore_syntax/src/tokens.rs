@@ -11,7 +11,7 @@ impl<'a> Display for Token<'a> {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Hash, Eq)]
 pub enum TokenType<'a> {
     IDENTIFIER(&'a str),
     STRING(String),
@@ -25,11 +25,7 @@ pub enum TokenType<'a> {
     U64,  // u64
     BOOL, // bool
     // Assignment
-    ASSIGN,      // =
-    PLUSASSIGN,  // +=
-    MINUSASSIGN, // -=
-    STARASSIGN,  // *=
-    SLASHASSIGN, // /=
+    ASSIGN, // =
     // Operators
     PLUS,  // +
     MINUS, // -
@@ -73,7 +69,10 @@ pub enum TokenType<'a> {
     WHILE,       // while
     NIL,         // nil
     TYPE,        // type
-    EXTERNAL,    // EXTERNAL
+    EXTERNAL,    // external
+    AND,         // and
+    OR,          // or
+    STRUCT,      // struct
     // Other
     EOF,
 }
@@ -93,10 +92,6 @@ impl<'a> Display for TokenType<'a> {
             TokenType::CHAR(ref c) => write!(f, "{}", c),
             TokenType::STRING(ref s) => write!(f, "{}", s),
             TokenType::ASSIGN => write!(f, "="),
-            TokenType::STARASSIGN => write!(f, "*="),
-            TokenType::PLUSASSIGN => write!(f, "+="),
-            TokenType::MINUSASSIGN => write!(f, "-="),
-            TokenType::SLASHASSIGN => write!(f, "/="),
             TokenType::PLUS => write!(f, "+"),
             TokenType::MINUS => write!(f, "-"),
             TokenType::BANG => write!(f, "!"),
@@ -134,10 +129,13 @@ impl<'a> Display for TokenType<'a> {
             TokenType::RETURN => write!(f, "return"),
             TokenType::TRUE(_) => write!(f, "true"),
             TokenType::FALSE(_) => write!(f, "false"),
+            TokenType::AND => write!(f, "and"),
+            TokenType::OR => write!(f, "or"),
             TokenType::FOR => write!(f, "for"),
             TokenType::WHILE => write!(f, "while"),
             TokenType::NIL => write!(f, "nil"),
             TokenType::EXTERNAL => write!(f, "external"),
+            TokenType::STRUCT => write!(f, "struct"),
             TokenType::EOF => write!(f, "\0"),
         }
     }

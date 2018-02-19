@@ -428,6 +428,7 @@ fn look_up_identifier(id: &str) -> TokenType {
         "fn" => TokenType::FUNCTION,
         "external" => TokenType::EXTERNAL,
         "let" => TokenType::LET,
+        "struct" => TokenType::STRUCT,
         // Control Flow
         "if" => TokenType::IF,
         "else" => TokenType::ELSE,
@@ -439,6 +440,8 @@ fn look_up_identifier(id: &str) -> TokenType {
         // Booleans
         "true" => TokenType::TRUE(true),
         "false" => TokenType::FALSE(false),
+        "and" => TokenType::AND,
+        "or" => TokenType::OR,
         "bool" => TokenType::BOOL,
         "nil" => TokenType::NIL,
         "u8" => TokenType::U8,

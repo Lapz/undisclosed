@@ -13,11 +13,11 @@ use std::io;
 fn main() {
     let reporter = Reporter::new();
 
-    let mut input = String::new();
+    let mut input = String::from("fn fib() { 10; } ");
 
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Couldn't read input");
+    // io::stdin()
+    //     .read_line(&mut input)
+    //     .expect("Couldn't read input");
 
     let tokens = Lexer::new(&input, reporter.clone()).lex();
 
@@ -27,7 +27,12 @@ fn main() {
 
     let mut table = Table::new(Rc::clone(&strings));
 
+
+
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
-    reporter.emit(&input);
+    match parser.parse_function() {
+        Ok(p) => println!("{:#?}", p),
+        Err(_) => reporter.emit(&input),
+    };
 }

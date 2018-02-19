@@ -1,29 +1,31 @@
 use std::fmt::{self, Display};
 use util::pos::{Span, Spanned};
+
+#[derive(Debug)]
 pub struct Program {
-    structs: Vec<Struct>,
-    functions: Vec<Function>,
+    pub structs: Vec<Spanned<Struct>>,
+    pub functions: Vec<Spanned<Function>>,
 }
 
-#[derive(Hash, Copy, Clone, PartialEq, Eq)]
+#[derive(Hash, Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Ident(pub u32);
-
+#[derive(Debug)]
 pub struct ItemName {
     pub name: Spanned<Ident>,
     pub type_params: Vec<Spanned<Ident>>,
 }
-
+#[derive(Debug)]
 pub struct Struct {
     span: Span,
     name: ItemName,
     fields: Vec<Spanned<Field>>,
 }
-
+#[derive(Debug)]
 pub struct Field {
     name: Spanned<Ident>,
     ty: Spanned<Ty>,
 }
-
+#[derive(Debug)]
 pub struct Function {
     pub span: Span,
     pub name: Spanned<ItemName>,
@@ -32,17 +34,17 @@ pub struct Function {
     pub body: Spanned<Statement>,
     pub linkage: Linkage,
 }
-
+#[derive(Debug)]
 pub struct FunctionParams {
     pub name: Spanned<Ident>,
     pub ty: Spanned<Ty>,
 }
-
+#[derive(Debug)]
 pub enum Linkage {
     Normal,
     External,
 }
-
+#[derive(Debug)]
 pub enum Ty {
     Name(Spanned<Ident>, Vec<Spanned<Ty>>),
     Nil,
@@ -54,7 +56,7 @@ pub enum Ty {
     U64,
     Bool,
 }
-
+#[derive(Debug)]
 pub enum Statement {
     Block(Vec<Spanned<Statement>>),
     Break,
@@ -75,10 +77,10 @@ pub enum Statement {
         ty: Spanned<Ty>,
     },
 }
-
+#[derive(Debug)]
 pub enum Expression {
     Assign {
-        name: Spanned<Ident>,
+        name: Spanned<Var>,
         value: Box<Spanned<Expression>>,
     },
     Binary {
@@ -110,7 +112,7 @@ pub enum Expression {
 
     Var(Spanned<Var>),
 }
-
+#[derive(Debug)]
 pub enum Literal {
     Number(Number),
     True(bool),
@@ -119,7 +121,7 @@ pub enum Literal {
     Str(String),
     Char(char),
 }
-
+#[derive(Debug)]
 pub enum Var {
     Field {
         ident: Spanned<Ident>,
@@ -131,7 +133,7 @@ pub enum Var {
         target: Spanned<Ident>,
     },
 }
-
+#[derive(Debug)]
 pub enum Op {
     NEq,
     Equal,
@@ -143,6 +145,8 @@ pub enum Op {
     Minus,
     Star,
     Slash,
+    And,
+    Or,
 }
 
 #[derive(Debug, PartialOrd, Clone, PartialEq, Hash)]
@@ -151,19 +155,19 @@ pub enum UnaryOp {
     Minus,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash, Eq, Copy)]
 pub struct Number {
     pub value: u64,
     pub ty: Option<(Sign, Size)>, // Option because not all numbers are declared like 10u32
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Hash, Eq, Copy)]
 pub enum Sign {
     Signed,
     Unsigned,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Hash, Eq, Copy)]
 pub enum Size {
     Bit8,
     Bit32,
