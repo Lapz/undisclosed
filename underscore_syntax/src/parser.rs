@@ -703,10 +703,8 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let body = self.parse_statement()?;
 
-        let close_span = self.consume_get_span(&TokenType::COLON, "Expected ';' ")?;
-
         Ok(Spanned {
-            span: open_span.to(close_span),
+            span: open_span.to(body.get_span()),
             value: Statement::While {
                 cond,
                 body: Box::new(body),

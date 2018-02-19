@@ -13,7 +13,11 @@ use std::io;
 fn main() {
     let reporter = Reporter::new();
 
-    let mut input = String::from("fn fib() { 10; } ");
+    let mut input = String::from("fn main() {
+    while true {
+        break
+    }
+}");
 
     // io::stdin()
     //     .read_line(&mut input)
