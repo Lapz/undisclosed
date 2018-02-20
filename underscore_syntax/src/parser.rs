@@ -184,6 +184,10 @@ impl<'a, 'b> Parser<'a, 'b> {
                         self.synchronize();
                     }
                 }
+            } else {
+                self.reporter.global_error("Err");
+                self.synchronize();
+                err_occured = true;
             }
         }
 

@@ -8,29 +8,34 @@ use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use std::rc::Rc;
 
-use std::io;
+use std::io::{self,Write};
 
 fn main() {
     let reporter = Reporter::new();
 
     let mut input = String::new();
 
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Couldn't read input");
+    loop {
+        let _ = io::stdout().write(b"underscore>> ");
+        let _ = io::stdout().flush();
 
-    let tokens = Lexer::new(&input, reporter.clone()).lex();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Couldn't read input");
 
-    reporter.emit(&input);
+        let tokens = Lexer::new(&input, reporter.clone()).lex();
 
-    let strings = Rc::new(FactoryMap::new());
+        reporter.emit(&input);
 
-    let mut table = Table::new(Rc::clone(&strings));
+        let strings = Rc::new(FactoryMap::new());
 
-    let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
+        let mut table = Table::new(Rc::clone(&strings));
 
-    match parser.parse() {
-        Ok(p) => println!("{:#?}", p),
-        Err(_) => reporter.emit(&input),
-    };
+        let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
+
+        match parser.parse() {
+            Ok(p) => println!("{:#?}", p),
+            Err(_) => reporter.emit(&input),
+        };
+    }
 }
