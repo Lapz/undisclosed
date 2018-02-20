@@ -17,15 +17,17 @@ pub struct ItemName {
 }
 #[derive(Debug)]
 pub struct Struct {
-    span: Span,
-    name: ItemName,
-    fields: Vec<Spanned<Field>>,
+    pub span: Span,
+    pub name: Spanned<ItemName>,
+    pub fields: Spanned<Vec<Spanned<Field>>>,
 }
+
 #[derive(Debug)]
 pub struct Field {
-    name: Spanned<Ident>,
-    ty: Spanned<Ty>,
+    pub name: Spanned<Ident>,
+    pub ty: Spanned<Ty>,
 }
+
 #[derive(Debug)]
 pub struct Function {
     pub span: Span,

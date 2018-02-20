@@ -1,5 +1,6 @@
 use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
 use ast::{Expression, Literal, Op, Statement, UnaryOp, Var};
+use ast::{Field, Struct};
 use ast::TyAlias;
 use ast::Program;
 use std::iter::Peekable;
@@ -167,8 +168,16 @@ impl<'a, 'b> Parser<'a, 'b> {
                         self.synchronize();
                     }
                 }
+            } else if self.recognise(TokenType::STRUCT) {
+                match self.parse_struct() {
+                    Ok(s) => program.structs.push(s),
+                    Err(_) => {
+                        err_occured = true;
+                        self.synchronize();
+                    }
+                }
             } else if self.recognise(TokenType::TYPE) {
-                 match self.parse_ty_alias() {
+                match self.parse_ty_alias() {
                     Ok(alias) => program.type_alias.push(alias),
                     Err(_) => {
                         err_occured = true;
@@ -403,6 +412,59 @@ impl<'a, 'b> Parser<'a, 'b> {
         })
     }
 
+    fn parse_struct(&mut self) -> ParserResult<Spanned<Struct>> {
+        let struct_span = self.consume_get_span(&TokenType::STRUCT, "Expected 'struct' ")?;
+
+        let name = self.parse_item_name()?;
+
+        let fields = self.parse_struct_fields()?;
+
+        Ok(Spanned {
+            span: struct_span.to(fields.get_span()),
+            value: Struct {
+                span: struct_span,
+                name,
+                fields,
+            },
+        })
+    }
+
+    fn parse_struct_fields(&mut self) -> ParserResult<Spanned<Vec<Spanned<Field>>>> {
+        let open_span =
+            self.consume_get_span(&TokenType::LBRACE, "Expected a '{' after struct name")?;
+
+        let mut params = Vec::new();
+
+        if !self.recognise(TokenType::RBRACE) {
+            loop {
+                let (open_span, name) = self.consume_get_ident_and_span("Expected a param name")?;
+
+                self.consume(&TokenType::COLON, "Expected a colon")?;
+
+                let ty = self.parse_type()?;
+
+                params.push(Spanned {
+                    span: open_span.to(ty.get_span()),
+                    value: Field { name, ty },
+                });
+
+                if self.recognise(TokenType::COMMA) {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let close_span =
+            self.consume_get_span(&TokenType::RBRACE, "Expected a '}' after struct fields")?;
+
+        Ok(Spanned {
+            span: open_span.to(close_span),
+            value: params,
+        })
+    }
+
     pub fn parse_function(&mut self) -> ParserResult<Spanned<Function>> {
         let linkage = if self.recognise(TokenType::EXTERNAL) {
             Linkage::External
@@ -410,7 +472,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             Linkage::Normal
         };
 
-        let fn_span = self.consume_get_span(&TokenType::FUNCTION, "Expected a 'fn'")?;
+        let fn_span = self.consume_get_span(&TokenType::FUNCTION, "Expected 'fn'")?;
 
         let name = self.parse_item_name()?;
 
