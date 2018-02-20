@@ -136,7 +136,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::NIL => write!(f, "nil"),
             TokenType::EXTERNAL => write!(f, "external"),
             TokenType::STRUCT => write!(f, "struct"),
-            TokenType::EOF => write!(f, "\0"),
+            TokenType::EOF => write!(f, "EOF"),
         }
     }
 }

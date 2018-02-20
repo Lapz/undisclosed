@@ -185,7 +185,6 @@ impl<'a, 'b> Parser<'a, 'b> {
                     }
                 }
             } else {
-                self.reporter.global_error("Err");
                 self.synchronize();
                 err_occured = true;
             }

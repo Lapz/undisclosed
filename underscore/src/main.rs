@@ -11,13 +11,14 @@ use std::rc::Rc;
 use std::io::{self,Write};
 
 fn main() {
-    let reporter = Reporter::new();
 
     let mut input = String::new();
 
     loop {
+        
         let _ = io::stdout().write(b"underscore>> ");
         let _ = io::stdout().flush();
+        let reporter = Reporter::new();
 
         io::stdin()
             .read_line(&mut input)
