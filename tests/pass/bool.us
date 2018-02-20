@@ -1,0 +1,13 @@
+type True = true;
+
+type False = false;
+
+fn main() {
+    if False {
+        print("Not here");
+    }
+    
+    if True {
+        print("true");
+    }
+}

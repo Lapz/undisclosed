@@ -1,8 +1,16 @@
 [package]
 name = "underscore"
 version = "0.1.0"
-authors = ["rowlandsonpratt <striderman34@gmail.com>"]
+authors = ["LenardPratt <striderman34@gmail.com>"]
 
 [dependencies]
 underscore_syntax =  {path="../underscore_syntax"}
 underscore_util =  {path="../underscore_util"}
+
+[[test]]
+name ="underscore_test"
+path ="../tests/underscore_test.rs"
+harness = false
+
+[dev-dependencies]
+walkdir = "2"

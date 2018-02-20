@@ -184,7 +184,8 @@ impl<'a, 'b> Parser<'a, 'b> {
                         self.synchronize();
                     }
                 }
-            } else {
+            } else { 
+                // TODO GET THE UNKONW SPAN and report an error on it;
                 self.synchronize();
                 err_occured = true;
             }

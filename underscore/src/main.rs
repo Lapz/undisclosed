@@ -26,8 +26,6 @@ fn main() {
 
         let tokens = Lexer::new(&input, reporter.clone()).lex();
 
-        reporter.emit(&input);
-
         let strings = Rc::new(FactoryMap::new());
 
         let mut table = Table::new(Rc::clone(&strings));
