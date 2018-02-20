@@ -29,7 +29,7 @@ pub struct Field {
 pub struct Function {
     pub span: Span,
     pub name: Spanned<ItemName>,
-    pub params: Vec<Spanned<FunctionParams>>,
+    pub params: Spanned<Vec<Spanned<FunctionParams>>>,
     pub returns: Option<Spanned<Ty>>,
     pub body: Spanned<Statement>,
     pub linkage: Linkage,

@@ -13,11 +13,7 @@ use std::io;
 fn main() {
     let reporter = Reporter::new();
 
-    let mut input = String::from("fn main() {
-    while true {
-        break
-    }
-}");
+    let mut input = String::from("fn main() { foo(1+1,2); }");
 
     // io::stdin()
     //     .read_line(&mut input)
@@ -30,8 +26,6 @@ fn main() {
     let strings = Rc::new(FactoryMap::new());
 
     let mut table = Table::new(Rc::clone(&strings));
-
-
 
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
