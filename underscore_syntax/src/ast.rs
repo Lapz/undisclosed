@@ -5,6 +5,7 @@ use util::pos::{Span, Spanned};
 pub struct Program {
     pub structs: Vec<Spanned<Struct>>,
     pub functions: Vec<Spanned<Function>>,
+    pub type_alias: Vec<Spanned<TyAlias>>,
 }
 
 #[derive(Hash, Debug, Copy, Clone, PartialEq, Eq)]
@@ -56,6 +57,13 @@ pub enum Ty {
     U64,
     Bool,
 }
+
+#[derive(Debug)]
+pub struct TyAlias {
+    pub alias: Spanned<Ident>,
+    pub ty: Spanned<Ty>,
+}
+
 #[derive(Debug)]
 pub enum Statement {
     Block(Vec<Spanned<Statement>>),
@@ -71,10 +79,6 @@ pub enum Statement {
     While {
         cond: Spanned<Expression>,
         body: Box<Spanned<Statement>>,
-    },
-    TyAlias {
-        alias: Spanned<Ident>,
-        ty: Spanned<Ty>,
     },
 }
 #[derive(Debug)]

@@ -1,5 +1,6 @@
 use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
-use ast::{Expression, Literal,Op, Statement, UnaryOp, Var};
+use ast::{Expression, Literal, Op, Statement, UnaryOp, Var};
+use ast::TyAlias;
 use ast::Program;
 use std::iter::Peekable;
 use std::vec::IntoIter;
@@ -135,7 +136,6 @@ macro_rules! get_unary_op {
     }
 }
 
-
 impl<'a, 'b> Parser<'a, 'b> {
     pub fn new(
         tokens: Vec<Spanned<Token<'a>>>,
@@ -153,6 +153,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         let mut program = Program {
             structs: Vec::new(),
             functions: Vec::new(),
+            type_alias: Vec::new(),
         };
 
         let mut err_occured = false;
@@ -161,6 +162,14 @@ impl<'a, 'b> Parser<'a, 'b> {
             if self.recognise(TokenType::FUNCTION) {
                 match self.parse_function() {
                     Ok(func) => program.functions.push(func),
+                    Err(_) => {
+                        err_occured = true;
+                        self.synchronize();
+                    }
+                }
+            } else if self.recognise(TokenType::TYPE) {
+                 match self.parse_ty_alias() {
+                    Ok(alias) => program.type_alias.push(alias),
                     Err(_) => {
                         err_occured = true;
                         self.synchronize();
@@ -353,7 +362,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-    fn get_unary_op(&mut self) -> ParserResult<Spanned<UnaryOp>> {      
+    fn get_unary_op(&mut self) -> ParserResult<Spanned<UnaryOp>> {
         get_unary_op!(self,{
             BANG => Bang,
             MINUS => Minus
@@ -377,6 +386,23 @@ impl<'a, 'b> Parser<'a, 'b> {
 }
 
 impl<'a, 'b> Parser<'a, 'b> {
+    fn parse_ty_alias(&mut self) -> ParserResult<Spanned<TyAlias>> {
+        let open_span = self.consume_get_span(&TokenType::TYPE, "Expected 'type' ")?;
+
+        let alias = self.consume_get_ident("Expected an identifier")?;
+
+        self.consume(&TokenType::ASSIGN, "Expected '=' ")?;
+
+        let ty = self.parse_type()?;
+
+        let close_span = self.consume_get_span(&TokenType::SEMICOLON, "Expected ';' ")?;
+
+        Ok(Spanned {
+            span: open_span.to(close_span),
+            value: TyAlias { alias, ty },
+        })
+    }
+
     pub fn parse_function(&mut self) -> ParserResult<Spanned<Function>> {
         let linkage = if self.recognise(TokenType::EXTERNAL) {
             Linkage::External
@@ -476,11 +502,12 @@ impl<'a, 'b> Parser<'a, 'b> {
             }
         }
 
-        let close_span = self.consume_get_span(&TokenType::RPAREN, "Expected a '(' after function params")?;
+        let close_span =
+            self.consume_get_span(&TokenType::RPAREN, "Expected a '(' after function params")?;
 
-        Ok(Spanned{
-            span:open_span.to(close_span),
-            value:params
+        Ok(Spanned {
+            span: open_span.to(close_span),
+            value: params,
         })
     }
 
@@ -567,8 +594,6 @@ impl<'a, 'b> Parser<'a, 'b> {
             self.parse_return_statement()
         } else if self.recognise(TokenType::WHILE) {
             self.parse_while_statement()
-        } else if self.recognise(TokenType::TYPE) {
-            self.parse_ty_alias()
         } else {
             self.parse_expression_statement()
         }
@@ -668,23 +693,6 @@ impl<'a, 'b> Parser<'a, 'b> {
                 cond,
                 body: Box::new(body),
             },
-        })
-    }
-
-    fn parse_ty_alias(&mut self) -> ParserResult<Spanned<Statement>> {
-        let open_span = self.consume_get_span(&TokenType::TYPE, "Expected 'type' ")?;
-
-        let alias = self.consume_get_ident("Expected an identifier")?;
-
-        self.consume(&TokenType::ASSIGN, "Expected '=' ")?;
-
-        let ty = self.parse_type()?;
-
-        let close_span = self.consume_get_span(&TokenType::COLON, "Expected ';' ")?;
-
-        Ok(Spanned {
-            span: open_span.to(close_span),
-            value: Statement::TyAlias { alias, ty },
         })
     }
 }
