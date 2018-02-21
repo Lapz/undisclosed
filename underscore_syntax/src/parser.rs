@@ -19,6 +19,7 @@ pub struct Parser<'a, 'b> {
 
 pub type ParserResult<T> = Result<T, ()>;
 
+/// Macro that is used to generate the code that parse a binary op
 macro_rules! binary {
     ($_self:ident,$e:ident,$lhs:expr,$func:ident) => {
         while $_self.recognise($e) {
@@ -54,7 +55,7 @@ macro_rules! binary {
         }
     };
 }
-
+/// Macro that expands to a match that takes a `TokenType` and turns it into a Operator
 macro_rules! get_op {
     ($_self:ident,{ $($p:ident => $t:ident),*}) => {
         {
@@ -96,6 +97,7 @@ macro_rules! get_op {
     }
 }
 
+// The unary version of the get_binary_op macro
 macro_rules! get_unary_op {
     ($_self:ident,{ $($p:ident => $t:ident),*}) => {
         {
