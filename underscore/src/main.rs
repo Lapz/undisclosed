@@ -1,5 +1,8 @@
 extern crate underscore_syntax;
 
+extern crate structopt;
+#[macro_use]
+extern crate structopt_derive;
 extern crate underscore_util;
 
 use underscore_util::emitter::Reporter;
@@ -7,18 +10,25 @@ use underscore_util::symbol::{FactoryMap, Table};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use std::rc::Rc;
-
-use std::io::{self,Write};
+use structopt::StructOpt;
+use std::io::{self, Write};
 
 fn main() {
+    let opts = Cli::from_args();
 
-    let mut input = String::new();
+    if let Some(file) = opts.source {
+        run(file);
+    } else {
+        repl()
+    }
+}
 
+fn repl() {
     loop {
-        
         let _ = io::stdout().write(b"underscore>> ");
         let _ = io::stdout().flush();
         let reporter = Reporter::new();
+        let mut input = String::new();
 
         io::stdin()
             .read_line(&mut input)
@@ -37,4 +47,44 @@ fn main() {
             Err(_) => reporter.emit(&input),
         };
     }
+}
+
+fn run(path: String) {
+    use std::fs::File;
+    use std::io::Read;
+
+    let mut file = File::open(path).expect("File not found");
+
+    let mut contents = String::new();
+
+    file.read_to_string(&mut contents)
+        .expect("something went wrong reading the file");
+
+    let input = contents.trim();
+
+    if contents.is_empty() {
+        ::std::process::exit(0)
+    }
+
+    let reporter = Reporter::new();
+
+    let tokens = Lexer::new(&input, reporter.clone()).lex();
+
+    let strings = Rc::new(FactoryMap::new());
+
+    let mut table = Table::new(Rc::clone(&strings));
+
+    let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
+
+    match parser.parse() {
+        Ok(p) => (),
+        Err(_) => reporter.emit(&input),
+    };
+}
+
+#[derive(StructOpt, Debug)]
+#[structopt(name = "underscore")]
+pub struct Cli {
+    /// The source code file
+    pub source: Option<String>,
 }

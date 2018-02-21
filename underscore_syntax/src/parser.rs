@@ -184,7 +184,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                         self.synchronize();
                     }
                 }
-            } else { 
+            } else {
                 // TODO GET THE UNKONW SPAN and report an error on it;
                 self.synchronize();
                 err_occured = true;
@@ -393,7 +393,8 @@ impl<'a, 'b> Parser<'a, 'b> {
             PLUS => Plus,
             MINUS => Minus,
             STAR => Star,
-            SLASH => Slash
+            SLASH => Slash,
+            EQUALEQUAL => Equal
         })
     }
 }
@@ -654,9 +655,14 @@ impl<'a, 'b> Parser<'a, 'b> {
             self.parse_break_statement()
         } else if self.recognise(TokenType::CONTINUE) {
             self.parse_continue_statement()
+        } else if self.recognise(TokenType::FOR) {
+            self.parse_for_statement()
         } else if self.recognise(TokenType::IF) {
             self.parse_if_statement()
-        } else if self.recognise(TokenType::RETURN) {
+        } else if self.recognise(TokenType::LET) {
+            self.parse_let_declaration()
+        }
+        else if self.recognise(TokenType::RETURN) {
             self.parse_return_statement()
         } else if self.recognise(TokenType::WHILE) {
             self.parse_while_statement()
@@ -685,16 +691,18 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     fn parse_break_statement(&mut self) -> ParserResult<Spanned<Statement>> {
+        self.consume_get_span(&TokenType::BREAK, "Expected a 'break' ")?;
         Ok(Spanned {
             value: Statement::Break,
-            span: self.consume_get_span(&TokenType::BREAK, "Expected a 'break' ")?,
+            span: self.consume_get_span(&TokenType::SEMICOLON, "Expected ';' ")?,
         })
     }
 
     fn parse_continue_statement(&mut self) -> ParserResult<Spanned<Statement>> {
+        self.consume_get_span(&TokenType::CONTINUE, "Expected 'continue' ")?;
         Ok(Spanned {
             value: Statement::Continue,
-            span: self.consume_get_span(&TokenType::CONTINUE, "Expected 'continue' ")?,
+            span: self.consume_get_span(&TokenType::SEMICOLON, "Expected ';' ")?,
         })
     }
 
@@ -707,6 +715,50 @@ impl<'a, 'b> Parser<'a, 'b> {
         })
     }
 
+    fn parse_for_statement(&mut self) -> ParserResult<Spanned<Statement>> {
+        let open_span = self.consume_get_span(&TokenType::FOR, "Expected 'for' ")?;
+
+        self.consume(&TokenType::LPAREN, "Expected '(' after 'for'")?;
+
+        let mut init = None;
+
+        if self.recognise(TokenType::SEMICOLON) {
+            self.advance();
+        } else if self.recognise(TokenType::LET) {
+            init = Some(Box::new(self.parse_let_declaration()?));
+        } else {
+            init = Some(Box::new(self.parse_expression_statement()?));
+        }
+
+        let cond = if !self.recognise(TokenType::SEMICOLON) {
+            Some(self.parse_expression()?)
+        } else {
+            None
+        };
+
+        self.consume(&TokenType::SEMICOLON, "Expected ';' after loop condition .")?;
+
+        let incr = if !self.recognise(TokenType::RPAREN) {
+            Some(self.parse_expression()?)
+        } else {
+            None
+        };
+
+        self.consume(&TokenType::RPAREN, "Expected ')' after for clauses.")?;
+
+        let body = self.parse_statement()?;
+
+        Ok(Spanned {
+            span: open_span.to(body.get_span()),
+            value: Statement::For {
+                init,
+                cond,
+                incr,
+                body: Box::new(body),
+            },
+        })
+    }
+
     fn parse_if_statement(&mut self) -> ParserResult<Spanned<Statement>> {
         let open_span = self.consume_get_span(&TokenType::IF, "Expected 'if' ")?;
 
@@ -714,17 +766,18 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let then = Box::new(self.parse_statement()?);
 
-        let otherwise = if self.recognise(TokenType::ELSE) {
+        let (close_span, otherwise) = if self.recognise(TokenType::ELSE) {
             self.advance();
-            Some(Box::new(self.parse_statement()?))
+
+            let otherwise = self.parse_statement()?;
+
+            (Some(otherwise.get_span()), Some(Box::new(otherwise)))
         } else {
-            None
+            (None, None)
         };
 
-        let close_span = self.consume_get_span(&TokenType::COLON, "Expected ';' ")?;
-
         Ok(Spanned {
-            span: open_span.to(close_span),
+            span: open_span.to(close_span.unwrap_or(open_span)),
             value: Statement::If {
                 cond,
                 then,
@@ -733,12 +786,41 @@ impl<'a, 'b> Parser<'a, 'b> {
         })
     }
 
+    fn parse_let_declaration(&mut self) -> ParserResult<Spanned<Statement>> {
+        let open_span = self.consume_get_span(&TokenType::LET, "Expected 'let' ")?;
+
+        let ident = self.consume_get_ident("Expected an identifier")?;
+
+        let ty = if self.recognise(TokenType::COLON) {
+            self.advance();
+
+            Some(self.parse_type()?)
+        } else {
+            None
+        };
+
+        self.consume(&TokenType::ASSIGN, "Expected '='")?;
+
+        let expr = if self.recognise(TokenType::SEMICOLON) {
+            None
+        } else {
+            Some(self.parse_expression()?)
+        };
+
+        let close_span = self.consume_get_span(&TokenType::SEMICOLON, "Expected ';'")?;
+
+        Ok(Spanned {
+            span: open_span.to(close_span),
+            value: Statement::Let { ident, ty, expr },
+        })
+    }
+
     fn parse_return_statement(&mut self) -> ParserResult<Spanned<Statement>> {
         let open_span = self.consume_get_span(&TokenType::RETURN, "Expected 'return' ")?;
 
         let expr = self.parse_expression()?;
 
-        let close_span = self.consume_get_span(&TokenType::COLON, "Expected ';' ")?;
+        let close_span = self.consume_get_span(&TokenType::SEMICOLON, "Expected ';' ")?;
 
         Ok(Spanned {
             span: open_span.to(close_span),
@@ -904,6 +986,10 @@ impl<'a, 'b> Parser<'a, 'b> {
                 TokenType::TRUE(_) => Ok(Spanned {
                     span: *span,
                     value: Expression::Literal(Literal::True(true)),
+                }),
+                TokenType::NIL => Ok(Spanned {
+                    span: *span,
+                    value: Expression::Literal(Literal::Nil),
                 }),
                 TokenType::FALSE(_) => Ok(Spanned {
                     span: *span,

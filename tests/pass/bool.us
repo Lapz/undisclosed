@@ -1,6 +1,6 @@
-type True = true;
+type True = bool;
 
-type False = false;
+type False = bool;
 
 fn main() {
     if False {

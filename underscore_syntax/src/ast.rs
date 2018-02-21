@@ -72,10 +72,21 @@ pub enum Statement {
     Break,
     Continue,
     Expr(Spanned<Expression>),
+    For {
+        init: Option<Box<Spanned<Statement>>>,
+        cond: Option<Spanned<Expression>>,
+        incr: Option<Spanned<Expression>>,
+        body: Box<Spanned<Statement>>,
+    },
     If {
         cond: Spanned<Expression>,
         then: Box<Spanned<Statement>>,
         otherwise: Option<Box<Spanned<Statement>>>,
+    },
+    Let {
+        ident: Spanned<Ident>,
+        ty: Option<Spanned<Ty>>,
+        expr: Option<Spanned<Expression>>,
     },
     Return(Spanned<Expression>),
     While {

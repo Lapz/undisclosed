@@ -93,28 +93,3 @@ impl<T: Copy + Eq + Hash> FactoryMap<T> {
         }
     }
 }
-
-#[cfg(test)]
-mod test {
-    use symbol::{FactoryMap, Symbol, Table};
-    use std::rc::Rc;
-
-    #[test]
-    fn test() {
-        let strings = Rc::new(FactoryMap::new());
-        let mut map: Table<String> = Table::new(strings);
-        map.enter(Symbol(0), "a".into());
-        map.enter(Symbol(1), "b".into());
-        map.begin_scope();
-        assert_eq!(Some(&"a".into()), map.look(Symbol(0)));
-        assert_eq!(Some(&"b".into()), map.look(Symbol(1)));
-        assert_eq!(None, map.look(Symbol(2)));
-        map.enter(Symbol(1), "a".into());
-        map.enter(Symbol(2), "c".into());
-        assert_eq!(Some(&"a".into()), map.look(Symbol(1)));
-        assert_eq!(Some(&"c".into()), map.look(Symbol(2)));
-        map.end_scope();
-        assert_eq!(Some(&"a".into()), map.look(Symbol(0)));
-        assert_eq!(map.symbol("c".into()), Symbol(2));
-    }
-}
