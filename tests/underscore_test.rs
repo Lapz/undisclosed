@@ -62,7 +62,7 @@ fn main() {
     );
 
     assert!(fail == 0);
-    
+
     for entry in WalkDir::new("../tests/fail") {
         let mut underscorec = Command::new("cargo");
         let entry = entry.unwrap();
@@ -72,6 +72,11 @@ fn main() {
         }
 
         underscorec.args(&["run", "--", entry.path().to_str().unwrap()]);
-        assert!(underscorec.status().expect("failed to execute process").success() != true);
+        assert!(
+            underscorec
+                .status()
+                .expect("failed to execute process")
+                .success() != true
+        );
     }
 }
