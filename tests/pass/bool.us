@@ -10,4 +10,8 @@ fn main() {
     if True {
         print("true");
     }
+
+    while True {
+        print("true");
+    }
 }

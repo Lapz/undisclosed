@@ -13,7 +13,7 @@ use util::emitter::Reporter;
 pub struct Parser<'a, 'b> {
     reporter: Reporter,
     tokens: Peekable<IntoIter<Spanned<Token<'a>>>>,
-    parsing_if: bool,
+    parsing_cond: bool,
     symbols: &'b Table<Ident, ()>,
 }
 
@@ -145,7 +145,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     ) -> Self {
         Parser {
             tokens: tokens.into_iter().peekable(),
-            parsing_if: false,
+            parsing_cond: false,
             symbols,
             reporter,
         }
@@ -762,8 +762,9 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_if_statement(&mut self) -> ParserResult<Spanned<Statement>> {
         let open_span = self.consume_get_span(&TokenType::IF, "Expected 'if' ")?;
 
-        self.parsing_if = true;
+        self.parsing_cond = true;
         let cond = self.parse_expression()?;
+        self.parsing_cond = false;
 
         let then = Box::new(self.parse_statement()?);
 
@@ -832,8 +833,10 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_while_statement(&mut self) -> ParserResult<Spanned<Statement>> {
         let open_span = self.consume_get_span(&TokenType::WHILE, "Expected 'while' ")?;
 
+        self.parsing_cond = true;
         let cond = self.parse_expression()?;
-
+        self.parsing_cond = false;
+        
         let body = self.parse_statement()?;
 
         Ok(Spanned {
@@ -1083,7 +1086,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     fn parse_struct_lit(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
-        if self.parsing_if {
+        if self.parsing_cond {
             return Ok(Spanned {
                 span: ident.get_span(),
                 value: Expression::Var(Spanned {
