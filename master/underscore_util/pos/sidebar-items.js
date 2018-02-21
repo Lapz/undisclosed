@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["EMPTYSPAN",""]],"struct":[["CharPosition","An iterator over all the charaters and there positions within a file"],["Position","Represents a postion within a specifc source file"],["Span","A span between two locations in a source file"],["Spanned","Represents a Span in the source file along with its value"]]});

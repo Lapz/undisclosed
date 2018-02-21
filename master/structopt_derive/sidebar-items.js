@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["structopt","Generates the `StructOpt` impl."]]});
