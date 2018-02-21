@@ -1,6 +1,7 @@
 language: rust
 sudo: required
 dist: trusty
+cache: cargo
 addons:
   apt:
     packages:
@@ -14,12 +15,9 @@ matrix:
     - rust: nightly
   include:
   - env: GHP_UPLOAD_VERSION=0.3.2
-    install:
-    - cargo install --version $GHP_UPLOAD_VERSION cargo-ghp-upload
     script:
     - cargo doc --verbose && cargo ghp-upload -vv
-cache: cargo
-before_script: ((cargo install cargo-travis &&  cargo install rustfmt-nightly) || true)
+before_script: ((cargo install cargo-travis && cargo install --version $GHP_UPLOAD_VERSION cargo-ghp-upload) || true)
 script:
 - cargo clean
 - cargo build 
