@@ -77,8 +77,11 @@ fn run(path: String) {
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
     match parser.parse() {
-        Ok(p) => (),
-        Err(_) => reporter.emit(&input),
+        Ok(_) => (),
+        Err(_) => {
+            reporter.emit(&input);
+            ::std::process::exit(65)
+        }
     };
 }
 

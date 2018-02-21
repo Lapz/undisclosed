@@ -125,6 +125,7 @@ dependencies = [
 name = "underscore"
 version = "0.1.0"
 dependencies = [
+ "ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt-derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "underscore_syntax 0.1.0",

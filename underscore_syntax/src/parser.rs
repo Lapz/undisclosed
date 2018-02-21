@@ -836,7 +836,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         self.parsing_cond = true;
         let cond = self.parse_expression()?;
         self.parsing_cond = false;
-        
+
         let body = self.parse_statement()?;
 
         Ok(Spanned {
