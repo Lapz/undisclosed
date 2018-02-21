@@ -139,6 +139,7 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
+<span id="96">96</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! This module provides a Table which keeps a track of the mappings between a</span>
 <span class="doccomment">//! `T` and a `String`</span>
@@ -156,6 +157,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="doccomment">/// A Scoped Map that takes any K and V</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Copy</span>, <span class="ident">V</span>: <span class="ident">Clone</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">strings</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FactoryMap</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;&gt;</span>,
     <span class="ident">table</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;&gt;</span>,

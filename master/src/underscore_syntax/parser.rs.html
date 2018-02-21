@@ -1211,6 +1211,8 @@
 <span id="1165">1165</span>
 <span id="1166">1166</span>
 <span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">Function</span>, <span class="ident">FunctionParams</span>, <span class="ident">Ident</span>, <span class="ident">ItemName</span>, <span class="ident">Linkage</span>, <span class="ident">Ty</span>};
 <span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">Expression</span>, <span class="ident">Literal</span>, <span class="ident">Op</span>, <span class="ident">Statement</span>, <span class="ident">UnaryOp</span>, <span class="ident">Var</span>};
@@ -1233,6 +1235,7 @@
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, ()<span class="op">&gt;</span>;
 
+<span class="doccomment">/// Macro that is used to generate the code that parse a binary op</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">binary</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">ident</span>,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lhs</span>:<span class="ident">expr</span>,<span class="macro-nonterminal">$</span><span class="macro-nonterminal">func</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
         <span class="kw">while</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>.<span class="ident">recognise</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>) {
@@ -1268,7 +1271,7 @@
         }
     };
 }
-
+<span class="doccomment">/// Macro that expands to a match that takes a `TokenType` and turns it into a Operator</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">get_op</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>,{ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>}) <span class="op">=&gt;</span> {
         {
@@ -1310,6 +1313,7 @@
     }
 }
 
+<span class="comment">// The unary version of the get_binary_op macro</span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">get_unary_op</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">_self</span>:<span class="ident">ident</span>,{ $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>}) <span class="op">=&gt;</span> {
         {
