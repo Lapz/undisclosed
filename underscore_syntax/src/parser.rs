@@ -1,6 +1,6 @@
 use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
 use ast::{Expression, Literal, Op, Statement, UnaryOp, Var};
-use ast::{Field, Struct};
+use ast::{Field, Struct, StructLitField};
 use ast::TyAlias;
 use ast::Program;
 use std::iter::Peekable;
@@ -13,7 +13,7 @@ use util::emitter::Reporter;
 pub struct Parser<'a, 'b> {
     reporter: Reporter,
     tokens: Peekable<IntoIter<Spanned<Token<'a>>>>,
-
+    parsing_if: bool,
     symbols: &'b Table<Ident, ()>,
 }
 
@@ -145,6 +145,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     ) -> Self {
         Parser {
             tokens: tokens.into_iter().peekable(),
+            parsing_if: false,
             symbols,
             reporter,
         }
@@ -661,8 +662,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             self.parse_if_statement()
         } else if self.recognise(TokenType::LET) {
             self.parse_let_declaration()
-        }
-        else if self.recognise(TokenType::RETURN) {
+        } else if self.recognise(TokenType::RETURN) {
             self.parse_return_statement()
         } else if self.recognise(TokenType::WHILE) {
             self.parse_while_statement()
@@ -762,6 +762,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_if_statement(&mut self) -> ParserResult<Spanned<Statement>> {
         let open_span = self.consume_get_span(&TokenType::IF, "Expected 'if' ")?;
 
+        self.parsing_if = true;
         let cond = self.parse_expression()?;
 
         let then = Box::new(self.parse_statement()?);
@@ -951,7 +952,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         binary!(
             self,
-            vec![TokenType::MINUS, TokenType::PLUS],
+            vec![TokenType::SLASH, TokenType::STAR],
             lhs,
             parse_unary
         );
@@ -1068,6 +1069,8 @@ impl<'a, 'b> Parser<'a, 'b> {
                     },
                 }),
             });
+        } else if self.recognise(TokenType::LBRACE) {
+            self.parse_struct_lit(ident)
         } else {
             return Ok(Spanned {
                 span: ident.get_span(),
@@ -1077,6 +1080,50 @@ impl<'a, 'b> Parser<'a, 'b> {
                 }),
             });
         }
+    }
+
+    fn parse_struct_lit(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
+        if self.parsing_if {
+            return Ok(Spanned {
+                span: ident.get_span(),
+                value: Expression::Var(Spanned {
+                    span: ident.get_span(),
+                    value: Var::Simple(ident),
+                }),
+            });
+        }
+
+        self.consume(&TokenType::LBRACE, "Expected '}'")?;
+
+        let mut fields = vec![];
+
+        if !self.recognise(TokenType::RBRACE) {
+            loop {
+                let (open_span, ident) = self.consume_get_ident_and_span("Expected a field name")?;
+
+                self.consume(&TokenType::COLON, "Expected a colon")?;
+
+                let expr = self.parse_expression()?;
+
+                fields.push(Spanned {
+                    span: open_span.to(ident.get_span()),
+                    value: StructLitField { ident, expr },
+                });
+
+                if self.recognise(TokenType::COMMA) {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let close_span = self.consume_get_span(&TokenType::RBRACE, "Expected '}' ")?;
+
+        Ok(Spanned {
+            span: ident.get_span().to(close_span),
+            value: Expression::StructLiteral { ident, fields },
+        })
     }
 
     fn parse_call(&mut self, callee: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {

@@ -122,12 +122,23 @@ pub enum Expression {
 
     Literal(Literal),
 
+    StructLiteral {
+        ident: Spanned<Ident>,
+        fields: Vec<Spanned<StructLitField>>,
+    },
+
     Unary {
         op: Spanned<UnaryOp>,
         expr: Box<Spanned<Expression>>,
     },
 
     Var(Spanned<Var>),
+}
+
+#[derive(Debug)]
+pub struct StructLitField {
+    pub ident: Spanned<Ident>,
+    pub expr: Spanned<Expression>,
 }
 #[derive(Debug)]
 pub enum Literal {
