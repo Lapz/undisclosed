@@ -1,0 +1,19 @@
+
+
+struct List<T> {
+    head:T,
+    tail:List<T>
+}
+
+fn main() {
+    let shopping = List {
+        head:"apple",
+        tail:List {
+            head:"banana",
+            tail:nil
+        }
+    };
+
+    print(shopping.head); // Expect:"apple"
+}
+

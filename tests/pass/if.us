@@ -1,0 +1,22 @@
+fn main() {
+    if 10 <= 10 {
+        print("yes");
+    }
+
+
+    if (1 < 9) {
+        print("yes");
+    }
+
+    if true {
+        print("I have no parens and no else branch");
+    }
+
+    if (false) {
+        print("Cant get here");
+    } else {
+        print("I have parens and an else branch");
+    }
+
+
+}

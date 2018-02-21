@@ -1,0 +1,17 @@
+type True = bool;
+
+type False = bool;
+
+fn main() {
+    if False {
+        print("Not here");
+    }
+    
+    if True {
+        print("true");
+    }
+
+    while True {
+        print("true");
+    }
+}

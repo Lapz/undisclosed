@@ -1,30 +1,43 @@
 //! Source Code locations
 
-use std::fmt::{self,Display};
+use std::fmt::{self, Display};
 use std::str::Chars;
 
 /// Represents a Span in the source file along with its value
 #[derive(Debug, Clone)]
 pub struct Spanned<T> {
-    span:Span,
-    value:T,
+    pub span: Span,
+    pub value: T,
 }
 
 /// A span between two locations in a source file
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Span {
-    start:Position,
-    end:Position,
+    pub start: Position,
+    pub end: Position,
 }
 
+pub const EMPTYSPAN: Span = Span {
+    start: Position {
+        line: 1,
+        column: 0,
+        absolute: 1,
+    },
+    end: Position {
+        line: 1,
+        column: 1,
+        absolute: 1,
+    },
+};
+
 /// Represents a postion within a specifc source file
-#[derive(Debug, Clone,Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Position {
     /// A 0 offset line the source code
-    pub line:i32,
+    pub line: i32,
     /// A 0 offset col
-    pub column:i32,
-    pub absolute:usize
+    pub column: i32,
+    pub absolute: usize,
 }
 
 /// An iterator over all the charaters and there positions within a file
@@ -34,12 +47,11 @@ pub struct CharPosition<'a> {
     pub chars: Chars<'a>,
 }
 
-
 impl<'a> CharPosition<'a> {
     pub fn new(input: &'a str) -> Self {
         CharPosition {
             pos: Position {
-                line: 0,
+                line: 1,
                 column: 1,
                 absolute: 0,
             },
@@ -60,14 +72,31 @@ impl<'a> Iterator for CharPosition<'a> {
     }
 }
 
-
 impl Display for Position {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "line {},column {}", self.line, self.column)
     }
 }
 
+impl Display for Span {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} -> {}", self.start, self.end)
+    }
+}
 
+impl Span {
+    pub fn to(mut self, other: Span) -> Self {
+        self.end.line += other.end.line;
+        self.end.column += other.end.column;
+        self
+    }
+}
+
+impl<T> Spanned<T> {
+    pub fn get_span(&self) -> Span {
+        self.span
+    }
+}
 impl Position {
     pub fn shift(mut self, ch: char) -> Self {
         if ch == '\n' {
@@ -81,15 +110,5 @@ impl Position {
 
         self.absolute += ch.len_utf8();
         self
-    }
-}
-
-
-impl <T> Spanned<T>  {
-    fn new(span:Span,value:T) -> Self {
-        Spanned {
-            span,value
-        }
-
     }
 }

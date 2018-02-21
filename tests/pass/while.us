@@ -1,0 +1,8 @@
+
+fn main() {
+    while true {
+        print(1);
+        break;
+    }
+}
+

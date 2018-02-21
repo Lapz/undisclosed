@@ -1,0 +1,6 @@
+type Foo = i32;
+type Bar = Foo;
+
+fn main() {
+    
+}
