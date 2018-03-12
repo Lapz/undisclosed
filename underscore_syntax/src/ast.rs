@@ -1,11 +1,16 @@
 use std::fmt::{self, Display};
 use util::pos::{Span, Spanned};
-
 #[derive(Debug)]
 pub struct Program {
     pub structs: Vec<Spanned<Struct>>,
     pub functions: Vec<Spanned<Function>>,
     pub type_alias: Vec<Spanned<TyAlias>>,
+}
+
+impl Program {
+    pub fn fmt(&mut self) -> String {
+        format!("{:#?}", self)
+    }
 }
 
 #[derive(Hash, Debug, Copy, Clone, PartialEq, Eq)]

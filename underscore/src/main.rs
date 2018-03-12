@@ -77,10 +77,11 @@ fn run(path: String, dump_file: Option<String>) {
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
     match parser.parse() {
-        Ok(ast) => {
+        Ok(ref mut ast) => {
             if dump_file.is_some() {
-                let mut file = File::create(dump_file.unwrap()).expect("Couldnt create file");
-                // file.write_all(ast);
+                let mut file = File::create(dump_file.unwrap()).expect("Couldn't create file");
+                file.write(ast.fmt().as_bytes())
+                    .expect("Couldn't write to the file");
             }
             ast
         }
@@ -97,5 +98,6 @@ pub struct Cli {
     /// The source code file
     pub source: Option<String>,
     /// Dump the ast to a give file
+    #[structopt(short = "d", long = "dump")]
     pub file: Option<String>,
 }
