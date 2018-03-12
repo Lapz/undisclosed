@@ -573,7 +573,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
 
         let close_span =
-            self.consume_get_span(&TokenType::RPAREN, "Expected a '(' after function params")?;
+            self.consume_get_span(&TokenType::RPAREN, "Expected a ')' after function params")?;
 
         Ok(Spanned {
             span: open_span.to(close_span),
@@ -1098,7 +1098,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             });
         }
 
-        self.consume(&TokenType::LBRACE, "Expected '}'")?;
+        self.consume(&TokenType::LBRACE, "Expected '{'")?;
 
         let mut fields = vec![];
 

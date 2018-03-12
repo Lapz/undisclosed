@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "underscore",
+    "underscore_semant",
     "underscore_syntax", 
-    "underscore_util",
+    "underscore_util",   
 ]
