@@ -1,13 +1,13 @@
-#[derive(Debug,Clone,Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct TypeVar(pub u32);
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct Field {
-    name:TypeVar,
-    ty:Ty
+    name: TypeVar,
+    ty: Ty,
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Ty {
     Nil,
     App(TyCon, Vec<Ty>),
@@ -15,10 +15,10 @@ pub enum Ty {
     Poly(Vec<TypeVar>, Box<Ty>),
     Struct(Vec<Field>, Box<Ty>),
     Unique(TyCon, Unique),
-    Fun(Vec<TypeVar>,Box<Ty>),
+    Fun(Vec<TypeVar>, Box<Ty>),
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum TyCon {
     Int,
     String,
