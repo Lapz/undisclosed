@@ -17,7 +17,7 @@ fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file,opts.file);
+        run(file, opts.file);
     } else {
         repl()
     }
@@ -49,7 +49,7 @@ fn repl() {
     }
 }
 
-fn run(path: String,dump_file:Option<String>) {
+fn run(path: String, dump_file: Option<String>) {
     use std::fs::File;
     use std::io::Read;
 
@@ -77,13 +77,14 @@ fn run(path: String,dump_file:Option<String>) {
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
     match parser.parse() {
-        Ok(ast) => {
-            if dump_file.is_some()  {
-                let mut file = File::create(dump_file.unwrap()).expect("Couldnt create file");
-                // file.write_all(ast);
+        Ok(ref mut ast) => {
+            if dump_file.is_some() {
+                let mut file = File::create(dump_file.unwrap()).expect("Couldn't create file");
+                file.write(ast.fmt().as_bytes())
+                    .expect("Couldn't write to the file");
             }
             ast
-        },
+        }
         Err(_) => {
             reporter.emit(&input);
             ::std::process::exit(65)
@@ -97,6 +98,6 @@ pub struct Cli {
     /// The source code file
     pub source: Option<String>,
     /// Dump the ast to a give file
-    pub file:Option<String>
-    
+    #[structopt(short = "d", long = "dump")]
+    pub file: Option<String>,
 }
