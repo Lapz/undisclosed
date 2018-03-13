@@ -137,6 +137,7 @@ dependencies = [
 name = "underscore_semant"
 version = "0.1.0"
 dependencies = [
+ "underscore_syntax 0.1.0",
  "underscore_util 0.1.0",
 ]
 

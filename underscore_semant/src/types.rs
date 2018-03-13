@@ -1,4 +1,6 @@
-#[derive(Debug, Clone, Copy)]
+use syntax::ast::Ident;
+
+#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub struct TypeVar(pub u32);
 
 #[derive(Debug, Clone)]
@@ -10,20 +12,11 @@ pub struct Field {
 #[derive(Debug, Clone)]
 pub enum Ty {
     Nil,
-    App(TyCon, Vec<Ty>),
-    Var(TypeVar),
-    Poly(Vec<TypeVar>, Box<Ty>),
-    Struct(Vec<Field>, Box<Ty>),
-    Unique(TyCon, Unique),
-    Fun(Vec<TypeVar>, Box<Ty>),
-}
-
-#[derive(Debug, Clone)]
-pub enum TyCon {
     Int,
     String,
-    Nil,
-    Arrow,
+    Struct(Vec<Ty>, Vec<Field>),
+    Fun(Vec<Ty>, Box<Ty>),
+    Var(TypeVar),
 }
 
 static mut UNIQUE_COUNT: u64 = 0;
