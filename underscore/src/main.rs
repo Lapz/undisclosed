@@ -1,8 +1,8 @@
-extern crate underscore_syntax;
-
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
+extern crate underscore_semant;
+extern crate underscore_syntax;
 extern crate underscore_util;
 
 use underscore_util::emitter::Reporter;
@@ -12,6 +12,8 @@ use underscore_syntax::parser::Parser;
 use std::rc::Rc;
 use structopt::StructOpt;
 use std::io::{self, Write};
+
+use underscore_semant::TypeEnv;
 
 fn main() {
     let opts = Cli::from_args();
@@ -76,8 +78,8 @@ fn run(path: String, dump_file: Option<String>) {
 
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
-    match parser.parse() {
-        Ok(ref mut ast) => {
+    let ast = match parser.parse() {
+        Ok(mut ast) => {
             if dump_file.is_some() {
                 let mut file = File::create(dump_file.unwrap()).expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
@@ -89,6 +91,13 @@ fn run(path: String, dump_file: Option<String>) {
             reporter.emit(&input);
             ::std::process::exit(65)
         }
+    };
+
+    let mut env = TypeEnv::new();
+
+    match env.ti(&ast) {
+        Ok(()) => (),
+        Err(_) => ::std::process::exit(65),
     };
 }
 

@@ -1,13 +1,11 @@
-use types::*;
+use types::{Ty, TypeVar};
 use std::collections::{HashMap, HashSet};
 use util::emitter::Reporter;
-use util::symbol::Table;
-use syntax::ast::{Ident,Function};
+use syntax::ast::{Expression, Ident, Literal, Op, Program, Statement};
 use util::pos::Spanned;
+use syntax::ast;
 
 use std::ops::{Deref, DerefMut};
-
-type Env<K, V> = Table<K, V>;
 
 type InferenceResult<T> = Result<T, String>;
 
@@ -15,7 +13,7 @@ type InferenceResult<T> = Result<T, String>;
 pub struct Subst(HashMap<TypeVar, Ty>);
 
 #[derive(Debug, Clone)]
-struct Scheme {
+pub struct Scheme {
     pub vars: Vec<TypeVar>,
     pub ty: Ty,
 }
@@ -64,7 +62,8 @@ impl Types for Ty {
                 set.insert(*n);
                 set
             }
-            Ty::Nil | Ty::Int | Ty::String => HashSet::new(),
+            Ty::Unique(ref ty, _) => ty.ftv(),
+            Ty::Nil | Ty::Int | Ty::String | Ty::Char | Ty::Bool => HashSet::new(),
             Ty::Fun(ref params, ref returns) => {
                 let mut set = HashSet::new();
 
@@ -77,11 +76,15 @@ impl Types for Ty {
                 set
             }
 
-            Ty::Struct(ref items, _) => {
+            Ty::Struct(ref items, ref fields) => {
                 let mut set = HashSet::new();
 
                 for item in items {
                     set.union(&item.ftv());
+                }
+
+                for field in fields {
+                    set.union(&field.ty.ftv());
                 }
 
                 set
@@ -150,7 +153,7 @@ impl Types for Scheme {
 }
 
 #[derive(Debug, Clone)]
-struct TypeEnv(HashMap<Ident, Scheme>);
+pub struct TypeEnv(HashMap<Ident, Scheme>);
 
 impl Types for TypeEnv {
     fn ftv(&self) -> HashSet<TypeVar> {
@@ -222,18 +225,28 @@ impl TypeVar {
 impl Ty {
     fn mgu(&self, other: &Ty) -> InferenceResult<Subst> {
         match (self, other) {
-            (&Ty::Nil, &Ty::Nil) | (&Ty::Int, &Ty::Int) | (&Ty::String, &Ty::String) => {
-                Ok(Subst::new())
-            }
+            (&Ty::Nil, &Ty::Nil)
+            | (&Ty::Int, &Ty::Int)
+            | (&Ty::Bool, &Ty::Bool)
+            | (&Ty::String, &Ty::String)
+            | (&Ty::Char, &Ty::Char) => Ok(Subst::new()),
+            (&Ty::Nil, &Ty::Struct(_, _)) => Ok(Subst::new()),
+            (&Ty::Struct(_, _), &Ty::Nil) => Ok(Subst::new()),
             (&Ty::Var(ref v), t) => v.bind(t),
             (t, &Ty::Var(ref v)) => v.bind(t),
+            (&Ty::Unique(ref ty1, ref unique1), &Ty::Unique(ref ty2, ref unique2)) => {
+                if unique1 != unique2 {
+                    return Err(format!("types do not unify: {:?} vs {:?}", self, other));
+                }
+                ty1.mgu(ty2)
+            }
             (&Ty::Fun(ref t1p, ref t1r), &Ty::Fun(ref t2p, ref t2r)) => {
                 if t1p.len() != t2p.len() {
-                    return Err(format!("types do not unify: {:?} vs {:?}",self,other));
+                    return Err(format!("types do not unify: {:?} vs {:?}", self, other));
                 }
 
                 for (a, b) in t1p.iter().zip(t2p.iter()) {
-                    a.mgu(b);
+                    a.mgu(b)?;
                 }
 
                 t1r.mgu(t2r)
@@ -244,7 +257,7 @@ impl Ty {
 }
 
 impl TypeEnv {
-    fn new() -> Self {
+    pub fn new() -> Self {
         TypeEnv(HashMap::new())
     }
 
@@ -255,7 +268,268 @@ impl TypeEnv {
         }
     }
 
-    fn ti(&self,expr:Spanned<Function>) -> InferenceResult<Ty> {
-        unimplemented!()
+    pub fn ti(&mut self, program: &Program) -> InferenceResult<()> {
+        for function in &program.functions {
+            println!("{:?}", self.ti_statemenet(&function.value.body)?);
+        }
+
+        Ok(())
     }
+
+    fn get_type(&mut self, ident: &Spanned<ast::Ty>) -> InferenceResult<Ty> {
+        match ident.value {
+            ast::Ty::Bool => Ok(Ty::Bool),
+            ast::Ty::Nil => Ok(Ty::Nil),
+            ast::Ty::Name(ref ident, ref types) => unimplemented!(),
+
+            ast::Ty::U8
+            | ast::Ty::I8
+            | ast::Ty::U32
+            | ast::Ty::I32
+            | ast::Ty::U64
+            | ast::Ty::I64 => Ok(Ty::Nil),
+
+            _ => Err("Not a valid type".into()),
+        }
+    }
+
+    fn ti_statemenet(&mut self, body: &Spanned<Statement>) -> InferenceResult<Ty> {
+        match body.value {
+            Statement::Block(ref statements) => {
+                let mut result = Ty::Nil;
+
+                for statement in statements {
+                    result = self.ti_statemenet(statement)?
+                }
+
+                Ok(result)
+            }
+            Statement::Break | Statement::Continue => Ok(Ty::Nil),
+            Statement::Expr(ref expr) => self.ti_expr(expr),
+            Statement::For {
+                ref init,
+                ref cond,
+                ref incr,
+                ref body,
+            } => {
+                if init.is_none() && cond.is_none() && incr.is_none() {
+                    let body = self.ti_statemenet(body)?;
+
+                    return Ok(body);
+                }
+
+                if let Some(ref init) = *init {
+                    self.ti_statemenet(init)?;
+                }
+
+                if let Some(ref incr) = *incr {
+                    let ty = self.ti_expr(incr)?;
+
+                    Ty::Int.mgu(&ty)?;
+                }
+
+                if let Some(ref cond) = *cond {
+                    let ty = self.ti_expr(cond)?;
+
+                    Ty::Bool.mgu(&ty)?;
+                }
+
+                let body = self.ti_statemenet(body)?;
+
+                Ok(body)
+            }
+
+            Statement::If {
+                ref cond,
+                ref then,
+                ref otherwise,
+            } => {
+                Ty::Bool.mgu(&self.ti_expr(cond)?)?;
+
+                let then_ty = self.ti_statemenet(then)?;
+
+                if let Some(ref otherwise) = *otherwise {
+                    then_ty.mgu(&self.ti_statemenet(otherwise)?)?;
+                    Ok(then_ty)
+                } else {
+                    Ok(then_ty)
+                }
+            }
+
+            Statement::Let {
+                ref ident,
+                ref ty,
+                ref expr,
+            } => {
+                if let Some(ref expr) = *expr {
+                    let expr_ty = self.ti_expr(expr)?;
+
+                    if let Some(ref ty) = *ty {
+                        let ty = self.get_type(ty)?;
+
+                        expr_ty.mgu(&ty)?;
+
+                        let scheme = self.generalize(&ty);
+
+                        self.0.insert(ident.value, scheme);
+
+                        return Ok(ty);
+                    }
+
+                    let scheme = self.generalize(&expr_ty);
+
+                    self.0.insert(ident.value, scheme);
+
+                    Ok(Ty::Nil)
+                } else {
+                    if let Some(ref ty) = *ty {
+                        let ty = self.get_type(ty)?;
+
+                        let scheme = self.generalize(&ty);
+
+                        self.0.insert(ident.value, scheme);
+                        return Ok(ty);
+                    }
+
+                    Ok(Ty::Nil)
+                }
+            }
+
+            Statement::Return(ref expr) => self.ti_expr(expr),
+            Statement::While { ref cond, ref body } => {
+                Ty::Bool.mgu(&self.ti_expr(cond)?)?;
+
+                self.ti_statemenet(body)?;
+
+                Ok(Ty::Nil)
+            }
+
+            _ => unimplemented!(),
+        }
+    }
+
+    fn ti_expr(&self, expr: &Spanned<Expression>) -> InferenceResult<Ty> {
+        match expr.value {
+            Expression::Assign {
+                ref name,
+                ref value,
+            } => unimplemented!(),
+            Expression::Binary {
+                ref lhs,
+                ref op,
+                ref rhs,
+            } => {
+                let lhs = self.ti_expr(lhs)?;
+                let rhs = self.ti_expr(rhs)?;
+
+                match op.value {
+                    Op::NEq | Op::Equal => Ok(Ty::Bool),
+                    Op::LT | Op::LTE | Op::GT | Op::GTE => {
+                        lhs.mgu(&rhs)?;
+                        Ok(Ty::Bool)
+                    }
+
+                    Op::Plus | Op::Slash | Op::Star | Op::Minus => {
+                        if let Err(_) = Ty::Int.mgu(&lhs) {
+                            Ty::String.mgu(&lhs)?;
+                        }
+
+                        lhs.mgu(&rhs)?;
+                        Ok(lhs)
+                    }
+
+                    Op::And | Op::Or => {
+                        lhs.mgu(&rhs)?;
+                        Ok(Ty::Bool)
+                    }
+                }
+            }
+
+            Expression::Cast { ref expr, ref to } => unimplemented!(),
+            Expression::Call {
+                ref callee,
+                ref args,
+            } => unimplemented!(),
+            Expression::Grouping { ref expr } => self.ti_expr(expr),
+            Expression::Literal(ref literal) => match *literal {
+                Literal::Char(_) => Ok(Ty::Char),
+                Literal::False(_) => Ok(Ty::Bool),
+                Literal::True(_) => Ok(Ty::Bool),
+                Literal::Str(_) => Ok(Ty::String),
+                Literal::Number(_) => Ok(Ty::Int),
+                Literal::Nil => Ok(Ty::Nil),
+            },
+            Expression::StructLiteral {
+                ref ident,
+                ref fields,
+            } => unimplemented!(),
+            Expression::Unary { ref op, ref expr } => unimplemented!(),
+            Expression::Var(ref var) => unimplemented!(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use syntax::ast::{Expression, Literal, Op};
+    use super::{TypeEnv, TypeVarGen};
+    use util::pos::{Spanned, EMPTYSPAN};
+    use types::Ty;
+
+    #[test]
+    fn it_works() {
+        let mut tgen = TypeVarGen::new();
+        let mut tenv = TypeEnv::new();
+
+        assert_eq!(
+            tenv.ti_expr(&Spanned {
+                span: EMPTYSPAN,
+                value: Expression::Literal(Literal::False(false)),
+            }).unwrap(),
+            Ty::Bool
+        )
+    }
+
+    #[test]
+    fn binary1() {
+        let mut tgen = TypeVarGen::new();
+        let mut tenv = TypeEnv::new();
+
+        assert_eq!(
+            tenv.ti_expr(&Spanned {
+                span: EMPTYSPAN,
+                value: Expression::Binary {
+                    lhs: Box::new(Spanned {
+                        span: EMPTYSPAN,
+                        value: Expression::Literal(Literal::Str("a".into())),
+                    }),
+                    op: Spanned {
+                        span: EMPTYSPAN,
+                        value: Op::LT,
+                    },
+                    rhs: Box::new(Spanned {
+                        span: EMPTYSPAN,
+                        value: Expression::Literal(Literal::Str("a".into())),
+                    }),
+                },
+            }).unwrap(),
+            Ty::Bool
+        )
+    }
+
+    // #[test]
+    // fn it_works() {
+    //     let mut tgen = TypeVarGen::new();
+    //     let mut tenv = TypeEnv::new();
+
+    //     assert_eq!(
+    //         tenv.ti_expr(&Spanned {
+    //             span: EMPTYSPAN,
+    //             value: Expression::Literal(Literal::False(false)),
+    //         }).unwrap(),
+    //         Ty::Bool
+    //     )
+    // }
+
 }

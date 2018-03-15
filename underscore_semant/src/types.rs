@@ -3,20 +3,23 @@ use syntax::ast::Ident;
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub struct TypeVar(pub u32);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Field {
     name: TypeVar,
-    ty: Ty,
+    pub ty: Ty,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Ty {
     Nil,
     Int,
     String,
+    Char,
+    Bool,
     Struct(Vec<Ty>, Vec<Field>),
     Fun(Vec<Ty>, Box<Ty>),
     Var(TypeVar),
+    Unique(Box<Ty>, Unique),
 }
 
 static mut UNIQUE_COUNT: u64 = 0;

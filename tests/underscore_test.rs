@@ -49,6 +49,12 @@ fn main() {
         for expects in expected {
             if output.contains(&expects) {
                 pass += 1;
+            } else if underscorec
+                .status()
+                .expect("failed to execute process")
+                .success() && !output.contains(&expects)
+            {
+                pass += 1;
             } else {
                 fail += 1;
             }

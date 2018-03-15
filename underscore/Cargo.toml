@@ -8,7 +8,7 @@ structopt = "0.1.6"
 structopt-derive = "0.1.6"
 underscore_syntax =  {path="../underscore_syntax"}
 underscore_util =  {path="../underscore_util"}
-
+underscore_semant = {path ="../underscore_semant"}
 [[test]]
 name ="underscore_test"
 path ="../tests/underscore_test.rs"
