@@ -1,8 +1,4 @@
-fn main() {
-    let i = 10; 
-    {
-        10;
-    }   
-
-    
+fn main(a:int) {
+    1 + bool;
 }
+

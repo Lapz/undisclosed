@@ -1,13 +1,13 @@
 use types::{Ty, TypeVar};
 use std::collections::{HashMap, HashSet};
 use util::emitter::Reporter;
-use syntax::ast::{Expression, Ident, Literal, Op, Program, Statement};
-use util::pos::Spanned;
+use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Statement};
+use util::pos::{Span, Spanned};
 use syntax::ast;
 
 use std::ops::{Deref, DerefMut};
 
-type InferenceResult<T> = Result<T, String>;
+type InferenceResult<T> = Result<T, ()>;
 
 #[derive(Debug, Clone)]
 pub struct Subst(HashMap<TypeVar, Ty>);
@@ -153,7 +153,7 @@ impl Types for Scheme {
 }
 
 #[derive(Debug, Clone)]
-pub struct TypeEnv(HashMap<Ident, Scheme>);
+pub struct TypeEnv(HashMap<Ident, Scheme>, Reporter);
 
 impl Types for TypeEnv {
     fn ftv(&self) -> HashSet<TypeVar> {
@@ -167,6 +167,7 @@ impl Types for TypeEnv {
             self.iter()
                 .map(|(k, v)| (k.clone(), v.apply(subst)))
                 .collect(),
+            self.1.clone(),
         )
     }
 }
@@ -213,7 +214,8 @@ impl TypeVar {
 
         // The occurs check prevents illegal recursive types.
         if ty.ftv().contains(self) {
-            return Err(format!("occur check fails: {:?} vs {:?}", self, ty));
+            return Err(());
+            // return Err(format!("occur check fails: {:?} vs {:?}", self, ty));
         }
 
         let mut s = Subst::new();
@@ -223,7 +225,7 @@ impl TypeVar {
 }
 
 impl Ty {
-    fn mgu(&self, other: &Ty) -> InferenceResult<Subst> {
+    fn mgu(&self, other: &Ty, span: Span, reporter: &mut Reporter) -> InferenceResult<Subst> {
         match (self, other) {
             (&Ty::Nil, &Ty::Nil)
             | (&Ty::Int, &Ty::Int)
@@ -236,29 +238,40 @@ impl Ty {
             (t, &Ty::Var(ref v)) => v.bind(t),
             (&Ty::Unique(ref ty1, ref unique1), &Ty::Unique(ref ty2, ref unique2)) => {
                 if unique1 != unique2 {
-                    return Err(format!("types do not unify: {:?} vs {:?}", self, other));
+                    reporter.error(
+                        format!("types do not unify: {:?} vs {:?}", self, other),
+                        span,
+                    );
+                    return Err(());
                 }
-                ty1.mgu(ty2)
+                ty1.mgu(ty2, span, reporter)
             }
             (&Ty::Fun(ref t1p, ref t1r), &Ty::Fun(ref t2p, ref t2r)) => {
                 if t1p.len() != t2p.len() {
-                    return Err(format!("types do not unify: {:?} vs {:?}", self, other));
+                    reporter.error(
+                        format!("types do not unify: {:?} vs {:?}", self, other),
+                        span,
+                    );
+                    return Err(());
                 }
 
                 for (a, b) in t1p.iter().zip(t2p.iter()) {
-                    a.mgu(b)?;
+                    a.mgu(b, span, reporter)?;
                 }
 
-                t1r.mgu(t2r)
+                t1r.mgu(t2r, span, reporter)
             }
-            (t1, t2) => Err(format!("types do not unify: {:?} vs {:?}", t1, t2)),
+            (t1, t2) => {
+                reporter.error(format!("types do not unify: {:?} vs {:?}", t1, t2), span);
+                Err(())
+            }
         }
     }
 }
 
 impl TypeEnv {
-    pub fn new() -> Self {
-        TypeEnv(HashMap::new())
+    pub fn new(reporter: Reporter) -> Self {
+        TypeEnv(HashMap::new(), reporter)
     }
 
     fn generalize(&self, ty: &Ty) -> Scheme {
@@ -276,21 +289,49 @@ impl TypeEnv {
         Ok(())
     }
 
-    fn get_type(&mut self, ident: &Spanned<ast::Ty>) -> InferenceResult<Ty> {
+    fn get_type(&mut self, ident: &Spanned<ast::Ty>, span: Span) -> InferenceResult<Ty> {
         match ident.value {
             ast::Ty::Bool => Ok(Ty::Bool),
             ast::Ty::Nil => Ok(Ty::Nil),
-            ast::Ty::Name(ref ident, ref types) => unimplemented!(),
+            ast::Ty::Name(ref ident, ref types) => {
+                if let Some(ty) = self.0.get(&ident.value) {
+                    return Ok(ty.ty.clone());
+                }
 
+                let msg = format!("Undefined Type '{:?}'", ident.value);
+                self.error(msg, ident.span);
+                Err(())
+            }
             ast::Ty::U8
             | ast::Ty::I8
             | ast::Ty::U32
             | ast::Ty::I32
             | ast::Ty::U64
-            | ast::Ty::I64 => Ok(Ty::Nil),
-
-            _ => Err("Not a valid type".into()),
+            | ast::Ty::I64 => Ok(Ty::Int),
         }
+    }
+
+    fn ti_function(&mut self, function: &Spanned<Function>) -> InferenceResult<()> {
+        let return_ty = if let Some(ref ty) = function.value.returns {
+            self.get_type(ty, ty.span)?
+        } else {
+            Ty::Nil
+        };
+
+        let mut params = Vec::new();
+
+        for param in &function.value.params.value {
+            let t = self.get_type(&param.value.ty, param.span)?;
+
+            params.push(t);
+        }
+
+        let body_ty = self.ti_statemenet(&function.value.body)?;
+
+        body_ty.mgu(&return_ty, function.value.body.span, &mut self.1)?;
+
+        // self.0.insert(function.value.name.value.name.value, );
+        Ok(())
     }
 
     fn ti_statemenet(&mut self, body: &Spanned<Statement>) -> InferenceResult<Ty> {
@@ -325,13 +366,13 @@ impl TypeEnv {
                 if let Some(ref incr) = *incr {
                     let ty = self.ti_expr(incr)?;
 
-                    Ty::Int.mgu(&ty)?;
+                    Ty::Int.mgu(&ty, incr.span, &mut self.1)?;
                 }
 
                 if let Some(ref cond) = *cond {
                     let ty = self.ti_expr(cond)?;
 
-                    Ty::Bool.mgu(&ty)?;
+                    Ty::Bool.mgu(&ty, cond.span, &mut self.1)?;
                 }
 
                 let body = self.ti_statemenet(body)?;
@@ -344,12 +385,12 @@ impl TypeEnv {
                 ref then,
                 ref otherwise,
             } => {
-                Ty::Bool.mgu(&self.ti_expr(cond)?)?;
+                Ty::Bool.mgu(&self.ti_expr(cond)?, cond.span, &mut self.1)?;
 
                 let then_ty = self.ti_statemenet(then)?;
 
                 if let Some(ref otherwise) = *otherwise {
-                    then_ty.mgu(&self.ti_statemenet(otherwise)?)?;
+                    then_ty.mgu(&self.ti_statemenet(otherwise)?, otherwise.span, &mut self.1)?;
                     Ok(then_ty)
                 } else {
                     Ok(then_ty)
@@ -365,15 +406,15 @@ impl TypeEnv {
                     let expr_ty = self.ti_expr(expr)?;
 
                     if let Some(ref ty) = *ty {
-                        let ty = self.get_type(ty)?;
+                        let t = self.get_type(ty, body.span)?;
 
-                        expr_ty.mgu(&ty)?;
+                        expr_ty.mgu(&t, ty.span, &mut self.1)?;
 
-                        let scheme = self.generalize(&ty);
+                        let scheme = self.generalize(&t);
 
                         self.0.insert(ident.value, scheme);
 
-                        return Ok(ty);
+                        return Ok(t);
                     }
 
                     let scheme = self.generalize(&expr_ty);
@@ -383,7 +424,7 @@ impl TypeEnv {
                     Ok(Ty::Nil)
                 } else {
                     if let Some(ref ty) = *ty {
-                        let ty = self.get_type(ty)?;
+                        let ty = self.get_type(ty, body.span)?;
 
                         let scheme = self.generalize(&ty);
 
@@ -397,18 +438,16 @@ impl TypeEnv {
 
             Statement::Return(ref expr) => self.ti_expr(expr),
             Statement::While { ref cond, ref body } => {
-                Ty::Bool.mgu(&self.ti_expr(cond)?)?;
+                Ty::Bool.mgu(&self.ti_expr(cond)?, cond.span, &mut self.1)?;
 
                 self.ti_statemenet(body)?;
 
                 Ok(Ty::Nil)
             }
-
-            _ => unimplemented!(),
         }
     }
 
-    fn ti_expr(&self, expr: &Spanned<Expression>) -> InferenceResult<Ty> {
+    fn ti_expr(&mut self, expr: &Spanned<Expression>) -> InferenceResult<Ty> {
         match expr.value {
             Expression::Assign {
                 ref name,
@@ -425,21 +464,21 @@ impl TypeEnv {
                 match op.value {
                     Op::NEq | Op::Equal => Ok(Ty::Bool),
                     Op::LT | Op::LTE | Op::GT | Op::GTE => {
-                        lhs.mgu(&rhs)?;
+                        lhs.mgu(&rhs, expr.span, &mut self.1)?;
                         Ok(Ty::Bool)
                     }
 
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
-                        if let Err(_) = Ty::Int.mgu(&lhs) {
-                            Ty::String.mgu(&lhs)?;
+                        if let Err(_) = Ty::Int.mgu(&lhs, expr.span, &mut self.1) {
+                            Ty::String.mgu(&lhs, expr.span, &mut self.1)?;
                         }
 
-                        lhs.mgu(&rhs)?;
+                        lhs.mgu(&rhs, expr.span, &mut self.1)?;
                         Ok(lhs)
                     }
 
                     Op::And | Op::Or => {
-                        lhs.mgu(&rhs)?;
+                        lhs.mgu(&rhs, expr.span, &mut self.1)?;
                         Ok(Ty::Bool)
                     }
                 }
@@ -464,8 +503,18 @@ impl TypeEnv {
                 ref fields,
             } => unimplemented!(),
             Expression::Unary { ref op, ref expr } => unimplemented!(),
-            Expression::Var(ref var) => unimplemented!(),
+            Expression::Var(ref var) => {
+                //    match self.0.get(var) {
+                //        Some(s) =>s.instantiate()
+                //    }
+
+                unimplemented!()
+            }
         }
+    }
+
+    fn error<T: Into<String>>(&mut self, msg: T, span: Span) {
+        self.1.error(msg, span)
     }
 }
 

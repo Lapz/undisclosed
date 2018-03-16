@@ -13,7 +13,7 @@ use std::rc::Rc;
 use structopt::StructOpt;
 use std::io::{self, Write};
 
-use underscore_semant::TypeEnv;
+// use underscore_semant::TypeEnv;
 
 fn main() {
     let opts = Cli::from_args();
@@ -93,12 +93,12 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
-    let mut env = TypeEnv::new();
+    // let mut env = TypeEnv::new(reporter.clone());
 
-    match env.ti(&ast) {
-        Ok(()) => (),
-        Err(_) => ::std::process::exit(65),
-    };
+    // match env.ti(&ast) {
+    //     Ok(()) => (),
+    //     Err(_) => ::std::process::exit(65),
+    // };
 }
 
 #[derive(StructOpt, Debug)]
