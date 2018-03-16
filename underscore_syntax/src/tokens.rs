@@ -24,6 +24,7 @@ pub enum TokenType<'a> {
     U32,  // u32
     U64,  // u64
     BOOL, // bool
+    STR,  // str
     // Assignment
     ASSIGN, // =
     // Operators
@@ -88,6 +89,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::U32 => write!(f, "u32"),
             TokenType::U64 => write!(f, "u64"),
             TokenType::BOOL => write!(f, "bool"),
+            TokenType::STR => write!(f, "str"),
             TokenType::IDENTIFIER(s) => write!(f, "id {}", s),
             TokenType::CHAR(ref c) => write!(f, "{}", c),
             TokenType::STRING(ref s) => write!(f, "{}", s),

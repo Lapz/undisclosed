@@ -450,6 +450,7 @@ fn look_up_identifier(id: &str) -> TokenType {
         "i8" => TokenType::I8,
         "i32" => TokenType::I32,
         "i64" => TokenType::I64,
+        "str" => TokenType::STR,
         _ => TokenType::IDENTIFIER(id),
     }
 }

@@ -54,7 +54,8 @@ pub enum Linkage {
 }
 #[derive(Debug)]
 pub enum Ty {
-    Name(Spanned<Ident>, Vec<Spanned<Ty>>),
+    Poly(Spanned<Ident>, Vec<Spanned<Ty>>),
+    Simple(Spanned<Ident>),
     Nil,
     I8,
     I32,
@@ -63,6 +64,7 @@ pub enum Ty {
     U32,
     U64,
     Bool,
+    Str,
 }
 
 #[derive(Debug)]

@@ -617,6 +617,11 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::Bool,
                 span: self.consume_get_span(&TokenType::BOOL, "Expected a bool")?,
             })
+        } else if self.recognise(TokenType::STR) {
+            Ok(Spanned {
+                value: Ty::Str,
+                span: self.consume_get_span(&TokenType::STR, "Expected a str")?,
+            })
         } else if self.recognise(TokenType::NIL) {
             Ok(Spanned {
                 value: Ty::Nil,
@@ -642,12 +647,17 @@ impl<'a, 'b> Parser<'a, 'b> {
                 }
 
                 close_span = Some(self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?);
-            }
 
-            Ok(Spanned {
-                span: ident.get_span().to(close_span.unwrap_or(ident.get_span())),
-                value: Ty::Name(ident, types),
-            })
+                Ok(Spanned {
+                    span: ident.get_span().to(close_span.unwrap_or(ident.get_span())),
+                    value: Ty::Poly(ident, types),
+                })
+            } else {
+                Ok(Spanned {
+                    span: ident.get_span().to(ident.get_span()),
+                    value: Ty::Simple(ident),
+                })
+            }
         }
     }
 

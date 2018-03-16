@@ -1,4 +1,4 @@
-fn main(a:int) {
-    1 + bool;
+fn main<T>(a:List<i32>) {
+    1 + true;
 }
 

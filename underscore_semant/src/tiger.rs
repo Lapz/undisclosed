@@ -1,8 +1,12 @@
 use util::emitter::Reporter;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
-use util::pos::EMPTYSPAN;
-
+use util::pos::{Span, Spanned, EMPTYSPAN};
+use util::symbol::Table;
+use syntax::ast::{Expression, Function, FunctionParams, Statement, Var};
+use syntax::ast::Ident;
+use syntax::ast::Ty as astType;
+use std::any::Any;
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub struct TypeVar(pub u32);
 
@@ -15,6 +19,36 @@ pub struct Unique(pub u64);
 pub struct Field {
     name: TypeVar,
     ty: Type,
+}
+
+#[derive(Clone)]
+pub struct TypeEnv {
+    pub types: Table<Ident, Entry>,
+}
+
+#[derive(Clone)]
+enum Entry {
+    Type(Type),
+    TyCon(TyCon)
+}
+
+impl Entry {
+    fn is_type(&self) -> bool {
+        match *self {
+            Entry::Type(_) => true,
+            _ => false,
+        }
+    }
+}
+
+impl TypeEnv {
+    pub fn look_type(&mut self, ident: Ident) -> Option<&Entry> {
+        self.types.look(ident)
+    }
+
+    pub fn name(&self, ident: Ident) -> String {
+        self.types.name(ident)
+    }
 }
 
 impl Unique {
@@ -36,9 +70,10 @@ pub enum Type {
 #[derive(Debug, Clone, PartialEq)]
 pub enum TyCon {
     Int,
-    String,
+    Str,
     Void,
     Arrow,
+    Bool,
     TyFun(Vec<TypeVar>, Box<Type>),
     Record(Vec<Field>),
     Unique(Box<TyCon>, Unique),
@@ -204,23 +239,77 @@ impl Infer {
         }
     }
 
-    fn expand(&mut self,ty:Type) -> Type {
+    fn expand(&mut self, ty: Type) -> Type {
         match ty {
-            Type::App(TyCon::TyFun(vars,ret),types) => {
+            Type::App(TyCon::TyFun(vars, ret), types) => {
                 let mut mappings = HashMap::new();
 
                 for (var, ty) in vars.iter().zip(types) {
                     mappings.insert(*var, ty.clone());
-                };
+                }
 
                 let ty = self.subst(*ret.clone(), &mut mappings);
 
                 self.expand(ty)
-                
-            },
+            }
 
-            Type::App(TyCon::Unique(tycon,_),types) => self.expand(Type::App(*tycon,types)),
-            u => u
+            Type::App(TyCon::Unique(tycon, _), types) => self.expand(Type::App(*tycon, types)),
+            u => u,
+        }
+    }
+}
+
+impl Infer {
+    fn error<T: Into<String>>(&mut self, msg: T, span: Span) {
+        self.reporter.error(msg, span)
+    }
+
+    fn trans_ty(&mut self, ty: &Spanned<astType>, env: &mut TypeEnv) -> InferResult<Type> {
+        match ty.value {
+            astType::Bool => Ok(Type::App(TyCon::Bool, vec![])),
+            astType::Str => Ok(Type::App(TyCon::Str, vec![])),
+            astType::Nil => Ok(Type::App(TyCon::Void, vec![])),
+            astType::U8
+            | astType::I8
+            | astType::U32
+            | astType::I32
+            | astType::U64
+            | astType::I64 => Ok(Type::App(TyCon::Int, vec![])),
+            astType::Simple(ref ident) => {
+                if let Some(ty) = env.look_type(ident.value).cloned() {
+
+                    match ty {
+                        Entry::TyCon(tycon) => Ok(Type::App(tycon,vec![])),
+                        Entry::Type(ty) => Ok(ty.clone())
+                    }
+                   
+                } else {
+                    let msg = format!("Undefined Type '{}'", env.name(ident.value));
+                    self.error(msg, ident.span);
+                    Err(())
+                }
+            }
+            astType::Poly(ref ident, ref types) => {
+                //Concrete generics i.e List<i32>. List<bool>
+                let ty = if let Some(ty) = env.look_type(ident.value).cloned() {
+                    ty.clone()
+                } else {
+                    let msg = format!("Undefined Type '{}'", env.name(ident.value));
+                    self.error(msg, ident.span);
+                    return Err(())
+                };
+
+                let transformed_tys = Vec::new();
+
+                for ty in types {
+                    transformed_tys.push(self.trans_ty(ty, env)?);
+                }
+
+                Err(())
+                // Ok(Type::App(ty,transformed_tys))
+
+
+            }
         }
     }
 }
