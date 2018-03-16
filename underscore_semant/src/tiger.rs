@@ -125,71 +125,68 @@ impl Infer {
 
     fn unify(&mut self, t1: &Type, t2: &Type) -> InferResult<()> {
         match (t1, t2) {
+            (
+                &Type::App(TyCon::Unique(_, ref z1), ref types1),
+                &Type::App(TyCon::Unique(_, ref z2), ref types2),
+            ) => {
+                if z1 != z2 {
+                    return Err(());
+                }
+
+                for (a, b) in types1.iter().zip(types2.iter()) {
+                    self.unify(a, b)?
+                }
+                Ok(())
+            }
+
             (&Type::App(_, ref types1), &Type::App(_, ref types2)) => {
                 for (a, b) in types1.iter().zip(types2.iter()) {
                     self.unify(a, b)?
                 }
                 Ok(())
-            },
-
-            (&Type::App(TyCon::Unique(_,ref z1),ref types1),&Type::App(TyCon::Unique(_,ref z2),ref types2)) => {
-
-                if z1 != z2 {
-                    return Err(())
-                }
-
-                 for (a, b) in types1.iter().zip(types2.iter()) {
-                    self.unify(a, b)?
-                }
-                Ok(())
             }
 
-
-            (&Type::App(TyCon::TyFun(ref tyvars,ref ret),ref u) ,ref t) => {
+            (&Type::App(TyCon::TyFun(ref tyvars, ref ret), ref u), ref t) => {
                 let mut mappings = HashMap::new();
 
-                for (var,ty) in tyvars.iter().zip(u) {
-                    mappings.insert(*var,ty.clone());
+                for (var, ty) in tyvars.iter().zip(u) {
+                    mappings.insert(*var, ty.clone());
                 }
 
-                let lhs = self.subst(*ret.clone(),&mut mappings);
+                let lhs = self.subst(*ret.clone(), &mut mappings);
 
                 self.unify(&lhs, t)?;
                 Ok(())
-            },
+            }
 
-            (ref t,&Type::App(TyCon::TyFun(ref tyvars,ref ret),ref u)) => {
+            (ref t, &Type::App(TyCon::TyFun(ref tyvars, ref ret), ref u)) => {
                 let mut mappings = HashMap::new();
 
-                for (var,ty) in tyvars.iter().zip(u) {
-                    mappings.insert(*var,ty.clone());
+                for (var, ty) in tyvars.iter().zip(u) {
+                    mappings.insert(*var, ty.clone());
                 }
 
-                let lhs = self.subst(*ret.clone(),&mut mappings);
+                let lhs = self.subst(*ret.clone(), &mut mappings);
 
                 self.unify(&lhs, t)?;
                 Ok(())
-            },
-
-
-            (&Type::Poly(ref vars1,ref ret1),&Type::Poly(ref vars2,ref ret2)) => {
-               let mut mappings = HashMap::new();
-
-               for var in vars1 {
-                   mappings.insert(*var,Type::Var(*var));
-               }
-
-               for var in vars2 {
-                    mappings.insert(*var,Type::Var(*var));
-               }
-
-
-               let rhs = self.subst(*ret2.clone(), &mut mappings);
-
-               self.unify(ret1, &rhs)
             }
 
-            
+            (&Type::Poly(ref vars1, ref ret1), &Type::Poly(ref vars2, ref ret2)) => {
+                let mut mappings = HashMap::new();
+
+                for var in vars1 {
+                    mappings.insert(*var, Type::Var(*var));
+                }
+
+                for var in vars2 {
+                    mappings.insert(*var, Type::Var(*var));
+                }
+
+                let rhs = self.subst(*ret2.clone(), &mut mappings);
+
+                self.unify(ret1, &rhs)
+            }
 
             (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
                 Ok(())
@@ -204,6 +201,26 @@ impl Infer {
                 self.reporter.error(msg, EMPTYSPAN);
                 Err(())
             }
+        }
+    }
+
+    fn expand(&mut self,ty:Type) -> Type {
+        match ty {
+            Type::App(TyCon::TyFun(vars,ret),types) => {
+                let mut mappings = HashMap::new();
+
+                for (var, ty) in vars.iter().zip(types) {
+                    mappings.insert(*var, ty.clone());
+                };
+
+                let ty = self.subst(*ret.clone(), &mut mappings);
+
+                self.expand(ty)
+                
+            },
+
+            Type::App(TyCon::Unique(tycon,_),types) => self.expand(Type::App(*tycon,types)),
+            u => u
         }
     }
 }
