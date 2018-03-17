@@ -6,20 +6,23 @@ pub struct TypeVar(pub u32);
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
     name: TypeVar,
-    pub ty: Ty,
+    ty: Type,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Ty {
-    Nil,
+
+#[derive(Debug, Clone)]
+pub enum Type {
+    Struct {
+        fields:Vec<Field>
+    },
+
+    Func(Vec<Type>, Box<Type>),
+    Array(Box<Type>),
+    Name(Spanned<Ident>, Box<Type>),
     Int,
-    String,
-    Char,
+    Str,
     Bool,
-    Struct(Vec<Ty>, Vec<Field>),
-    Fun(Vec<Ty>, Box<Ty>),
-    Var(TypeVar),
-    Unique(Box<Ty>, Unique),
+    Nil,
 }
 
 static mut UNIQUE_COUNT: u64 = 0;

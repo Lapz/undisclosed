@@ -351,19 +351,13 @@ impl Infer {
                 env.add_typevars(tparam.value, Type::Var(tv));
             }
 
-
             let mut types = Vec::new();
-            
+
             for param in &function.value.params.value {
                 let ty = self.trans_ty(&param.value.ty, env)?;
 
                 types.push(ty)
             }
-
-            // env.add_typevars(&function.value.name.value.name.value, data)
-            // let ty = self.trans_item_name(&function.value.name, env);
-
-            // env.add_typevars(function.value.name.value.name.value, ty);
 
             let return_type = if let Some(ref return_ty) = function.value.returns {
                 self.trans_ty(return_ty, env)?
@@ -371,7 +365,7 @@ impl Infer {
                 Type::App(TyCon::Void, vec![])
             };
 
-            
+            env.add_typevars(function.value.name.value.name.value, Type::Poly())
 
             Ok(())
         }
