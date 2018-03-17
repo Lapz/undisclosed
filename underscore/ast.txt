@@ -10,7 +10,7 @@ Program {
                 },
                 end: Position {
                     line: 5,
-                    column: 29,
+                    column: 26,
                     absolute: 2
                 }
             },
@@ -23,7 +23,7 @@ Program {
                     },
                     end: Position {
                         line: 5,
-                        column: 29,
+                        column: 26,
                         absolute: 2
                     }
                 },
@@ -88,7 +88,7 @@ Program {
                         },
                         end: Position {
                             line: 2,
-                            column: 34,
+                            column: 26,
                             absolute: 10
                         }
                     },
@@ -102,7 +102,7 @@ Program {
                                 },
                                 end: Position {
                                     line: 3,
-                                    column: 53,
+                                    column: 43,
                                     absolute: 12
                                 }
                             },
@@ -133,11 +133,11 @@ Program {
                                         },
                                         end: Position {
                                             line: 2,
-                                            column: 40,
-                                            absolute: 17
+                                            column: 30,
+                                            absolute: 14
                                         }
                                     },
-                                    value: Poly(
+                                    value: Simple(
                                         Spanned {
                                             span: Span {
                                                 start: Position {
@@ -147,49 +147,66 @@ Program {
                                                 },
                                                 end: Position {
                                                     line: 1,
-                                                    column: 18,
-                                                    absolute: 17
+                                                    column: 15,
+                                                    absolute: 14
                                                 }
                                             },
                                             value: Ident(
-                                                3
+                                                1
                                             )
-                                        },
-                                        [
-                                            Spanned {
-                                                span: Span {
-                                                    start: Position {
-                                                        line: 1,
-                                                        column: 19,
-                                                        absolute: 18
-                                                    },
-                                                    end: Position {
-                                                        line: 1,
-                                                        column: 22,
-                                                        absolute: 21
-                                                    }
-                                                },
-                                                value: I32
-                                            }
-                                        ]
+                                        }
                                     )
                                 }
                             }
                         }
                     ]
                 },
-                returns: None,
+                returns: Some(
+                    Spanned {
+                        span: Span {
+                            start: Position {
+                                line: 1,
+                                column: 20,
+                                absolute: 19
+                            },
+                            end: Position {
+                                line: 2,
+                                column: 42,
+                                absolute: 20
+                            }
+                        },
+                        value: Simple(
+                            Spanned {
+                                span: Span {
+                                    start: Position {
+                                        line: 1,
+                                        column: 20,
+                                        absolute: 19
+                                    },
+                                    end: Position {
+                                        line: 1,
+                                        column: 21,
+                                        absolute: 20
+                                    }
+                                },
+                                value: Ident(
+                                    1
+                                )
+                            }
+                        )
+                    }
+                ),
                 body: Spanned {
                     span: Span {
                         start: Position {
                             line: 1,
-                            column: 25,
-                            absolute: 24
+                            column: 22,
+                            absolute: 21
                         },
                         end: Position {
                             line: 4,
-                            column: 26,
-                            absolute: 24
+                            column: 23,
+                            absolute: 21
                         }
                     },
                     value: Block(
@@ -199,12 +216,12 @@ Program {
                                     start: Position {
                                         line: 2,
                                         column: 13,
-                                        absolute: 38
+                                        absolute: 35
                                     },
                                     end: Position {
                                         line: 2,
                                         column: 13,
-                                        absolute: 38
+                                        absolute: 35
                                     }
                                 },
                                 value: Expr(
@@ -213,12 +230,12 @@ Program {
                                             start: Position {
                                                 line: 2,
                                                 column: 5,
-                                                absolute: 30
+                                                absolute: 27
                                             },
                                             end: Position {
                                                 line: 4,
                                                 column: 19,
-                                                absolute: 31
+                                                absolute: 28
                                             }
                                         },
                                         value: Binary {
@@ -227,12 +244,12 @@ Program {
                                                     start: Position {
                                                         line: 2,
                                                         column: 5,
-                                                        absolute: 30
+                                                        absolute: 27
                                                     },
                                                     end: Position {
                                                         line: 2,
                                                         column: 6,
-                                                        absolute: 31
+                                                        absolute: 28
                                                     }
                                                 },
                                                 value: Literal(
@@ -249,12 +266,12 @@ Program {
                                                     start: Position {
                                                         line: 2,
                                                         column: 7,
-                                                        absolute: 32
+                                                        absolute: 29
                                                     },
                                                     end: Position {
                                                         line: 2,
                                                         column: 7,
-                                                        absolute: 32
+                                                        absolute: 29
                                                     }
                                                 },
                                                 value: Plus
@@ -264,12 +281,12 @@ Program {
                                                     start: Position {
                                                         line: 2,
                                                         column: 9,
-                                                        absolute: 34
+                                                        absolute: 31
                                                     },
                                                     end: Position {
                                                         line: 2,
                                                         column: 13,
-                                                        absolute: 38
+                                                        absolute: 35
                                                     }
                                                 },
                                                 value: Literal(

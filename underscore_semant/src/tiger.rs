@@ -2,18 +2,22 @@ use util::emitter::Reporter;
 use std::collections::{HashMap, HashSet};
 use std::iter::FromIterator;
 use util::pos::{Span, Spanned, EMPTYSPAN};
-use util::symbol::Table;
-use syntax::ast::{Expression, Function, FunctionParams, Statement, Var};
+use util::symbol::{FactoryMap, Table};
+use syntax::ast::{Expression, Function, FunctionParams, Program, Statement, TyAlias, Var};
 use syntax::ast::Ident;
 use syntax::ast::Ty as astType;
-use std::any::Any;
+use std::rc::Rc;
+use syntax::ast::ItemName;
+
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub struct TypeVar(pub u32);
 
-static mut UNIQUE_COUNT: u64 = 0;
+static mut UNIQUE_COUNT: u32 = 0;
+
+static mut TYPEVAR_COUNT: u32 = 0;
 
 #[derive(Clone, Debug, PartialEq, Default)]
-pub struct Unique(pub u64);
+pub struct Unique(pub u32);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
@@ -21,33 +25,69 @@ pub struct Field {
     ty: Type,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TypeEnv {
-    pub types: Table<Ident, Entry>,
+    pub typecons: Table<Ident, TyCon>,
+    pub typevars: Table<Ident, Type>,
 }
 
-#[derive(Clone)]
-enum Entry {
-    Type(Type),
-    TyCon(TyCon)
+pub trait GetIdent {
+    fn ident(&mut self, name: &str) -> Ident;
 }
 
-impl Entry {
-    fn is_type(&self) -> bool {
-        match *self {
-            Entry::Type(_) => true,
-            _ => false,
+impl GetIdent for Table<Ident, Type> {
+    fn ident(&mut self, name: &str) -> Ident {
+        for (key, value) in self.strings.mappings.borrow().iter() {
+            if value == name {
+                return *key;
+            }
         }
+        let symbol = Ident(*self.strings.next.borrow());
+        self.strings
+            .mappings
+            .borrow_mut()
+            .insert(symbol, name.to_owned());
+        *self.strings.next.borrow_mut() += 1;
+        symbol
     }
 }
-
 impl TypeEnv {
-    pub fn look_type(&mut self, ident: Ident) -> Option<&Entry> {
-        self.types.look(ident)
+    pub fn new(strings: &Rc<FactoryMap<Ident>>) -> Self {
+        let mut typevars = Table::new(strings.clone());
+        let string_symbol = typevars.ident("str");
+        let int_symbol = typevars.ident("int");
+        let nil_symbol = typevars.ident("nil");
+        let bool_symbol = typevars.ident("bool");
+
+        typevars.enter(int_symbol, Type::App(TyCon::Int, vec![]));
+        typevars.enter(bool_symbol, Type::App(TyCon::Bool, vec![]));
+        typevars.enter(nil_symbol, Type::App(TyCon::Void, vec![]));
+        typevars.enter(string_symbol, Type::App(TyCon::Str, vec![]));
+
+        TypeEnv {
+            typevars,
+            typecons: Table::new(Rc::clone(&strings)),
+        }
+    }
+
+    pub fn look_tycon(&mut self, ident: Ident) -> Option<&TyCon> {
+        self.typecons.look(ident)
+    }
+
+    pub fn add_tycon(&mut self, ident: Ident, data: TyCon) {
+        self.typecons.enter(ident, data);
+    }
+
+    pub fn add_typevars(&mut self, ident: Ident, data: Type) {
+        self.typevars.enter(ident, data);
+    }
+
+    pub fn look_typevars(&mut self, ident: Ident) -> Option<&Type> {
+        self.typevars.look(ident)
     }
 
     pub fn name(&self, ident: Ident) -> String {
-        self.types.name(ident)
+        self.typecons.name(ident)
     }
 }
 
@@ -56,6 +96,14 @@ impl Unique {
         let value = unsafe { UNIQUE_COUNT };
         unsafe { UNIQUE_COUNT += 1 };
         Unique(value)
+    }
+}
+
+impl TypeVar {
+    pub fn new() -> Self {
+        let value = unsafe { TYPEVAR_COUNT };
+        unsafe { TYPEVAR_COUNT += 1 };
+        TypeVar(value)
     }
 }
 
@@ -81,7 +129,7 @@ pub enum TyCon {
 
 type InferResult<T> = Result<T, ()>;
 
-struct Infer {
+pub struct Infer {
     reporter: Reporter,
 }
 
@@ -260,11 +308,90 @@ impl Infer {
 }
 
 impl Infer {
+    pub fn new(reporter: Reporter) -> Self {
+        Infer { reporter }
+    }
+
+    pub fn infer(&mut self, program: Program, env: &mut TypeEnv) -> InferResult<()> {
+        for alias in &program.type_alias {
+            self.type_alias(alias, env)?
+        }
+
+        for function in &program.functions {
+            self.function(function, env)?
+        }
+
+        Ok(())
+    }
+
     fn error<T: Into<String>>(&mut self, msg: T, span: Span) {
         self.reporter.error(msg, span)
     }
 
-    fn trans_ty(&mut self, ty: &Spanned<astType>, env: &mut TypeEnv) -> InferResult<Type> {
+    fn type_alias(&mut self, alias: &Spanned<TyAlias>, env: &mut TypeEnv) -> InferResult<()> {
+        let ty = self.trans_ty(&alias.value.ty, env)?;
+
+        env.add_typevars(alias.value.alias.value, ty);
+
+        Ok(())
+    }
+
+    fn function(&mut self, function: &Spanned<Function>, env: &mut TypeEnv) -> InferResult<()> {
+        if function.value.name.value.type_params.is_empty() {
+            Ok(())
+        } else {
+            env.typecons.begin_scope();
+            env.typevars.begin_scope();
+
+            let fntvar = TypeVar::new();
+
+            for tparam in &function.value.name.value.type_params {
+                let tv = TypeVar::new();
+
+                env.add_typevars(tparam.value, Type::Var(tv));
+            }
+
+
+            let mut types = Vec::new();
+            
+            for param in &function.value.params.value {
+                let ty = self.trans_ty(&param.value.ty, env)?;
+
+                types.push(ty)
+            }
+
+            // env.add_typevars(&function.value.name.value.name.value, data)
+            // let ty = self.trans_item_name(&function.value.name, env);
+
+            // env.add_typevars(function.value.name.value.name.value, ty);
+
+            let return_type = if let Some(ref return_ty) = function.value.returns {
+                self.trans_ty(return_ty, env)?
+            } else {
+                Type::App(TyCon::Void, vec![])
+            };
+
+            
+
+            Ok(())
+        }
+    }
+
+    pub fn trans_item_name(&mut self, item_name: &Spanned<ItemName>, env: &mut TypeEnv) -> Type {
+        let b = TypeVar::new();
+        let mut type_vars = Vec::with_capacity(item_name.value.type_params.len());
+
+        for tparam in &item_name.value.type_params {
+            let tv = TypeVar::new();
+
+            env.add_typevars(tparam.value, Type::Var(tv));
+            type_vars.push(tv);
+        }
+
+        Type::Poly(type_vars, Box::new(Type::Var(b)))
+    }
+
+    pub fn trans_ty(&mut self, ty: &Spanned<astType>, env: &mut TypeEnv) -> InferResult<Type> {
         match ty.value {
             astType::Bool => Ok(Type::App(TyCon::Bool, vec![])),
             astType::Str => Ok(Type::App(TyCon::Str, vec![])),
@@ -276,13 +403,10 @@ impl Infer {
             | astType::U64
             | astType::I64 => Ok(Type::App(TyCon::Int, vec![])),
             astType::Simple(ref ident) => {
-                if let Some(ty) = env.look_type(ident.value).cloned() {
-
-                    match ty {
-                        Entry::TyCon(tycon) => Ok(Type::App(tycon,vec![])),
-                        Entry::Type(ty) => Ok(ty.clone())
-                    }
-                   
+                if let Some(ty) = env.look_tycon(ident.value).cloned() {
+                    Ok(Type::App(ty.clone(), vec![]))
+                } else if let Some(ty) = env.look_typevars(ident.value).cloned() {
+                    Ok(ty.clone())
                 } else {
                     let msg = format!("Undefined Type '{}'", env.name(ident.value));
                     self.error(msg, ident.span);
@@ -291,24 +415,20 @@ impl Infer {
             }
             astType::Poly(ref ident, ref types) => {
                 //Concrete generics i.e List<i32>. List<bool>
-                let ty = if let Some(ty) = env.look_type(ident.value).cloned() {
+                let ty = if let Some(ty) = env.look_tycon(ident.value).cloned() {
                     ty.clone()
                 } else {
                     let msg = format!("Undefined Type '{}'", env.name(ident.value));
                     self.error(msg, ident.span);
-                    return Err(())
+                    return Err(());
                 };
 
-                let transformed_tys = Vec::new();
+                let mut transformed_tys = Vec::new();
 
                 for ty in types {
                     transformed_tys.push(self.trans_ty(ty, env)?);
                 }
-
-                Err(())
-                // Ok(Type::App(ty,transformed_tys))
-
-
+                Ok(Type::App(ty, transformed_tys))
             }
         }
     }
