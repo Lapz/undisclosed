@@ -632,7 +632,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
             let mut types = vec![];
 
-            let mut close_span = None;
+            
 
             if self.recognise(TokenType::LESSTHAN) {
                 self.consume(&TokenType::LESSTHAN, "Expected '<' ")?;
@@ -646,12 +646,11 @@ impl<'a, 'b> Parser<'a, 'b> {
                     }
                 }
 
-                close_span = Some(self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?);
-
                 Ok(Spanned {
-                    span: ident.get_span().to(close_span.unwrap_or(ident.get_span())),
+                    span: ident.get_span().to(self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?),
                     value: Ty::Poly(ident, types),
                 })
+
             } else {
                 Ok(Spanned {
                     span: ident.get_span().to(ident.get_span()),
