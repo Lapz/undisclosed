@@ -2,14 +2,43 @@ use std::collections::{HashMap, HashSet};
 use util::emitter::Reporter;
 use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Statement, Ty};
 use util::pos::{Span, Spanned};
-use syntax::ast;
+use util::symbol::Table;
+use syntax::ast::Ty as astType;
 
 use std::ops::{Deref, DerefMut};
 
-type InferenceResult<T> = Result<T, ()>;
+type InferResult<T> = Result<T, ()>;
+
+trait Types {
+    fn ftv(&self) -> HashSet<TypeVar>;
+    fn apply(&self, &Subst) -> Self;
+}
+
+trait GetIdent {
+    fn ident(&mut self, name: &str) -> Ident;
+}
 
 #[derive(Debug, Clone)]
 pub struct Subst(HashMap<TypeVar, Type>);
+
+#[derive(Clone, Debug, PartialEq, Default)]
+pub struct Unique(pub u64);
+
+#[derive(Clone,Debug)]
+pub struct Infer {
+    reporter:Reporter,
+    gen:TypeVarGen
+}
+
+#[derive(Clone,Debug)]
+pub struct Env {
+    env:Table<Ident,Scheme>,
+    tyenv:Table<Ident,Type>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TypeEnv(HashMap<Ident, Scheme>, Reporter,TypeVarGen);
+
 
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub struct TypeVar(pub u32);
@@ -22,16 +51,6 @@ pub struct Field {
 
 static mut UNIQUE_COUNT: u64 = 0;
 
-#[derive(Clone, Debug, PartialEq, Default)]
-pub struct Unique(pub u64);
-
-impl Unique {
-    pub fn new() -> Self {
-        let value = unsafe { UNIQUE_COUNT };
-        unsafe { UNIQUE_COUNT += 1 };
-        Unique(value)
-    }
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
@@ -52,9 +71,26 @@ pub struct Scheme {
     pub ty: Type,
 }
 
+impl Scheme {
+    fn new(ty:Type) -> Self  {
+        Scheme {
+            vars:Vec::new(),
+            ty
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct TypeVarGen {
     supply: u32,
+}
+
+impl Unique {
+    pub fn new() -> Self {
+        let value = unsafe { UNIQUE_COUNT };
+        unsafe { UNIQUE_COUNT += 1 };
+        Unique(value)
+    }
 }
 
 impl TypeVarGen {
@@ -83,10 +119,6 @@ where
     }
 }
 
-trait Types {
-    fn ftv(&self) -> HashSet<TypeVar>;
-    fn apply(&self, &Subst) -> Self;
-}
 
 impl Types for Type {
     fn ftv(&self) -> HashSet<TypeVar> {
@@ -186,39 +218,6 @@ impl Types for Scheme {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct TypeEnv(HashMap<Ident, Scheme>, Reporter,TypeVarGen);
-
-impl Types for TypeEnv {
-    fn ftv(&self) -> HashSet<TypeVar> {
-        self.values()
-            .map(|x| x.clone())
-            .collect::<Vec<Scheme>>()
-            .ftv()
-    }
-    fn apply(&self, subst: &Subst) -> TypeEnv {
-        TypeEnv(
-            self.iter()
-                .map(|(k, v)| (k.clone(), v.apply(subst)))
-                .collect(),
-            self.1.clone(),
-            self.2.clone(),
-        )
-    }
-}
-
-impl Deref for TypeEnv {
-    type Target = HashMap<Ident, Scheme>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-impl DerefMut for TypeEnv {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
 impl Deref for Subst {
     type Target = HashMap<TypeVar, Type>;
     fn deref(&self) -> &HashMap<TypeVar, Type> {
@@ -240,7 +239,7 @@ impl Scheme {
 }
 
 impl TypeVar {
-    fn bind(&self, ty: &Type) -> InferenceResult<Subst> {
+    fn bind(&self, ty: &Type) -> InferResult<Subst> {
         if let &Type::Var(ref u) = ty {
             if u == self {
                 return Ok(Subst::new());
@@ -259,8 +258,10 @@ impl TypeVar {
     }
 }
 
+
+
 impl Type {
-    fn mgu(&self, other: &Type, span: Span, reporter: &mut Reporter) -> InferenceResult<Subst> {
+    fn mgu(&self, other: &Type, span: Span, reporter: &mut Reporter) -> InferResult<Subst> {
         match (self, other) {
             (&Type::Nil, &Type::Nil)
             | (&Type::Int, &Type::Int)
@@ -304,19 +305,122 @@ impl Type {
     }
 }
 
+impl Types for TypeEnv {
+    fn ftv(&self) -> HashSet<TypeVar> {
+        self.values()
+            .map(|x| x.clone())
+            .collect::<Vec<Scheme>>()
+            .ftv()
+    }
+    fn apply(&self, subst: &Subst) -> TypeEnv {
+        TypeEnv(
+            self.iter()
+                .map(|(k, v)| (k.clone(), v.apply(subst)))
+                .collect(),
+            self.1.clone(),
+            self.2.clone(),
+        )
+    }
+}
+
+use std::rc::Rc;
+use util::symbol::FactoryMap;
+
+
+
+impl GetIdent for Table<Ident, Type> {
+    fn ident(&mut self, name: &str) -> Ident {
+        for (key, value) in self.strings.mappings.borrow().iter() {
+            if value == name {
+                return *key;
+            }
+        }
+        let symbol = Ident(*self.strings.next.borrow());
+        self.strings
+            .mappings
+            .borrow_mut()
+            .insert(symbol, name.to_owned());
+        *self.strings.next.borrow_mut() += 1;
+        symbol
+    }
+}
+impl Env {
+   
+
+    pub fn new(strings:&Rc<FactoryMap<Ident>>) -> Self {
+        let mut tyenv = Table::new(strings.clone());
+        let string_ident = tyenv.ident("str");
+        let int_ident = tyenv.ident("int");
+        let nil_ident = tyenv.ident("nil");
+        let bool_ident= tyenv.ident("bool");
+
+        tyenv.enter(int_ident, Type::Int);
+        tyenv.enter(bool_ident, Type::Bool);
+        tyenv.enter(nil_ident, Type::Nil);
+        tyenv.enter(string_ident, Type::String);
+
+        Env {
+            tyenv,
+            env: Table::new(Rc::clone(&strings)),
+        }
+    }
+
+    pub fn look_scheme(&mut self, ident: Ident) -> Option<&Scheme> {
+        self.env.look(ident)
+    }
+
+    pub fn begin_scope(&mut self) {
+        self.env.begin_scope();
+        self.tyenv.begin_scope();
+    }
+
+    pub fn end_scope(&mut self) {
+        self.env.end_scope();
+        self.tyenv.end_scope();
+    }
+ 
+    pub fn add_type(&mut self, ident: Ident, data: Type) {
+        self.tyenv.enter(ident, data);
+    }
+
+    pub fn add_var(&mut self, ident: Ident, data: Scheme) {
+        self.env.enter(ident, data);
+    }
+
+    pub fn look_type(&mut self, ident: Ident) -> Option<&Type> {
+        self.tyenv.look(ident)
+    }
+
+    pub fn name(&self, ident: Ident) -> String {
+        self.tyenv.name(ident)
+    }
+}
+
+impl Deref for TypeEnv {
+    type Target = HashMap<Ident, Scheme>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl DerefMut for TypeEnv {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 impl TypeEnv {
     pub fn new(reporter: Reporter) -> Self {
         TypeEnv(HashMap::new(), reporter,TypeVarGen::new())
     }
 
-    fn generalize(&self, ty: &Type) -> Scheme {
+    pub fn generalize(&self, ty: &Type) -> Scheme {
         Scheme {
             vars: ty.ftv().difference(&self.ftv()).cloned().collect(),
             ty: ty.clone(),
         }
     }
 
-    pub fn ti(&mut self, program: &Program) -> InferenceResult<()> {
+    pub fn ti(&mut self, program: &Program) -> InferResult<()> {
         for function in &program.functions {
             println!("{:?}", self.ti_function(function));
         }
@@ -324,7 +428,7 @@ impl TypeEnv {
         Ok(())
     }
 
-    fn get_type(&mut self, ident: &Spanned<Ty>, span: Span) -> InferenceResult<Type> {
+    fn get_type(&mut self, ident: &Spanned<Ty>, span: Span) -> InferResult<Type> {
         match ident.value {
             Ty::Bool => Ok(Type::Bool),
             Ty::Str => Ok(Type::String),
@@ -352,7 +456,7 @@ impl TypeEnv {
         }
     }
 
-    fn ti_function(&mut self, function: &Spanned<Function>) -> InferenceResult<()> {
+    fn ti_function(&mut self, function: &Spanned<Function>) -> InferResult<()> {
        
        let return_ty = if let Some(ref ty) = function.value.returns {
             self.get_type(ty, ty.span)?
@@ -386,7 +490,7 @@ impl TypeEnv {
         Ok(())
     }
 
-    fn ti_statement(&mut self, body: &Spanned<Statement>) -> InferenceResult<Type> {
+    fn ti_statement(&mut self, body: &Spanned<Statement>) -> InferResult<Type> {
         match body.value {
             Statement::Block(ref statements) => {
                 let mut result = Type::Nil;
@@ -499,7 +603,7 @@ impl TypeEnv {
         }
     }
 
-    fn ti_expr(&mut self, expr: &Spanned<Expression>) -> InferenceResult<Type> {
+    fn ti_expr(&mut self, expr: &Spanned<Expression>) -> InferResult<Type> {
         match expr.value {
             Expression::Assign {
                 ref name,
@@ -570,67 +674,107 @@ impl TypeEnv {
     }
 }
 
-#[cfg(test)]
-mod tests {
-
-    use syntax::ast::{Expression, Literal, Op};
-    use super::{TypeEnv, TypeVarGen};
-    use util::pos::{Spanned, EMPTYSPAN};
-    use types::Ty;
-
-    #[test]
-    fn it_works() {
-        let mut tgen = TypeVarGen::new();
-        let mut tenv = TypeEnv::new();
-
-        assert_eq!(
-            tenv.ti_expr(&Spanned {
-                span: EMPTYSPAN,
-                value: Expression::Literal(Literal::False(false)),
-            }).unwrap(),
-            Type::Bool
-        )
+impl Infer {
+    pub fn new(reporter:Reporter) -> Self {
+        Infer {
+            reporter,
+            gen:TypeVarGen::new(),
+        }
     }
 
-    #[test]
-    fn binary1() {
-        let mut tgen = TypeVarGen::new();
-        let mut tenv = TypeEnv::new();
+     pub fn trans_ty(&mut self, ty: &Spanned<astType>,env:&mut Env) -> InferResult<Type> {
+        match ty.value {
+            astType::Bool => Ok(Type::Bool),
+            astType::Str => Ok(Type::String),
+            astType::Nil => Ok(Type::Nil),
+            astType::U8
+            | astType::I8
+            | astType::U32
+            | astType::I32
+            | astType::U64
+            | astType::I64 => Ok(Type::Int),
+            astType::Simple(ref ident) => {
+                if let Some(ty) = env.look_type(ident.value).cloned() {
+                    Ok(ty)
+                } else if let Some(ty) = env.look_scheme(ident.value).cloned() {
+                    Ok(ty.instantiate(&mut self.gen))
+                } else {
+                    let msg = format!("Undefined Type '{}'", env.name(ident.value));
+                    self.error(msg, ident.span);
+                    Err(())
+                }
+            }
+            astType::Poly(ref ident, ref types) => {
+                //Concrete generics i.e List<i32>. List<bool>
+                let ty = if let Some(ty) = env.look_scheme(ident.value).cloned() {
+                    ty.clone()
+                } else {
+                    let msg = format!("Undefined Type '{}'", env.name(ident.value));
+                    self.error(msg, ident.span);
+                    return Err(());
+                };
 
-        assert_eq!(
-            tenv.ti_expr(&Spanned {
-                span: EMPTYSPAN,
-                value: Expression::Binary {
-                    lhs: Box::new(Spanned {
-                        span: EMPTYSPAN,
-                        value: Expression::Literal(Literal::Str("a".into())),
-                    }),
-                    op: Spanned {
-                        span: EMPTYSPAN,
-                        value: Op::LT,
+                let mut ty = ty.instantiate(&mut self.gen);
+
+                match ty {
+                    Type::Fun(ref mut paramty,_) => {
+                        for ty in types {
+                            paramty.push(self.trans_ty(ty, env)?)
+                        }
                     },
-                    rhs: Box::new(Spanned {
-                        span: EMPTYSPAN,
-                        value: Expression::Literal(Literal::Str("a".into())),
-                    }),
-                },
-            }).unwrap(),
-            Type::Bool
-        )
+                    _ => unreachable!()
+                }
+
+            
+                Ok(ty)
+            }
+        }
     }
 
-    // #[test]
-    // fn it_works() {
-    //     let mut tgen = TypeVarGen::new();
-    //     let mut tenv = TypeEnv::new();
+    pub fn function(&mut self,function:&Spanned<Function>,env:&mut Env)  -> InferResult<()> {
+        let returns = if let Some(ref return_ty) = function.value.returns {
+                self.trans_ty(return_ty, env)?
+            } else {
+                Type::Nil
+        };
 
-    //     assert_eq!(
-    //         tenv.ti_expr(&Spanned {
-    //             span: EMPTYSPAN,
-    //             value: Expression::Literal(Literal::False(false)),
-    //         }).unwrap(),
-    //         Type::Bool
-    //     )
-    // }
+        let mut scheme = Scheme::new(returns.clone());
 
+        let mut ftys = Vec::new();
+
+        for tv in &function.value.name.value.type_params {
+           
+            scheme.vars.push(self.gen.next());
+        }
+
+        env.add_var(function.value.name.value.name.value, scheme);
+
+
+        env.begin_scope();
+
+        for paramdef in &function.value.params.value {
+            ftys.push(self.trans_ty(&paramdef.value.ty, env)?);
+           env.add_var(paramdef.value.name.value, Scheme::new(self.trans_ty(&paramdef.value.ty, env)?))
+        }
+
+
+        env.add_type(function.value.name.value.name.value, Type::Fun(ftys,Box::new(returns.clone())));
+
+
+        let body  = self.statement(&function.value.body)?;
+
+        body.mgu(&returns,function.value.body.span,&mut self.reporter)?;
+        
+        Ok(())
+                
+    }
+
+
+    fn statement(&mut self,statment:&Spanned<Statement>) -> InferResult<Type> {
+        unimplemented!()
+    }
+
+    fn error<T: Into<String>>(&mut self, msg: T, span: Span) {
+        self.reporter.error(msg, span)
+    }
 }
