@@ -365,7 +365,7 @@ impl Infer {
                 Type::App(TyCon::Void, vec![])
             };
 
-            env.add_typevars(function.value.name.value.name.value, Type::Poly())
+            env.add_typevars(function.value.name.value.name.value, Type::Poly());
 
             Ok(())
         }

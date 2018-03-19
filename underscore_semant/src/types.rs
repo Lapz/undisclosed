@@ -9,12 +9,9 @@ pub struct Field {
     ty: Type,
 }
 
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type {
-    Struct {
-        fields:Vec<Field>
-    },
+    Struct { fields: Vec<Field> },
 
     Func(Vec<Type>, Box<Type>),
     Array(Box<Type>),

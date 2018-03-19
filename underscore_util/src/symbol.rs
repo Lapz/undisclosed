@@ -17,7 +17,7 @@ pub struct FactoryMap<T: Copy + Eq + Hash> {
 /// A Scoped Map that takes any K and V
 pub struct Table<K: Clone + Hash + Eq + Copy, V: Clone> {
     pub strings: Rc<FactoryMap<K>>,
-    table: HashMap<K, Vec<V>>,
+    pub table: HashMap<K, Vec<V>>,
     scopes: Vec<Option<K>>,
 }
 
