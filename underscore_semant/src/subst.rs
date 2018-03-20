@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use util::emitter::Reporter;
 use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Sign, Size, Statement,
-                  TyAlias, Var};
+                  TyAlias, Var,UnaryOp};
 use util::pos::{Span, Spanned};
 use util::symbol::Table;
 use syntax::ast::Ty as astType;
@@ -119,12 +119,12 @@ where
 }
 
 impl Type {
-     fn is_int(&self) -> bool {
-         match *self {
-             Type::Int(_,_) => true,
-             _ => false,
-         }
-     }
+    fn is_int(&self) -> bool {
+        match *self {
+            Type::Int(_, _) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Types for Type {
@@ -477,8 +477,8 @@ impl Infer {
             astType::Nil => Ok(Type::Nil),
             astType::U8 => Ok(Type::Int(Sign::Unsigned, Size::Bit8)),
             astType::I8 => Ok(Type::Int(Sign::Signed, Size::Bit8)),
-            astType::U32 => Ok(Type::Int(Sign::Signed, Size::Bit32)),
-            astType::I32 => Ok(Type::Int(Sign::Unsigned, Size::Bit32)),
+            astType::U32 => Ok(Type::Int(Sign::Unsigned, Size::Bit32)),
+            astType::I32 => Ok(Type::Int(Sign::Signed, Size::Bit32)),
             astType::U64 => Ok(Type::Int(Sign::Signed, Size::Bit64)),
             astType::I64 => Ok(Type::Int(Sign::Unsigned, Size::Bit64)),
             astType::Simple(ref ident) => {
@@ -606,11 +606,10 @@ impl Infer {
                     let ty = self.expr(incr, env)?;
 
                     if !ty.is_int() {
-
                         let msg = "Increment should be of type i8,u8,i32,u32,i64,u64";
 
                         self.error(msg, incr.span);
-                        return Err(())
+                        return Err(());
                     }
                 }
 
@@ -701,7 +700,14 @@ impl Infer {
             Expression::Assign {
                 ref name,
                 ref value,
-            } => unimplemented!(),
+            } => {
+                let name = self.trans_var(name, env)?;
+                let value_ty = self.expr(value, env)?;
+
+                name.mgu(&value_ty,expr.span,&mut self.reporter)?;
+
+                Ok(value_ty)
+            },
             Expression::Binary {
                 ref lhs,
                 ref op,
@@ -719,9 +725,8 @@ impl Infer {
 
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
                         if !lhs.is_int() {
-                             Type::String.mgu(&lhs, expr.span, &mut self.reporter)?;
+                            Type::String.mgu(&lhs, expr.span, &mut self.reporter)?;
                         }
-                     
 
                         lhs.mgu(&rhs, expr.span, &mut self.reporter)?;
                         Ok(lhs)
@@ -755,7 +760,23 @@ impl Infer {
                 ref ident,
                 ref fields,
             } => unimplemented!(),
-            Expression::Unary { ref op, ref expr } => unimplemented!(),
+            Expression::Unary { ref op, ref expr } => {
+                let expr_ty = self.expr(expr, env)?;
+
+                match op.value {
+                    UnaryOp::Bang => Ok(Type::Bool) ,
+                    UnaryOp::Minus => {
+                        if !expr_ty.is_int() {
+                        let msg = "Expected one of type i8,u8,i32,u32,i64,u64";
+
+                        self.error(msg, expr.span);
+                        return Err(());
+                        }
+
+                        Ok(expr_ty)
+                    }
+                }
+            },
             Expression::Var(ref var) => self.trans_var(var, env),
         }
     }
