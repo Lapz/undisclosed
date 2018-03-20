@@ -13,11 +13,6 @@ use std::rc::Rc;
 use structopt::StructOpt;
 use std::io::{self, Write};
 use underscore_semant::{Infer, TypeEnv};
-use underscore_syntax::ast::Ident;
-use underscore_syntax::ast::{ItemName, Ty};
-use underscore_util::pos::{Position, Span, Spanned, EMPTYSPAN};
-
-// use underscore_semant::TypeEnv;
 
 fn main() {
     let opts = Cli::from_args();
