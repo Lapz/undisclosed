@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use util::emitter::Reporter;
-use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Statement, Ty, TyAlias};
+use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Statement,TyAlias, Var};
 use util::pos::{Span, Spanned};
 use util::symbol::Table;
 use syntax::ast::Ty as astType;
@@ -387,7 +387,12 @@ impl Env {
     }
 
     fn ftv(&self) -> HashSet<TypeVar> {
-      self.env.table.values().map(|x| x.last().unwrap().clone()).collect::<Vec<Scheme>>().ftv()
+        self.env
+            .table
+            .values()
+            .map(|x| x.last().unwrap().clone())
+            .collect::<Vec<Scheme>>()
+            .ftv()
     }
 }
 
@@ -402,7 +407,6 @@ impl DerefMut for TypeEnv {
         &mut self.0
     }
 }
-
 
 impl Infer {
     pub fn new(reporter: Reporter) -> Self {
@@ -424,16 +428,12 @@ impl Infer {
         Ok(())
     }
 
-    
-
-    fn generalize(&self, ty: &Type,env:&mut Env) -> Scheme {
+    fn generalize(&self, ty: &Type, env: &mut Env) -> Scheme {
         Scheme {
             vars: ty.ftv().difference(&env.ftv()).cloned().collect(),
             ty: ty.clone(),
         }
     }
-
-    
 
     fn trans_ty(&mut self, ty: &Spanned<astType>, env: &mut Env) -> InferResult<Type> {
         match ty.value {
@@ -490,19 +490,30 @@ impl Infer {
     }
 
     fn function(&mut self, function: &Spanned<Function>, env: &mut Env) -> InferResult<()> {
+        let mut scheme_tv = Vec::new();
+         for tv in &function.value.name.value.type_params {
+
+            let v = self.gen.next();
+            scheme_tv.push(v);
+            env.add_type(tv.value, Type::Var(v))
+        }
+
         let returns = if let Some(ref return_ty) = function.value.returns {
             self.trans_ty(return_ty, env)?
         } else {
             Type::Nil
         };
 
+
         let mut scheme = Scheme::new(returns.clone());
+
+        for tv in scheme_tv {
+            scheme.vars.push(tv)
+        }
 
         let mut ftys = Vec::new();
 
-        for tv in &function.value.name.value.type_params {
-            scheme.vars.push(self.gen.next());
-        }
+       
 
         env.add_var(function.value.name.value.name.value, scheme);
 
@@ -511,11 +522,8 @@ impl Infer {
         for paramdef in &function.value.params.value {
             ftys.push(self.trans_ty(&paramdef.value.ty, env)?);
 
-            let ty =self.trans_ty(&paramdef.value.ty, env)?;
-            env.add_var(
-                paramdef.value.name.value,
-                Scheme::new(ty),
-            )
+            let ty = self.trans_ty(&paramdef.value.ty, env)?;
+            env.add_var(paramdef.value.name.value, Scheme::new(ty))
         }
 
         env.add_type(
@@ -523,26 +531,28 @@ impl Infer {
             Type::Fun(ftys, Box::new(returns.clone())),
         );
 
-        let body = self.statement(&function.value.body,env)?;
+        let body = self.statement(&function.value.body, env)?;
+
+        println!("{:?}",body);
 
         body.mgu(&returns, function.value.body.span, &mut self.reporter)?;
 
         Ok(())
     }
 
-    fn statement(&mut self, statement: &Spanned<Statement>,env:&mut Env) -> InferResult<Type> {
-       match statement.value {
+    fn statement(&mut self, statement: &Spanned<Statement>, env: &mut Env) -> InferResult<Type> {
+        match statement.value {
             Statement::Block(ref statements) => {
                 let mut result = Type::Nil;
 
                 for statement in statements {
-                    result = self.statement(statement,env)?
+                    result = self.statement(statement, env)?
                 }
 
                 Ok(result)
             }
             Statement::Break | Statement::Continue => Ok(Type::Nil),
-            Statement::Expr(ref expr) => self.expr(expr,env),
+            Statement::Expr(ref expr) => self.expr(expr, env),
             Statement::For {
                 ref init,
                 ref cond,
@@ -550,28 +560,28 @@ impl Infer {
                 ref body,
             } => {
                 if init.is_none() && cond.is_none() && incr.is_none() {
-                    let body = self.statement(body,env)?;
+                    let body = self.statement(body, env)?;
 
                     return Ok(body);
                 }
 
                 if let Some(ref init) = *init {
-                    self.statement(init,env)?;
+                    self.statement(init, env)?;
                 }
 
                 if let Some(ref incr) = *incr {
-                    let ty = self.expr(incr,env)?;
+                    let ty = self.expr(incr, env)?;
 
                     Type::Int.mgu(&ty, incr.span, &mut self.reporter)?;
                 }
 
                 if let Some(ref cond) = *cond {
-                    let ty = self.expr(cond,env)?;
+                    let ty = self.expr(cond, env)?;
 
                     Type::Bool.mgu(&ty, cond.span, &mut self.reporter)?;
                 }
 
-                let body = self.statement(body,env)?;
+                let body = self.statement(body, env)?;
 
                 Ok(body)
             }
@@ -581,12 +591,16 @@ impl Infer {
                 ref then,
                 ref otherwise,
             } => {
-                Type::Bool.mgu(&self.expr(cond,env)?, cond.span, &mut self.reporter)?;
+                Type::Bool.mgu(&self.expr(cond, env)?, cond.span, &mut self.reporter)?;
 
-                let then_ty = self.statement(then,env)?;
+                let then_ty = self.statement(then, env)?;
 
                 if let Some(ref otherwise) = *otherwise {
-                    then_ty.mgu(&self.statement(otherwise,env)?, otherwise.span,  &mut self.reporter)?;
+                    then_ty.mgu(
+                        &self.statement(otherwise, env)?,
+                        otherwise.span,
+                        &mut self.reporter,
+                    )?;
                     Ok(then_ty)
                 } else {
                     Ok(then_ty)
@@ -599,21 +613,21 @@ impl Infer {
                 ref expr,
             } => {
                 if let Some(ref expr) = *expr {
-                    let expr_ty = self.expr(expr,env)?;
+                    let expr_ty = self.expr(expr, env)?;
 
                     if let Some(ref ty) = *ty {
                         let t = self.trans_ty(ty, env)?;
 
                         expr_ty.mgu(&t, ty.span, &mut self.reporter)?;
 
-                        let scheme = self.generalize(&t,env);
+                        let scheme = self.generalize(&t, env);
 
                         env.add_var(ident.value, scheme);
 
                         return Ok(t);
                     }
 
-                    let scheme = self.generalize(&expr_ty,env);
+                    let scheme = self.generalize(&expr_ty, env);
 
                     env.add_var(ident.value, scheme);
 
@@ -622,7 +636,7 @@ impl Infer {
                     if let Some(ref ty) = *ty {
                         let ty = self.trans_ty(ty, env)?;
 
-                        let scheme = self.generalize(&ty,env);
+                        let scheme = self.generalize(&ty, env);
 
                         env.add_var(ident.value, scheme);
                         return Ok(ty);
@@ -632,19 +646,19 @@ impl Infer {
                 }
             }
 
-            Statement::Return(ref expr) => self.expr(expr,env),
+            Statement::Return(ref expr) => self.expr(expr, env),
             Statement::While { ref cond, ref body } => {
-                Type::Bool.mgu(&self.expr(cond,env)?, cond.span, &mut self.reporter)?;
+                Type::Bool.mgu(&self.expr(cond, env)?, cond.span, &mut self.reporter)?;
 
-                self.statement(body,env)?;
+                self.statement(body, env)?;
 
                 Ok(Type::Nil)
             }
         }
     }
 
-    fn expr(&mut self, expr: &Spanned<Expression>,env:&mut Env) -> InferResult<Type> {
-         match expr.value {
+    fn expr(&mut self, expr: &Spanned<Expression>, env: &mut Env) -> InferResult<Type> {
+        match expr.value {
             Expression::Assign {
                 ref name,
                 ref value,
@@ -654,8 +668,8 @@ impl Infer {
                 ref op,
                 ref rhs,
             } => {
-                let lhs = self.expr(lhs,env)?;
-                let rhs = self.expr(rhs,env)?;
+                let lhs = self.expr(lhs, env)?;
+                let rhs = self.expr(rhs, env)?;
 
                 match op.value {
                     Op::NEq | Op::Equal => Ok(Type::Bool),
@@ -685,7 +699,7 @@ impl Infer {
                 ref callee,
                 ref args,
             } => unimplemented!(),
-            Expression::Grouping { ref expr } => self.expr(expr,env),
+            Expression::Grouping { ref expr } => self.expr(expr, env),
             Expression::Literal(ref literal) => match *literal {
                 Literal::Char(_) => Ok(Type::Char),
                 Literal::False(_) => Ok(Type::Bool),
@@ -699,13 +713,28 @@ impl Infer {
                 ref fields,
             } => unimplemented!(),
             Expression::Unary { ref op, ref expr } => unimplemented!(),
-            Expression::Var(ref var) => {
-                //    match self.0.get(var) {
-                //        Some(s) =>s.instantiate()
-                //    }
+            Expression::Var(ref var) => self.trans_var(var, env),
+        }
+    }
 
-                unimplemented!()
+    fn trans_var(&mut self, var: &Spanned<Var>, env: &mut Env) -> InferResult<Type> {
+        match var.value {
+            Var::Simple(ref ident) => {
+                if let Some(var) = env.look_scheme(ident.value).cloned() {
+                    Ok(var.instantiate(&mut self.gen))
+                } else {
+                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
+                    self.error(msg, var.span);
+                    Err(())
+                }
             }
+
+            Var::Field { .. } => unimplemented!(),
+
+            Var::SubScript {
+                ref expr,
+                ref target,
+            } => unimplemented!(),
         }
     }
 
