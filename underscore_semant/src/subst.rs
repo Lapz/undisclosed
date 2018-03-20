@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use util::emitter::Reporter;
-use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Statement,TyAlias, Var};
+use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Sign, Size, Statement,
+                  TyAlias, Var};
 use util::pos::{Span, Spanned};
 use util::symbol::Table;
 use syntax::ast::Ty as astType;
@@ -53,7 +54,7 @@ static mut UNIQUE_COUNT: u64 = 0;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Nil,
-    Int,
+    Int(Sign, Size),
     String,
     Char,
     Bool,
@@ -117,6 +118,15 @@ where
     }
 }
 
+impl Type {
+     fn is_int(&self) -> bool {
+         match *self {
+             Type::Int(_,_) => true,
+             _ => false,
+         }
+     }
+}
+
 impl Types for Type {
     fn ftv(&self) -> HashSet<TypeVar> {
         match *self {
@@ -126,7 +136,8 @@ impl Types for Type {
                 set
             }
             Type::Unique(ref ty, _) => ty.ftv(),
-            Type::Nil | Type::Int | Type::String | Type::Char | Type::Bool => HashSet::new(),
+            Type::Nil | Type::String | Type::Char | Type::Bool => HashSet::new(),
+            Type::Int(_, _) => HashSet::new(),
             Type::Fun(ref params, ref returns) => {
                 let mut set = HashSet::new();
 
@@ -259,7 +270,6 @@ impl Type {
     fn mgu(&self, other: &Type, span: Span, reporter: &mut Reporter) -> InferResult<Subst> {
         match (self, other) {
             (&Type::Nil, &Type::Nil)
-            | (&Type::Int, &Type::Int)
             | (&Type::Bool, &Type::Bool)
             | (&Type::String, &Type::String)
             | (&Type::Char, &Type::Char) => Ok(Subst::new()),
@@ -267,6 +277,17 @@ impl Type {
             (&Type::Struct(_, _), &Type::Nil) => Ok(Subst::new()),
             (&Type::Var(ref v), t) => v.bind(t),
             (t, &Type::Var(ref v)) => v.bind(t),
+            (&Type::Int(ref sign1, size1), &Type::Int(ref sign2, size2)) => {
+                if sign1 == sign2 && size1 == size2 {
+                    Ok(Subst::new())
+                } else {
+                    reporter.error(
+                        format!("types do not unify: {:?} vs {:?}", self, other),
+                        span,
+                    );
+                    return Err(());
+                }
+            }
             (&Type::Unique(ref ty1, ref unique1), &Type::Unique(ref ty2, ref unique2)) => {
                 if unique1 != unique2 {
                     reporter.error(
@@ -341,11 +362,25 @@ impl Env {
     pub fn new(strings: &Rc<FactoryMap<Ident>>) -> Self {
         let mut tyenv = Table::new(strings.clone());
         let string_ident = tyenv.ident("str");
-        let int_ident = tyenv.ident("int");
+        let i8_ident = tyenv.ident("i8");
+        let u8_ident = tyenv.ident("u8");
+        let i32_ident = tyenv.ident("i32");
+        let u32_ident = tyenv.ident("u32");
+        let i64_ident = tyenv.ident("i64");
+        let u64_ident = tyenv.ident("u64");
+
         let nil_ident = tyenv.ident("nil");
         let bool_ident = tyenv.ident("bool");
 
-        tyenv.enter(int_ident, Type::Int);
+        tyenv.enter(i8_ident, Type::Int(Sign::Signed, Size::Bit8));
+        tyenv.enter(u8_ident, Type::Int(Sign::Unsigned, Size::Bit8));
+
+        tyenv.enter(i32_ident, Type::Int(Sign::Signed, Size::Bit32));
+        tyenv.enter(u32_ident, Type::Int(Sign::Unsigned, Size::Bit32));
+
+        tyenv.enter(i64_ident, Type::Int(Sign::Signed, Size::Bit64));
+        tyenv.enter(u64_ident, Type::Int(Sign::Unsigned, Size::Bit64));
+
         tyenv.enter(bool_ident, Type::Bool);
         tyenv.enter(nil_ident, Type::Nil);
         tyenv.enter(string_ident, Type::String);
@@ -440,12 +475,12 @@ impl Infer {
             astType::Bool => Ok(Type::Bool),
             astType::Str => Ok(Type::String),
             astType::Nil => Ok(Type::Nil),
-            astType::U8
-            | astType::I8
-            | astType::U32
-            | astType::I32
-            | astType::U64
-            | astType::I64 => Ok(Type::Int),
+            astType::U8 => Ok(Type::Int(Sign::Unsigned, Size::Bit8)),
+            astType::I8 => Ok(Type::Int(Sign::Signed, Size::Bit8)),
+            astType::U32 => Ok(Type::Int(Sign::Signed, Size::Bit32)),
+            astType::I32 => Ok(Type::Int(Sign::Unsigned, Size::Bit32)),
+            astType::U64 => Ok(Type::Int(Sign::Signed, Size::Bit64)),
+            astType::I64 => Ok(Type::Int(Sign::Unsigned, Size::Bit64)),
             astType::Simple(ref ident) => {
                 if let Some(ty) = env.look_type(ident.value).cloned() {
                     Ok(ty)
@@ -491,8 +526,7 @@ impl Infer {
 
     fn function(&mut self, function: &Spanned<Function>, env: &mut Env) -> InferResult<()> {
         let mut scheme_tv = Vec::new();
-         for tv in &function.value.name.value.type_params {
-
+        for tv in &function.value.name.value.type_params {
             let v = self.gen.next();
             scheme_tv.push(v);
             env.add_type(tv.value, Type::Var(v))
@@ -504,7 +538,6 @@ impl Infer {
             Type::Nil
         };
 
-
         let mut scheme = Scheme::new(returns.clone());
 
         for tv in scheme_tv {
@@ -512,8 +545,6 @@ impl Infer {
         }
 
         let mut ftys = Vec::new();
-
-       
 
         env.add_var(function.value.name.value.name.value, scheme);
 
@@ -533,7 +564,9 @@ impl Infer {
 
         let body = self.statement(&function.value.body, env)?;
 
-        println!("{:?}",body);
+        println!("{:?}", body);
+
+        println!("{:?}", returns);
 
         body.mgu(&returns, function.value.body.span, &mut self.reporter)?;
 
@@ -572,7 +605,13 @@ impl Infer {
                 if let Some(ref incr) = *incr {
                     let ty = self.expr(incr, env)?;
 
-                    Type::Int.mgu(&ty, incr.span, &mut self.reporter)?;
+                    if !ty.is_int() {
+
+                        let msg = "Increment should be of type i8,u8,i32,u32,i64,u64";
+
+                        self.error(msg, incr.span);
+                        return Err(())
+                    }
                 }
 
                 if let Some(ref cond) = *cond {
@@ -679,9 +718,10 @@ impl Infer {
                     }
 
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
-                        if let Err(_) = Type::Int.mgu(&lhs, expr.span, &mut self.reporter) {
-                            Type::String.mgu(&lhs, expr.span, &mut self.reporter)?;
+                        if !lhs.is_int() {
+                             Type::String.mgu(&lhs, expr.span, &mut self.reporter)?;
                         }
+                     
 
                         lhs.mgu(&rhs, expr.span, &mut self.reporter)?;
                         Ok(lhs)
@@ -705,7 +745,10 @@ impl Infer {
                 Literal::False(_) => Ok(Type::Bool),
                 Literal::True(_) => Ok(Type::Bool),
                 Literal::Str(_) => Ok(Type::String),
-                Literal::Number(_) => Ok(Type::Int),
+                Literal::Number(ref number) => match number.ty {
+                    Some((sign, size)) => Ok(Type::Int(sign, size)),
+                    None => Ok(Type::Int(Sign::Signed, Size::Bit32)),
+                },
                 Literal::Nil => Ok(Type::Nil),
             },
             Expression::StructLiteral {
