@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use util::emitter::Reporter;
 use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Sign, Size, Statement,
-                  TyAlias, Var,UnaryOp};
+                  TyAlias, UnaryOp, Var};
 use util::pos::{Span, Spanned};
 use util::symbol::Table;
 use syntax::ast::Ty as astType;
@@ -56,7 +56,6 @@ pub enum Type {
     Nil,
     Int(Sign, Size),
     String,
-    Char,
     Bool,
     Struct(Vec<Type>, Vec<Field>),
     Fun(Vec<Type>, Box<Type>),
@@ -136,7 +135,7 @@ impl Types for Type {
                 set
             }
             Type::Unique(ref ty, _) => ty.ftv(),
-            Type::Nil | Type::String | Type::Char | Type::Bool => HashSet::new(),
+            Type::Nil | Type::String | Type::Bool => HashSet::new(),
             Type::Int(_, _) => HashSet::new(),
             Type::Fun(ref params, ref returns) => {
                 let mut set = HashSet::new();
@@ -272,8 +271,7 @@ impl Type {
             (&Type::Nil, &Type::Nil)
             | (&Type::Bool, &Type::Bool)
             | (&Type::String, &Type::String)
-            | (&Type::Char, &Type::Char) => Ok(Subst::new()),
-            (&Type::Nil, &Type::Struct(_, _)) => Ok(Subst::new()),
+            |(&Type::Nil, &Type::Struct(_, _)) => Ok(Subst::new()),
             (&Type::Struct(_, _), &Type::Nil) => Ok(Subst::new()),
             (&Type::Var(ref v), t) => v.bind(t),
             (t, &Type::Var(ref v)) => v.bind(t),
@@ -362,6 +360,7 @@ impl Env {
     pub fn new(strings: &Rc<FactoryMap<Ident>>) -> Self {
         let mut tyenv = Table::new(strings.clone());
         let string_ident = tyenv.ident("str");
+        let char_ident = tyenv.ident("char");
         let i8_ident = tyenv.ident("i8");
         let u8_ident = tyenv.ident("u8");
         let i32_ident = tyenv.ident("i32");
@@ -384,6 +383,7 @@ impl Env {
         tyenv.enter(bool_ident, Type::Bool);
         tyenv.enter(nil_ident, Type::Nil);
         tyenv.enter(string_ident, Type::String);
+        tyenv.enter(char_ident, Type::Int(Sign::Unsigned, Size::Bit8));
 
         Env {
             tyenv,
@@ -554,6 +554,8 @@ impl Infer {
             ftys.push(self.trans_ty(&paramdef.value.ty, env)?);
 
             let ty = self.trans_ty(&paramdef.value.ty, env)?;
+
+            env.add_type(paramdef.value.name.value, ty.clone());
             env.add_var(paramdef.value.name.value, Scheme::new(ty))
         }
 
@@ -564,9 +566,7 @@ impl Infer {
 
         let body = self.statement(&function.value.body, env)?;
 
-        println!("{:?}", body);
-
-        println!("{:?}", returns);
+        env.end_scope();
 
         body.mgu(&returns, function.value.body.span, &mut self.reporter)?;
 
@@ -704,10 +704,10 @@ impl Infer {
                 let name = self.trans_var(name, env)?;
                 let value_ty = self.expr(value, env)?;
 
-                name.mgu(&value_ty,expr.span,&mut self.reporter)?;
+                name.mgu(&value_ty, expr.span, &mut self.reporter)?;
 
                 Ok(value_ty)
-            },
+            }
             Expression::Binary {
                 ref lhs,
                 ref op,
@@ -746,7 +746,7 @@ impl Infer {
             } => unimplemented!(),
             Expression::Grouping { ref expr } => self.expr(expr, env),
             Expression::Literal(ref literal) => match *literal {
-                Literal::Char(_) => Ok(Type::Char),
+                Literal::Char(_) => Ok(Type::Int(Sign::Unsigned,Size::Bit8)),
                 Literal::False(_) => Ok(Type::Bool),
                 Literal::True(_) => Ok(Type::Bool),
                 Literal::Str(_) => Ok(Type::String),
@@ -764,19 +764,19 @@ impl Infer {
                 let expr_ty = self.expr(expr, env)?;
 
                 match op.value {
-                    UnaryOp::Bang => Ok(Type::Bool) ,
+                    UnaryOp::Bang => Ok(Type::Bool),
                     UnaryOp::Minus => {
                         if !expr_ty.is_int() {
-                        let msg = "Expected one of type i8,u8,i32,u32,i64,u64";
+                            let msg = "Expected one of type i8,u8,i32,u32,i64,u64";
 
-                        self.error(msg, expr.span);
-                        return Err(());
+                            self.error(msg, expr.span);
+                            return Err(());
                         }
 
                         Ok(expr_ty)
                     }
                 }
-            },
+            }
             Expression::Var(ref var) => self.trans_var(var, env),
         }
     }
@@ -798,7 +798,29 @@ impl Infer {
             Var::SubScript {
                 ref expr,
                 ref target,
-            } => unimplemented!(),
+            } => {
+                let target_ty = if let Some(var) = env.look_type(target.value).cloned() {
+                    var
+                } else {
+                    let msg = format!("Undefined variable '{}' ", env.name(target.value));
+                    self.error(msg, var.span);
+                    return Err(());
+                };
+
+                if !self.expr(expr, env)?.is_int() {
+                    self.error("Expected one of type i8,u8,i32,u32,i64,u64", var.span);
+                    return Err(());
+                }
+
+                match target_ty {
+                    Type::String => Ok(Type::Int(Sign::Unsigned,Size::Bit8)),
+                    _ => {
+                        let msg = format!("'{}' is not an indexable", env.name(target.value));
+                        self.error(msg, target.span);
+                        Err(())
+                    }
+                }
+            }
         }
     }
 

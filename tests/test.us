@@ -3,6 +3,6 @@ struct List <T> {
     head:List<T>
 }
 
-fn main() -> nil {
-    
+fn main(a:str) -> char {
+    a[0];
 }
