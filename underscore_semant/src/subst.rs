@@ -45,7 +45,7 @@ pub struct TypeVar(pub u32);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
-    name: TypeVar,
+    pub name: Ident,
     pub ty: Type,
 }
 
@@ -57,7 +57,7 @@ pub enum Type {
     Int(Sign, Size),
     String,
     Bool,
-    Struct(Vec<Type>, Vec<Field>),
+    Struct(Vec<Field>, Unique),
     Fun(Vec<Type>, Box<Type>),
     Var(TypeVar),
     Unique(Box<Type>, Unique),
@@ -149,12 +149,8 @@ impl Types for Type {
                 set
             }
 
-            Type::Struct(ref items, ref fields) => {
+            Type::Struct(ref fields, _) => {
                 let mut set = HashSet::new();
-
-                for item in items {
-                    set.union(&item.ftv());
-                }
 
                 for field in fields {
                     set.union(&field.ty.ftv());
@@ -271,7 +267,7 @@ impl Type {
             (&Type::Nil, &Type::Nil)
             | (&Type::Bool, &Type::Bool)
             | (&Type::String, &Type::String)
-            |(&Type::Nil, &Type::Struct(_, _)) => Ok(Subst::new()),
+            | (&Type::Nil, &Type::Struct(_, _)) => Ok(Subst::new()),
             (&Type::Struct(_, _), &Type::Nil) => Ok(Subst::new()),
             (&Type::Var(ref v), t) => v.bind(t),
             (t, &Type::Var(ref v)) => v.bind(t),
@@ -746,7 +742,7 @@ impl Infer {
             } => unimplemented!(),
             Expression::Grouping { ref expr } => self.expr(expr, env),
             Expression::Literal(ref literal) => match *literal {
-                Literal::Char(_) => Ok(Type::Int(Sign::Unsigned,Size::Bit8)),
+                Literal::Char(_) => Ok(Type::Int(Sign::Unsigned, Size::Bit8)),
                 Literal::False(_) => Ok(Type::Bool),
                 Literal::True(_) => Ok(Type::Bool),
                 Literal::Str(_) => Ok(Type::String),
@@ -759,7 +755,53 @@ impl Infer {
             Expression::StructLiteral {
                 ref ident,
                 ref fields,
-            } => unimplemented!(),
+            } => {
+                let ty = if let Some(ty) = env.look_scheme(ident.value).cloned() {
+                    ty
+                } else {
+                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
+                    self.error(msg, ident.span);
+                    return Err(());
+                };
+
+                match ty.ty {
+                    Type::Struct(ref type_fields, _) => for type_field in type_fields {
+                        let mut found = false;
+                        for field in fields {
+                            if type_field.name == field.value.ident.value {
+                                found = true;
+
+                                let field_expr = self.expr(&field.value.expr, env)?;
+
+                                field_expr.mgu(&type_field.ty, field.span, &mut self.reporter)?;
+                            }
+
+                            if !found {
+                                let msg =
+                                    format!("Struct {} is missing fields", env.name(ident.value));
+                                self.error(msg, expr.span);
+                                return Err(());
+                            }
+
+                            if type_fields.len() != fields.len() {
+                                let msg =
+                                    format!("Struct {} has too many fields", env.name(ident.value));
+                                self.error(msg, expr.span);
+                                return Err(());
+                            }
+                        }
+                    },
+
+                    _ => {
+                        let msg = format!("{} is not a 'struct' ", env.name(ident.value));
+                        self.error(msg, ident.span);
+                        return Err(())
+                    }
+                }
+
+                Ok(ty.ty)
+            }
+
             Expression::Unary { ref op, ref expr } => {
                 let expr_ty = self.expr(expr, env)?;
 
@@ -813,7 +855,7 @@ impl Infer {
                 }
 
                 match target_ty {
-                    Type::String => Ok(Type::Int(Sign::Unsigned,Size::Bit8)),
+                    Type::String => Ok(Type::Int(Sign::Unsigned, Size::Bit8)),
                     _ => {
                         let msg = format!("'{}' is not an indexable", env.name(target.value));
                         self.error(msg, target.span);
