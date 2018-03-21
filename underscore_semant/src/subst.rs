@@ -292,6 +292,22 @@ impl Type {
                 }
                 ty1.mgu(ty2, span, reporter)
             }
+
+            (&Type::Struct(ref fields1,ref unique1),&Type::Struct(ref fields2,ref unique2)) => {
+                 if unique1 != unique2 {
+                    reporter.error(
+                        format!("types do not unify: {:?} vs {:?}", self, other),
+                        span,
+                    );
+                    return Err(());
+                }
+
+                for (field1,field2) in fields1.iter().zip(fields2) {
+                    field1.ty.mgu(&field2.ty,span,reporter)?;
+                }
+
+                Ok(Subst::new())
+            }
             (&Type::Fun(ref t1p, ref t1r), &Type::Fun(ref t2p, ref t2r)) => {
                 if t1p.len() != t2p.len() {
                     reporter.error(
@@ -459,8 +475,6 @@ impl Infer {
         for function in &program.functions {
             self.function(function, env)?
         }
-
-        
 
         Ok(())
     }
@@ -807,6 +821,7 @@ impl Infer {
                     Type::Struct(ref type_fields, _) => for type_field in type_fields {
                         let mut found = false;
                         for field in fields {
+                            println!("{:?} {:?}", type_field.name, field.value.ident.value);
                             if type_field.name == field.value.ident.value {
                                 found = true;
 
@@ -814,20 +829,19 @@ impl Infer {
 
                                 field_expr.mgu(&type_field.ty, field.span, &mut self.reporter)?;
                             }
+                        }
 
-                            if !found {
-                                let msg =
-                                    format!("Struct {} is missing fields", env.name(ident.value));
-                                self.error(msg, expr.span);
-                                return Err(());
-                            }
+                        if !found {
+                            let msg = format!("Struct {} is missing fields", env.name(ident.value));
+                            self.error(msg, expr.span);
+                            return Err(());
+                        }
 
-                            if type_fields.len() != fields.len() {
-                                let msg =
-                                    format!("Struct {} has too many fields", env.name(ident.value));
-                                self.error(msg, expr.span);
-                                return Err(());
-                            }
+                        if type_fields.len() != fields.len() {
+                            let msg =
+                                format!("Struct {} has too many fields", env.name(ident.value));
+                            self.error(msg, expr.span);
+                            return Err(());
                         }
                     },
 

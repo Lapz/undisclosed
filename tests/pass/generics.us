@@ -8,8 +8,8 @@ fn main(a:str) -> List {
         val:"a",
         head:nil
     };
-    List {
-        val:20,
+     List {
+        val:i32,
         head:nil
     };
 }
