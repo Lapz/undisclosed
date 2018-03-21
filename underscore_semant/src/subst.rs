@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use util::emitter::Reporter;
 use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Sign, Size, Statement,
-                  TyAlias, UnaryOp, Var};
+                  Struct, TyAlias, UnaryOp, Var};
 use util::pos::{Span, Spanned};
 use util::symbol::Table;
 use syntax::ast::Ty as astType;
@@ -452,9 +452,15 @@ impl Infer {
             self.type_alias(alias, env)?
         }
 
+        for record in &program.structs {
+            self.record(record, env)?
+        }
+
         for function in &program.functions {
             self.function(function, env)?
         }
+
+        
 
         Ok(())
     }
@@ -516,6 +522,39 @@ impl Infer {
         let ty = self.trans_ty(&alias.value.ty, env)?;
 
         env.add_var(alias.value.alias.value, Scheme::new(ty));
+
+        Ok(())
+    }
+
+    fn record(&mut self, record: &Spanned<Struct>, env: &mut Env) -> InferResult<()> {
+        let mut scheme_tv = Vec::new();
+
+        let mut type_fileds = Vec::new();
+
+        for tv in &record.value.name.value.type_params {
+            let v = self.gen.next();
+            scheme_tv.push(v);
+            env.add_type(tv.value, Type::Var(v))
+        }
+
+        for field in &record.value.fields.value {
+            type_fileds.push(Field {
+                name: field.value.name.value,
+                ty: self.trans_ty(&field.value.ty, env)?,
+            });
+        }
+
+        let ty = Type::Struct(type_fileds, Unique::new());
+
+        let mut scheme = Scheme::new(ty.clone());
+
+        for tv in scheme_tv {
+            scheme.vars.push(tv)
+        }
+
+        env.add_type(record.value.name.value.name.value, ty);
+
+        env.add_var(record.value.name.value.name.value, scheme);
 
         Ok(())
     }
@@ -795,7 +834,7 @@ impl Infer {
                     _ => {
                         let msg = format!("{} is not a 'struct' ", env.name(ident.value));
                         self.error(msg, ident.span);
-                        return Err(())
+                        return Err(());
                     }
                 }
 

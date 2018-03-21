@@ -1,8 +1,11 @@
 struct List <T> {
     val:T,
-    head:List<T>
+    head:nil
 }
 
 fn main(a:str) -> char {
-    a[0];
+    List {
+        val:1,
+        head:nil
+    };
 }
