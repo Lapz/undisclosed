@@ -2,9 +2,6 @@
 
 use std::fmt::{self, Display};
 use std::str::Chars;
-
-use std::ops::{Deref, DerefMut};
-
 /// Represents a Span in the source file along with its value
 #[derive(Debug, Clone)]
 pub struct Spanned<T> {

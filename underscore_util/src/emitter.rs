@@ -88,23 +88,24 @@ pub fn print(input: &str, d: &Diagnostic) {
         let line = line;
         let line_idx = idx + 1;
         println!("{:>4} {}{}", line_idx, prefix, line);
+
         if line_idx == span.start.line as usize {
             let end = if line_idx == span.end.line as usize {
                 span.end.column as usize
             } else {
                 line.len()
             };
-            let carets = repeat_string("^", end - span.start.column as usize + 1);
+            let carets = repeat_string("^", end - span.start.column as usize+1);
 
             let carets = match d.level {
                 Level::Warn => Yellow.bold().paint(carets),
                 Level::Error => Red.bold().paint(carets),
             };
 
-            let whitespace = repeat_string(" ", span.start.column as usize - 1);
+            let whitespace = repeat_string(" ", end -span.start.column as usize);
             println!("     {}{}{}", prefix, whitespace, carets);
         } else if line_idx == span.end.line as usize {
-            let carets = repeat_string("^", span.end.column as usize);
+            let carets = repeat_string("^", span.start.column as usize);
 
             let carets = match d.level {
                 Level::Warn => Yellow.bold().paint(carets),
@@ -115,7 +116,7 @@ pub fn print(input: &str, d: &Diagnostic) {
         } else if line_idx > span.start.line as usize && line_idx < span.end.line as usize
             && !line.is_empty()
         {
-            let carets = repeat_string("^", line.len() - 1);
+            let carets = repeat_string("^", line.len());
 
             let carets = match d.level {
                 Level::Warn => Yellow.bold().paint(carets),

@@ -10,7 +10,10 @@ struct List2 <T> {
 
 
 fn main<T>(a:str,b:T) -> List<i32> {
-   10 + "a"
+    a {
+        val:12,
+        head:nil
+    };
     List{
         val:10,
         head:nil

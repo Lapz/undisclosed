@@ -5,7 +5,7 @@ use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Sign, Size,
 use util::pos::{Span, Spanned};
 use util::symbol::Table;
 use syntax::ast::Ty as astType;
-
+use std::mem;
 use std::ops::{Deref, DerefMut};
 
 type InferResult<T> = Result<T, ()>;
@@ -22,7 +22,7 @@ trait GetIdent {
 #[derive(Debug, Clone)]
 pub struct Subst(HashMap<TypeVar, Type>);
 
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Unique(pub u64);
 
 #[derive(Clone, Debug)]
@@ -262,13 +262,21 @@ impl TypeVar {
 }
 
 impl Type {
+    fn is_type_var(&self) -> bool {
+        match *self {
+            Type::Var(_) => true,
+            _ => false,
+        }
+    }
     fn mgu(&self, other: &Type, span: Span, reporter: &mut Reporter) -> InferResult<Subst> {
         match (self, other) {
             (&Type::Nil, &Type::Nil)
             | (&Type::Bool, &Type::Bool)
-            | (&Type::String, &Type::String)
-            | (&Type::Nil, &Type::Struct(_, _)) => Ok(Subst::new()),
-            (&Type::Struct(_, _), &Type::Nil) => Ok(Subst::new()),
+            | (&Type::String, &Type::String) => Ok(Subst::new()),
+            (&Type::Nil, &Type::Struct(_, _)) | (&Type::Struct(_, _), &Type::Nil) => {
+                Ok(Subst::new())
+            }
+
             (&Type::Var(ref v), t) => v.bind(t),
             (t, &Type::Var(ref v)) => v.bind(t),
             (&Type::Int(ref sign1, size1), &Type::Int(ref sign2, size2)) => {
@@ -293,8 +301,8 @@ impl Type {
                 ty1.mgu(ty2, span, reporter)
             }
 
-            (&Type::Struct(ref fields1,ref unique1),&Type::Struct(ref fields2,ref unique2)) => {
-                 if unique1 != unique2 {
+            (&Type::Struct(ref fields1, ref unique1), &Type::Struct(ref fields2, ref unique2)) => {
+                if unique1 != unique2 {
                     reporter.error(
                         format!("types do not unify: {:?} vs {:?}", self, other),
                         span,
@@ -302,8 +310,8 @@ impl Type {
                     return Err(());
                 }
 
-                for (field1,field2) in fields1.iter().zip(fields2) {
-                    field1.ty.mgu(&field2.ty,span,reporter)?;
+                for (field1, field2) in fields1.iter().zip(fields2) {
+                    field1.ty.mgu(&field2.ty, span, reporter)?;
                 }
 
                 Ok(Subst::new())
@@ -510,7 +518,7 @@ impl Infer {
             }
             astType::Poly(ref ident, ref types) => {
                 //Concrete generics i.e List<i32>. List<bool>
-                let ty = if let Some(ty) = env.look_scheme(ident.value).cloned() {
+                let mut ty = if let Some(ty) = env.look_scheme(ident.value).cloned() {
                     ty.clone()
                 } else {
                     let msg = format!("Undefined Type '{}'", env.name(ident.value));
@@ -518,16 +526,40 @@ impl Infer {
                     return Err(());
                 };
 
-                let mut ty = ty.instantiate(&mut self.gen);
+                let mut scheme = ty.instantiate(&mut self.gen);
+                let mut subs = Subst::new();
 
-                match ty {
+                match scheme {
                     Type::Fun(ref mut paramty, _) => for ty in types {
                         paramty.push(self.trans_ty(ty, env)?)
                     },
-                    _ => unreachable!(),
+
+                    Type::Struct(ref mut fields, ref unique) => {
+                        let mut new_fields = Vec::new();
+
+                        for (mut field, ast_ty) in fields.iter_mut().zip(types.iter()) {
+                            if field.ty.is_type_var() {
+                                new_fields.push(Field {
+                                    name: field.name,
+                                    ty: self.trans_ty(ast_ty, env)?,
+                                });
+                            } else {
+                                new_fields.push(Field {
+                                    name: field.name,
+                                    ty: field.ty.clone(),
+                                });
+                            }
+                        }
+
+                        return Ok(Type::Struct(new_fields, *unique));
+                    }
+
+                    ref e => unreachable!("{:?}", e),
                 }
 
-                Ok(ty)
+                println!("scheme {:#?}", ty.apply(&subs));
+
+                Ok(ty.instantiate(&mut self.gen))
             }
         }
     }
@@ -615,7 +647,11 @@ impl Infer {
 
         let body = self.statement(&function.value.body, env)?;
 
-        env.end_scope();
+
+        let scheme = env.look_scheme(function.value.name.value.name.value).unwrap();
+
+        // scheme.apply(body.apply());
+        // env.end_scope();
 
         body.mgu(&returns, function.value.body.span, &mut self.reporter)?;
 
@@ -818,41 +854,49 @@ impl Infer {
                 };
 
                 match ty.ty {
-                    Type::Struct(ref type_fields, _) => for type_field in type_fields {
-                        let mut found = false;
-                        for field in fields {
-                            println!("{:?} {:?}", type_field.name, field.value.ident.value);
-                            if type_field.name == field.value.ident.value {
-                                found = true;
+                    Type::Struct(ref type_fields, ref unique) => {
+                        let mut new_fields = Vec::new();
+                        for type_field in type_fields {
+                            let mut found = false;
 
-                                let field_expr = self.expr(&field.value.expr, env)?;
+                            for field in fields {
+                                if type_field.name == field.value.ident.value {
+                                    found = true;
 
-                                field_expr.mgu(&type_field.ty, field.span, &mut self.reporter)?;
+                                    let field_expr = self.expr(&field.value.expr, env)?;
+
+                                    field_expr.mgu(&type_field.ty, field.span, &mut self.reporter)?;
+
+                                    new_fields.push(Field {
+                                        name: type_field.name,
+                                        ty: field_expr,
+                                    });
+                                }
+                            }
+
+                            if !found {
+                                let msg =
+                                    format!("Struct {} is missing fields", env.name(ident.value));
+                                self.error(msg, expr.span);
+                                return Err(());
+                            } else if type_fields.len() != fields.len() {
+                                let msg =
+                                    format!("Struct {} has too many fields", env.name(ident.value));
+                                self.error(msg, expr.span);
+                                return Err(());
                             }
                         }
 
-                        if !found {
-                            let msg = format!("Struct {} is missing fields", env.name(ident.value));
-                            self.error(msg, expr.span);
-                            return Err(());
-                        }
-
-                        if type_fields.len() != fields.len() {
-                            let msg =
-                                format!("Struct {} has too many fields", env.name(ident.value));
-                            self.error(msg, expr.span);
-                            return Err(());
-                        }
-                    },
+                        env.add_type(ident.value,Type::Struct(new_fields.clone(), *unique));
+                        Ok(Type::Struct(new_fields, *unique))
+                    }
 
                     _ => {
                         let msg = format!("{} is not a 'struct' ", env.name(ident.value));
                         self.error(msg, ident.span);
-                        return Err(());
+                        Err(())
                     }
                 }
-
-                Ok(ty.ty)
             }
 
             Expression::Unary { ref op, ref expr } => {
