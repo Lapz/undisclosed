@@ -273,10 +273,6 @@ impl Type {
             (&Type::Nil, &Type::Nil)
             | (&Type::Bool, &Type::Bool)
             | (&Type::String, &Type::String) => Ok(Subst::new()),
-            (&Type::Nil, &Type::Struct(_, _)) | (&Type::Struct(_, _), &Type::Nil) => {
-                Ok(Subst::new())
-            }
-
             (&Type::Var(ref v), t) => v.bind(t),
             (t, &Type::Var(ref v)) => v.bind(t),
             (&Type::Int(ref sign1, size1), &Type::Int(ref sign2, size2)) => {
@@ -670,7 +666,9 @@ impl Infer {
                 Ok(result)
             }
             Statement::Break | Statement::Continue => Ok(Type::Nil),
-            Statement::Expr(ref expr) => self.expr(expr, env),
+            Statement::Expr(ref expr) => {
+                self.expr(expr, env)
+            },
             Statement::For {
                 ref init,
                 ref cond,
