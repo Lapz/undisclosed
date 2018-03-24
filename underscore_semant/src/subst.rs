@@ -643,8 +643,8 @@ impl Infer {
 
         let body = self.statement(&function.value.body, env)?;
 
-
-        let scheme = env.look_scheme(function.value.name.value.name.value).unwrap();
+        let scheme = env.look_scheme(function.value.name.value.name.value)
+            .unwrap();
 
         // scheme.apply(body.apply());
         // env.end_scope();
@@ -666,9 +666,7 @@ impl Infer {
                 Ok(result)
             }
             Statement::Break | Statement::Continue => Ok(Type::Nil),
-            Statement::Expr(ref expr) => {
-                self.expr(expr, env)
-            },
+            Statement::Expr(ref expr) => self.expr(expr, env),
             Statement::For {
                 ref init,
                 ref cond,
@@ -885,7 +883,7 @@ impl Infer {
                             }
                         }
 
-                        env.add_type(ident.value,Type::Struct(new_fields.clone(), *unique));
+                        env.add_type(ident.value, Type::Struct(new_fields.clone(), *unique));
                         Ok(Type::Struct(new_fields, *unique))
                     }
 

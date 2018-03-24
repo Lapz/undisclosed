@@ -1,12 +1,4 @@
-struct List <T> {
-    val:T,
-    head:i32
-}
-
-struct List2 <T> {
-    val:T,
-    head:nil
-}
+type transformer<T> = T -> T;
 
 
 fn main<T>(b:T) -> List {

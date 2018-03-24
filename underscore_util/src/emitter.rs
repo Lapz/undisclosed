@@ -95,14 +95,14 @@ pub fn print(input: &str, d: &Diagnostic) {
             } else {
                 line.len()
             };
-            let carets = repeat_string("^", end - span.start.column as usize+1);
+            let carets = repeat_string("^", end - span.start.column as usize + 1);
 
             let carets = match d.level {
                 Level::Warn => Yellow.bold().paint(carets),
                 Level::Error => Red.bold().paint(carets),
             };
 
-            let whitespace = repeat_string(" ", end -span.start.column as usize);
+            let whitespace = repeat_string(" ", end - span.start.column as usize);
             println!("     {}{}{}", prefix, whitespace, carets);
         } else if line_idx == span.end.line as usize {
             let carets = repeat_string("^", span.start.column as usize);
