@@ -54,6 +54,7 @@ pub enum Linkage {
 }
 #[derive(Debug)]
 pub enum Ty {
+    Func(Vec<Spanned<Ty>>, Option<Box<Spanned<Ty>>>),
     Poly(Spanned<Ident>, Vec<Spanned<Ty>>),
     Simple(Spanned<Ident>),
     Nil,
@@ -69,7 +70,7 @@ pub enum Ty {
 
 #[derive(Debug)]
 pub struct TyAlias {
-    pub alias: Spanned<Ident>,
+    pub ident: Spanned<ItemName>,
     pub ty: Spanned<Ty>,
 }
 

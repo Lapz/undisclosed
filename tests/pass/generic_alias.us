@@ -1,0 +1,8 @@
+type transformer<T> = fn(T) -> T;
+
+type foo<T> = T;
+
+fn append(a:Vec<i32>,b:fn(T)) {
+    
+}
+

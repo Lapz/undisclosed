@@ -1,9 +1,1 @@
-type transformer<T> = T -> T;
-
-
-fn main<T>(b:T) -> List {
-    List {
-        val:10,
-        head:1
-    };
-}
+type transformer<T> = fn(T)-> T;

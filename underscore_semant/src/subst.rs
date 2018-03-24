@@ -557,13 +557,15 @@ impl Infer {
 
                 Ok(ty.instantiate(&mut self.gen))
             }
+
+            _ => unimplemented!(),
         }
     }
 
     fn type_alias(&mut self, alias: &Spanned<TyAlias>, env: &mut Env) -> InferResult<()> {
         let ty = self.trans_ty(&alias.value.ty, env)?;
 
-        env.add_var(alias.value.alias.value, Scheme::new(ty));
+        // env.add_var(alias.value.alias.value, Scheme::new(ty));
 
         Ok(())
     }

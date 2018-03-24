@@ -406,7 +406,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_ty_alias(&mut self) -> ParserResult<Spanned<TyAlias>> {
         let open_span = self.consume_get_span(&TokenType::TYPE, "Expected 'type' ")?;
 
-        let alias = self.consume_get_ident("Expected an identifier")?;
+        let ident = self.parse_item_name()?;
 
         self.consume(&TokenType::ASSIGN, "Expected '=' ")?;
 
@@ -416,7 +416,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(Spanned {
             span: open_span.to(close_span),
-            value: TyAlias { alias, ty },
+            value: TyAlias { ident, ty },
         })
     }
 
@@ -627,6 +627,38 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::Nil,
                 span: self.consume_get_span(&TokenType::NIL, "Expected nil")?,
             })
+        } else if self.recognise(TokenType::FUNCTION) {
+            let open_span = self.consume_get_span(&TokenType::FUNCTION, "Expected 'fn' ")?;
+            self.consume(&TokenType::LPAREN, "Expected a \'(\'")?;
+
+            let mut param_ty = Vec::new();
+
+            if !self.recognise(TokenType::RPAREN) {
+                loop {
+                    param_ty.push(self.parse_type()?);
+
+                    if self.recognise(TokenType::COMMA) {
+                        self.advance();
+                    } else {
+                        break;
+                    }
+                }
+            }
+            let close_span = self.consume_get_span(&TokenType::RPAREN, "Expected  \')\'")?;
+
+            if self.recognise(TokenType::FRETURN) {
+                self.advance();
+                let ty = self.parse_type()?;
+                Ok(Spanned {
+                    span: open_span.to(ty.get_span()),
+                    value: Ty::Func(param_ty, Some(Box::new(ty))),
+                })
+            } else {
+                Ok(Spanned {
+                    span: open_span.to(close_span),
+                    value: Ty::Func(param_ty, None),
+                })
+            }
         } else {
             let ident = self.consume_get_ident("Expected an identifer")?;
 
