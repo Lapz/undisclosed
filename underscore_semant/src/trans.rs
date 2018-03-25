@@ -1,5 +1,5 @@
 use constraints::{TyCon, Type, TypeVar, Unique};
-use syntax::ast::{Function, Sign, Size, Ty as astType, TyAlias,Statement,Expression};
+use syntax::ast::{Expression, Function, Sign, Size, Statement, Ty as astType, TyAlias};
 use env::{Entry, Env};
 use util::pos::Spanned;
 use util::emitter::Reporter;
@@ -162,8 +162,141 @@ impl Infer {
         Ok(())
     }
 
+    pub fn trans_statement(
+        &self,
+        statement: &Spanned<Statement>,
+        env: &mut Env,
+        reporter: &mut Reporter,
+    ) -> InferResult<Type> {
+        match statement.value {
+            Statement::Block(ref statements) => {
+                let mut result = Type::Nil;
 
-    pub fn trans_statement(&self,statement:&Spanned<Statement>,env:&mut Env,reporter:&mut Reporter) -> InferResult<Type> {
+                for statement in statements {
+                    result = self.trans_statement(statement, env,reporter)?
+                }
+
+                Ok(result)
+            }
+            Statement::Break | Statement::Continue => Ok(Type::Nil),
+            Statement::Expr(ref expr) => self.trans_expr(expr, env,reporter),
+            Statement::For {
+                ref init,
+                ref cond,
+                ref incr,
+                ref body,
+            } => {
+                if init.is_none() && cond.is_none() && incr.is_none() {
+                    let body = self.trans_statement(body, env,reporter)?;
+
+                    return Ok(body);
+                }
+
+                if let Some(ref init) = *init {
+                    self.trans_statement(init, env,reporter)?;
+                }
+
+                if let Some(ref incr) = *incr {
+                    let ty = self.trans_expr(incr, env,reporter)?;
+
+                    if !ty.is_int() { // Change
+                        let msg = "Increment should be of type i8,u8,i32,u32,i64,u64";
+
+                       reporter.error(msg, incr.span);
+                        return Err(());
+                    }
+                }
+
+                if let Some(ref cond) = *cond {
+                    let ty = self.trans_expr(cond, env,reporter)?;
+
+
+
+                    self.unify(&Type::App(TyCon::Bool, vec![]), &ty, reporter, cond.span)?;
+
+                  
+                }
+
+                let body = self.trans_statement(body, env,reporter)?;
+
+                Ok(body)
+            }
+
+            Statement::If {
+                ref cond,
+                ref then,
+                ref otherwise,
+            } => {
+
+                self.unify(&Type::App(TyCon::Bool, vec![]), &self.trans_expr(cond, env,reporter)?, reporter, cond.span)?;
+
+              
+
+                let then_ty = self.trans_statement(then, env,reporter)?;
+
+                if let Some(ref otherwise) = *otherwise {
+
+                    self.unify(&then_ty, &self.trans_statement(otherwise, env,reporter)?, reporter, otherwise.span)?;
+
+                    Ok(then_ty)
+                } else {
+                    Ok(then_ty)
+                }
+            }
+
+            Statement::Let {
+                ref ident,
+                ref ty,
+                ref expr,
+            } => {
+                if let Some(ref expr) = *expr {
+                    let expr_ty = self.trans_expr(expr, env,reporter)?;
+
+                    if let Some(ref ty) = *ty {
+                        let t = self.trans_ty(ty, env,reporter)?;
+
+                      self.unify(&expr_ty, &t, reporter,ty.span)?;
+
+                        let scheme = self.generalize(&t, env);
+
+                        env.add_var(ident.value, scheme);
+
+                        return Ok(t);
+                    }
+
+                    let scheme = self.generalize(&expr_ty, env);
+
+                    env.add_var(ident.value, scheme);
+
+                    Ok(Type::Nil)
+                } else {
+                    if let Some(ref ty) = *ty {
+                        let ty = self.trans_ty(ty, env,reporter)?;
+
+                        let scheme = self.generalize(&ty, env);
+
+                        env.add_var(ident.value, scheme);
+                        return Ok(ty);
+                    }
+
+                    Ok(Type::Nil)
+                }
+            }
+
+            Statement::Return(ref expr) => self.trans_expr(expr, env,reporter),
+            Statement::While { ref cond, ref body } => {
+                self.unify(&Type::App(TyCon::Bool, vec![]), &self.trans_expr(cond, env,reporter)?, reporter, cond.span)?;
+               
+                self.trans_statement(body, env,reporter)?;
+
+                Ok(Type::Nil)
+            }
+        }
+    }
+
+
+    fn trans_expr(&self,expr:&Spanned<Expression>,env:&mut Env, reporter:&mut Reporter) -> InferResult<Type> {
+
         unimplemented!()
     }
 }

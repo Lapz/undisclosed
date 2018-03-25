@@ -90,7 +90,7 @@ impl Infer {
         }
     }
 
-    fn unify(
+    pub fn unify(
         &self,
         lhs: &Type,
         rhs: &Type,
@@ -189,6 +189,16 @@ impl Infer {
 
             Type::App(TyCon::Unique(tycon, _), types) => self.expand(Type::App(*tycon, types)),
             u => u,
+        }
+    }
+}
+
+
+impl Type {
+    pub fn is_int(&self) -> bool {
+        match *self {
+            Type::App(TyCon::Int(_,_),_) => true,
+            _ => false,
         }
     }
 }
