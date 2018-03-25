@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
-use util::emitter::Reporter;
-use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Sign, Size, Statement,
-                  Struct, TyAlias, UnaryOp, Var};
-use util::pos::{Span, Spanned};
-use util::symbol::Table;
-use syntax::ast::Ty as astType;
 use std::mem;
 use std::ops::{Deref, DerefMut};
+use syntax::ast::Ty as astType;
+use syntax::ast::{Expression, Function, Ident, Literal, Op, Program, Sign, Size, Statement,
+                  Struct, TyAlias, UnaryOp, Var};
+use util::emitter::Reporter;
+use util::pos::{Span, Spanned};
+use util::symbol::Table;
 
 type InferResult<T> = Result<T, ()>;
 

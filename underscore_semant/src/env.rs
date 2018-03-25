@@ -1,7 +1,7 @@
-use util::symbol::{FactoryMap, Table};
 use constraints::{TyCon, Type};
-use syntax::ast::{Ident, Sign, Size};
 use std::rc::Rc;
+use syntax::ast::{Ident, Sign, Size};
+use util::symbol::{FactoryMap, Table};
 
 #[derive(Debug, Clone)]
 pub enum Entry {

@@ -1,10 +1,10 @@
 extern crate underscore_syntax as syntax;
 extern crate underscore_util as util;
 // mod types;
-mod subst;
 mod constraints;
-mod trans;
 mod env;
+mod subst;
+mod trans;
 // mod tiger;
 // mod types;
 pub use subst::Env as TypeEnv;

@@ -5,14 +5,14 @@ extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
 
-use underscore_util::emitter::Reporter;
-use underscore_util::symbol::{FactoryMap, Table};
-use underscore_syntax::lexer::Lexer;
-use underscore_syntax::parser::Parser;
+use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-use std::io::{self, Write};
 use underscore_semant::{Infer, TypeEnv};
+use underscore_syntax::lexer::Lexer;
+use underscore_syntax::parser::Parser;
+use underscore_util::emitter::Reporter;
+use underscore_util::symbol::{FactoryMap, Table};
 
 fn main() {
     let opts = Cli::from_args();

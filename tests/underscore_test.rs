@@ -4,11 +4,11 @@
 extern crate ansi_term;
 extern crate walkdir;
 
-use walkdir::WalkDir;
-use std::process::Command;
+use ansi_term::Colour::{Green, Red};
 use std::fs::File;
 use std::io::Read;
-use ansi_term::Colour::{Green, Red};
+use std::process::Command;
+use walkdir::WalkDir;
 
 fn main() {
     let mut pass = 0i32;

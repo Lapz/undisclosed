@@ -1,5 +1,5 @@
-use std::fmt::{self, Display, Formatter};
 use ast::Number;
+use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug)]
 pub struct Token<'a> {

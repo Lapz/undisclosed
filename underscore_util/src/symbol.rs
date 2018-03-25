@@ -1,10 +1,10 @@
 //! This module provides a Table which keeps a track of the mappings between a
 //! `T` and a `String`
 
-use std::collections::HashMap;
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::collections::HashMap;
 use std::hash::Hash;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
 /// Maps any T to a string

@@ -1,6 +1,6 @@
+use std::collections::HashMap;
 use syntax::ast::{Sign, Size};
 use util::emitter::Reporter;
-use std::collections::HashMap;
 use util::pos::Span;
 
 static mut UNIQUE_COUNT: u32 = 0;
@@ -193,11 +193,10 @@ impl Infer {
     }
 }
 
-
 impl Type {
     pub fn is_int(&self) -> bool {
         match *self {
-            Type::App(TyCon::Int(_,_),_) => true,
+            Type::App(TyCon::Int(_, _), _) => true,
             _ => false,
         }
     }
