@@ -52,7 +52,7 @@ impl TypeVar {
 }
 
 #[derive(Debug)]
-struct Infer {
+pub struct Infer {
     reporter: Reporter,
 }
 

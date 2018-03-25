@@ -1,1 +1,4 @@
-type transformer<T> = fn(T)-> T;
+type char = i8;
+fn main(a:char) {
+    nil;
+}
