@@ -22,10 +22,10 @@ pub type ParserResult<T> = Result<T, ()>;
 /// Macro that is used to generate the code that parse a binary op
 macro_rules! binary {
     ($_self: ident, $e: ident, $lhs: expr, $func: ident) => {
-        while $self.recognise($e) {
-            let op = $self.get_binary_op()?;
+        while $_self.recognise($e) {
+            let op = $_self.get_binary_op()?;
 
-            let rhs = Box::new($self.$func()?);
+            let rhs = Box::new($_self.$func()?);
 
             $lhs = Spanned {
                 span: $lhs.get_span().to(rhs.get_span()),
@@ -39,10 +39,10 @@ macro_rules! binary {
     };
 
     ($_self: ident, $expr: expr, $lhs: expr, $func: ident) => {
-        while $self.matched($expr) {
-            let op = $self.get_binary_op()?;
+        while $_self.matched($expr) {
+            let op = $_self.get_binary_op()?;
 
-            let rhs = Box::new($self.$func()?);
+            let rhs = Box::new($_self.$func()?);
 
             $lhs = Spanned {
                 span: $lhs.get_span().to(rhs.get_span()),

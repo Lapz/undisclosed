@@ -53,7 +53,7 @@ impl TypeVar {
 
 #[derive(Debug)]
 pub struct Infer {
-    reporter: Reporter,
+    pub reporter: Reporter,
 }
 
 impl Infer {

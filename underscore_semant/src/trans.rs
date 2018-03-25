@@ -300,7 +300,21 @@ impl Infer {
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<Type> {
-        unimplemented!()
+        match expr.value {
+            Expression::Assign {
+                ref name,
+                ref value,
+            } => {
+                let name = self.trans_var(name, env,reporter)?;
+                let value_ty = self.trans_expr(value, env,reporter)?;
+
+                self.unify(&name, &value_ty, reporter, expr.span)?;
+
+            
+                Ok(value_ty)
+            }
+            _ => unimplemented!(),
+        }
     }
 
     fn trans_var(
@@ -362,14 +376,17 @@ mod test {
     use syntax::ast::*;
     use syntax::lexer::Lexer;
     use syntax::parser::Parser;
-    use trans::type_alias;
+    use trans::*;
     use util::emitter::Reporter;
     use util::symbol::*;
+    use constraints::Infer;
 
     #[test]
     fn alias() {
         let mut reporter = Reporter::new();
-        let input = "type transformer<T> = fn(T) -> T;";
+        let input = "fn main(a:i32){
+            a = \"a\";
+        }";
         let tokens = Lexer::new(&input, reporter.clone()).lex();
         let strings = Rc::new(FactoryMap::new());
 
@@ -381,9 +398,13 @@ mod test {
 
         let mut env = Env::new(&strings);
 
+        let infer = Infer{
+            reporter:reporter.clone()
+        };
+
         // println!("Befor {:#?}",env);
 
-        type_alias(&ast.type_alias[0], &mut env, &mut reporter).unwrap();
+       infer.trans_function(&ast.functions[0], &mut env, &mut reporter).unwrap();
 
         reporter.emit(input);
         // println!("After {:#?}",env);
