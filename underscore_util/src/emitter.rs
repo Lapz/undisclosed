@@ -1,11 +1,11 @@
 //! Error reporting that reports all compiler errors.
-use ansi_term::Colour::{Blue, Fixed, Red, Yellow};
-use pos::EMPTYSPAN;
+use std::iter::repeat;
 use pos::Span;
+use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::{self, Display};
-use std::iter::repeat;
-use std::rc::Rc;
+use ansi_term::Colour::{Blue, Fixed, Red, Yellow};
+use pos::EMPTYSPAN;
 #[derive(Debug)]
 pub struct Diagnostic {
     msg: String,
@@ -88,7 +88,6 @@ pub fn print(input: &str, d: &Diagnostic) {
         let line = line;
         let line_idx = idx + 1;
         println!("{:>4} {}{}", line_idx, prefix, line);
-
         if line_idx == span.start.line as usize {
             let end = if line_idx == span.end.line as usize {
                 span.end.column as usize
@@ -102,27 +101,15 @@ pub fn print(input: &str, d: &Diagnostic) {
                 Level::Error => Red.bold().paint(carets),
             };
 
-            let whitespace = repeat_string(" ", end - span.start.column as usize);
+            let whitespace = repeat_string(" ", span.start.column as usize - 1);
             println!("     {}{}{}", prefix, whitespace, carets);
         } else if line_idx == span.end.line as usize {
-            let carets = repeat_string("^", span.start.column as usize);
-
-            let carets = match d.level {
-                Level::Warn => Yellow.bold().paint(carets),
-                Level::Error => Red.bold().paint(carets),
-            };
-
+            let carets = repeat_string("^", span.end.column as usize);
             println!("     {}{}", prefix, carets);
         } else if line_idx > span.start.line as usize && line_idx < span.end.line as usize
             && !line.is_empty()
         {
             let carets = repeat_string("^", line.len());
-
-            let carets = match d.level {
-                Level::Warn => Yellow.bold().paint(carets),
-                Level::Error => Red.bold().paint(carets),
-            };
-
             println!("     {}{}", prefix, carets);
         }
 

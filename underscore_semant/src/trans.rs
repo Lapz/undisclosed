@@ -353,16 +353,19 @@ impl Infer {
                     }
 
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
-                        if !lhs.is_int() {
-                            self.unify(
+                      
+
+                        match self.unify(&lhs, &rhs, reporter, expr.span) {
+                            Ok(()) => (),
+                            Err(_) => {
+                                self.unify(
                                 &lhs,
                                 &Type::App(TyCon::String, vec![]),
                                 reporter,
                                 expr.span,
                             )?;
+                            }
                         }
-
-                        self.unify(&lhs, &rhs, reporter, expr.span)?;
 
                         Ok(lhs)
                     }
@@ -487,7 +490,7 @@ impl Infer {
 
                 let mut mappings = HashMap::new();
 
-                println!("{:?}",func);
+             
 
 
                 match func  {
@@ -496,8 +499,6 @@ impl Infer {
                         for (tvar,ty) in tvars.iter().zip(types) {
                             mappings.insert(*tvar, ty.clone());
                         }
-
-                        println!("a {:?}",mappings);
 
                         match **ret {
                             Type::App(TyCon::Arrow,ref fn_types) => {

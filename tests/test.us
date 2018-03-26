@@ -1,8 +1,8 @@
-fn f<T>(x:T) -> T  {
-    x;
+fn f<K,V>(a:K,b:K) -> K  {
+    a+b;
 }
 
-fn main() {
-    f::<i32>();
-    f::<nil>();
+fn main() -> i32 {
+    f::<i32,i32>();
+    
 }
