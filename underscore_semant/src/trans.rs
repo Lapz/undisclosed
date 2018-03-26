@@ -350,10 +350,6 @@ impl Infer {
                     }
 
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
-
-                        if lhs.is_int() && !rhs.is_int() {
-                            return Err(())
-                        }
                         
                         if !lhs.is_int() {
                             self.unify(&lhs, &Type::App(TyCon::String, vec![]), reporter, expr.span)?;

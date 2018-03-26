@@ -15,7 +15,7 @@ pub struct TypeVar(pub u32);
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Unique(pub u32);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,PartialEq)]
 pub enum Type {
     Nil,
     App(TyCon, Vec<Type>),
@@ -23,7 +23,7 @@ pub enum Type {
     Poly(Vec<TypeVar>, Box<Type>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,PartialEq)]
 pub enum TyCon {
     Int(Sign, Size),
     String,
@@ -106,6 +106,8 @@ impl Infer {
                 &Type::App(TyCon::Unique(_, ref z2), ref types2),
             ) => {
                 if z1 != z2 {
+                    let msg = format!("Cannot unify {:?} vs {:?}", z1, z2);
+                    reporter.error(msg, span);
                     return Err(());
                 }
 
@@ -115,7 +117,14 @@ impl Infer {
                 Ok(())
             }
             
-            (&Type::App(_, ref types1), &Type::App(_, ref types2)) => {
+            (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
+
+                if tycon1 != tycon2 {
+                    let msg = format!("Cannot unify {:?} vs {:?}", tycon1, tycon2);
+                    reporter.error(msg, span);
+                    return Err(());
+                }
+
                 for (a, b) in types1.iter().zip(types2.iter()) {
                     self.unify(a, b, reporter, span)?
                 }

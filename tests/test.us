@@ -1,3 +1,4 @@
-fn main() {
-    10 + "12";
+fn main() -> nil {
+    "a" + "12";
+    nil;
 }
