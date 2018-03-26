@@ -48,6 +48,7 @@ pub enum TokenType<'a> {
     RBRACKET,  // ]
     LBRACE,    // {
     RBRACE,    // }
+    COLONCOLON, // ::
 
     // Comparison
     LESSTHAN,         // <
@@ -109,6 +110,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::BANGEQUAL => write!(f, "!="),     // !=
             TokenType::LESSTHANEQUAL => write!(f, "<="), // <=
             TokenType::GREATERTHANEQUAL => write!(f, "=>"), // =>
+            TokenType::COLONCOLON => write!(f,"::"),
 
             TokenType::COMMA => write!(f, ","),     // ,
             TokenType::COMMENT => write!(f, "//"),  // //

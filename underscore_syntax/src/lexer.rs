@@ -274,7 +274,14 @@ impl<'a> Lexer<'a> {
                 '(' => Some(span(TokenType::LPAREN, start)),
                 ')' => Some(span(TokenType::RPAREN, start)),
                 ',' => Some(span(TokenType::COMMA, start)),
-                ':' => Some(span(TokenType::COLON, start)),
+                ':' => {
+                    if self.peek(|ch| ch == ':') {
+                        self.advance();
+                         Some(spans(TokenType::COLONCOLON, start, start.shift(':')))
+                    }else{
+                         Some(span(TokenType::COLON, start))
+                    }
+                },
                 '"' => match self.string_literal(start) {
                     Ok(token) => Some(token),
                     Err(e) => {

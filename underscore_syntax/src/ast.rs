@@ -170,6 +170,19 @@ pub enum Var {
     },
 }
 #[derive(Debug)]
+pub enum Call {
+    Simple{
+        callee: Box<Spanned<Expression>>,
+        args: Vec<Spanned<Expression>>,
+    },
+    Instantiation {
+        callee: Box<Spanned<Expression>>,
+        ty:Spanned<Vec<Ty>>,
+        args: Vec<Spanned<Expression>>,
+    },
+}
+
+#[derive(Debug)]
 pub enum Op {
     NEq,
     Equal,
