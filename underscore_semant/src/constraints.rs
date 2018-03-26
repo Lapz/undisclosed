@@ -53,10 +53,13 @@ impl TypeVar {
 
 #[derive(Debug)]
 pub struct Infer {
-    pub reporter: Reporter,
 }
 
 impl Infer {
+
+    pub fn new() -> Self {
+        Infer{}
+    }
     /// Deals with the subsitution of type variables
     fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
         match *ty {
@@ -98,14 +101,7 @@ impl Infer {
         span: Span,
     ) -> InferResult<()> {
         match (lhs, rhs) {
-            (&Type::App(_, ref types1), &Type::App(_, ref types2)) => {
-                for (a, b) in types1.iter().zip(types2.iter()) {
-                    self.unify(a, b, reporter, span)?
-                }
-                Ok(())
-            }
-
-            (
+              (
                 &Type::App(TyCon::Unique(_, ref z1), ref types1),
                 &Type::App(TyCon::Unique(_, ref z2), ref types2),
             ) => {
@@ -118,6 +114,15 @@ impl Infer {
                 }
                 Ok(())
             }
+            
+            (&Type::App(_, ref types1), &Type::App(_, ref types2)) => {
+                for (a, b) in types1.iter().zip(types2.iter()) {
+                    self.unify(a, b, reporter, span)?
+                }
+                Ok(())
+            }
+
+          
 
             (&Type::App(TyCon::Fun(ref tyvars, ref ret), ref u), ref t) => {
                 let mut mappings = HashMap::new();

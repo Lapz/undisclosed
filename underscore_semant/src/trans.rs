@@ -1,11 +1,27 @@
 use constraints::{Infer, InferResult};
 use constraints::{TyCon, Type, TypeVar, Unique};
 use env::{Entry, Env};
-use syntax::ast::{Expression, Function, Sign, Size, Statement, Ty as astType, TyAlias, Var};
+use syntax::ast::{Expression, Function, Sign,Program, Size,Op,UnaryOp, Literal,Statement, Ty as astType, TyAlias, Var};
 use util::emitter::Reporter;
 use util::pos::Spanned;
 
 impl Infer {
+
+    pub fn infer(&self,program:Program,env:&mut Env,reporter:&mut Reporter) -> InferResult<()> {
+         for alias in &program.type_alias {
+            self.trans_alias(alias, env,reporter)?
+        }
+
+        // for record in &program.structs {
+        //     self.record(record, env)?
+        // }
+
+        for function in &program.functions {
+            self.trans_function(function, env,reporter)?
+        }
+
+        Ok(())
+    }
     pub fn trans_ty(
         &self,
         ty: &Spanned<astType>,
@@ -79,7 +95,7 @@ impl Infer {
         }
     }
 
-    pub fn type_alias(
+    pub fn trans_alias(
         &self,
         alias: &Spanned<TyAlias>,
         env: &mut Env,
@@ -157,7 +173,10 @@ impl Infer {
             env.add_var(ident.value.name.value, param)
         }
 
-        // self.unify(lhs, rhs, reporter, span)
+        let body = self.trans_statement(&function.value.body,env,reporter)?;
+
+
+        self.unify(&returns, &body, reporter, function.value.body.span)?;
 
         Ok(())
     }
@@ -312,8 +331,147 @@ impl Infer {
 
             
                 Ok(value_ty)
+            },
+
+            Expression::Binary {
+                ref lhs,
+                ref op,
+                ref rhs,
+            } => {
+                let lhs = self.trans_expr(lhs, env,reporter)?;
+                let rhs = self.trans_expr(rhs, env,reporter)?;
+
+                match op.value {
+                    Op::NEq | Op::Equal => Ok(Type::App(TyCon::Bool, vec![])),
+                    Op::LT | Op::LTE | Op::GT | Op::GTE => {
+
+                        self.unify(&lhs, &rhs, reporter,expr.span)?;
+                          Ok(Type::App(TyCon::Bool, vec![]))
+                    }
+
+                    Op::Plus | Op::Slash | Op::Star | Op::Minus => {
+
+                        if lhs.is_int() && !rhs.is_int() {
+                            return Err(())
+                        }
+                        
+                        if !lhs.is_int() {
+                            self.unify(&lhs, &Type::App(TyCon::String, vec![]), reporter, expr.span)?;
+                        }
+
+                        self.unify(&lhs,&rhs, reporter, expr.span)?;
+
+                       
+
+                      
+                        Ok(lhs)
+                    }
+
+                    Op::And | Op::Or => {
+
+
+                        self.unify(&lhs, &rhs, reporter, expr.span)?;
+                         Ok(Type::App(TyCon::Bool, vec![]))
+                    }
+                }
             }
-            _ => unimplemented!(),
+
+            Expression::Cast { ref expr, ref to } => unimplemented!(),
+            Expression::Call {
+                ref callee,
+                ref args,
+            } => unimplemented!(),
+            Expression::Grouping { ref expr } => self.trans_expr(expr, env,reporter),
+            Expression::Literal(ref literal) => match *literal {
+                Literal::Char(_) => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![])),
+                Literal::False(_) => Ok(Type::App(TyCon::Bool, vec![])),
+                Literal::True(_) => Ok(Type::App(TyCon::Bool, vec![])),
+                Literal::Str(_) => Ok(Type::App(TyCon::String, vec![])),
+                Literal::Number(ref number) => match number.ty {
+                    Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size),vec![])),
+                    None => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![])),
+                },
+                Literal::Nil => Ok(Type::App(TyCon::Void, vec![])),
+            },
+            Expression::StructLiteral {
+                ref ident,
+                ref fields,
+            } => {
+                /*let ty = if let Some(ty) = env.look_scheme(ident.value).cloned() {
+                    ty
+                } else {
+                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
+                   reporter.error(msg, ident.span);
+                    return Err(());
+                };
+
+                match ty.ty {
+                    Type::Struct(ref type_fields, ref unique) => {
+                        let mut new_fields = Vec::new();
+                        for type_field in type_fields {
+                            let mut found = false;
+
+                            for field in fields {
+                                if type_field.name == field.value.ident.value {
+                                    found = true;
+
+                                    let field_expr = self.trans_expr(&field.value.expr, env,reporter)?;
+
+                                    field_expr.mgu(&type_field.ty, field.span, &mut self.reporter)?;
+
+                                    new_fields.push(Field {
+                                        name: type_field.name,
+                                        ty: field_expr,
+                                    });
+                                }
+                            }
+
+                            if !found {
+                                let msg =
+                                    format!("Struct {} is missing fields", env.name(ident.value));
+                               reporter.error(msg, expr.span);
+                                return Err(());
+                            } else if type_fields.len() != fields.len() {
+                                let msg =
+                                    format!("Struct {} has too many fields", env.name(ident.value));
+                               reporter.error(msg, expr.span);
+                                return Err(());
+                            }
+                        }
+
+                        env.add_type(ident.value, Type::Struct(new_fields.clone(), *unique));
+                        Ok(Type::Struct(new_fields, *unique))
+                    }
+
+                    _ => {
+                        let msg = format!("{} is not a 'struct' ", env.name(ident.value));
+                       reporter.error(msg, ident.span);
+                        Err(())
+                    }
+                }*/
+
+                unimplemented!()
+            }
+
+            Expression::Unary { ref op, ref expr } => {
+                let expr_ty = self.trans_expr(expr, env,reporter)?;
+
+                match op.value {
+                    UnaryOp::Bang => Ok(Type::App(TyCon::Bool, vec![])),
+                    UnaryOp::Minus => {
+                        if !expr_ty.is_int() {
+                            let msg = "Expected one of type i8,u8,i32,u32,i64,u64";
+
+                           reporter.error(msg, expr.span);
+                            return Err(());
+                        }
+
+                        Ok(expr_ty)
+                    }
+                }
+            }
+            Expression::Var(ref var) => self.trans_var(var, env,reporter),
+            
         }
     }
 
@@ -399,7 +557,6 @@ mod test {
         let mut env = Env::new(&strings);
 
         let infer = Infer{
-            reporter:reporter.clone()
         };
 
         // println!("Befor {:#?}",env);

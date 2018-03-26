@@ -67,7 +67,7 @@ fn run(path: String, dump_file: Option<String>) {
         ::std::process::exit(0)
     }
 
-    let reporter = Reporter::new();
+    let mut reporter = Reporter::new();
 
     let tokens = Lexer::new(&input, reporter.clone()).lex();
 
@@ -92,11 +92,11 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
-    let mut infer = Infer::new(reporter.clone());
+    let infer = Infer::new();
 
     let mut type_env = TypeEnv::new(&Rc::clone(&strings));
 
-    match infer.infer(ast, &mut type_env) {
+    match infer.infer(ast, &mut type_env, &mut reporter) {
         Ok(_) => (),
         Err(_) => {
             reporter.emit(&input);
