@@ -15,7 +15,7 @@ pub struct TypeVar(pub u32);
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Unique(pub u32);
 
-#[derive(Debug, Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Nil,
     App(TyCon, Vec<Type>),
@@ -23,7 +23,7 @@ pub enum Type {
     Poly(Vec<TypeVar>, Box<Type>),
 }
 
-#[derive(Debug, Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TyCon {
     Int(Sign, Size),
     String,
@@ -52,13 +52,11 @@ impl TypeVar {
 }
 
 #[derive(Debug)]
-pub struct Infer {
-}
+pub struct Infer {}
 
 impl Infer {
-
     pub fn new() -> Self {
-        Infer{}
+        Infer {}
     }
     /// Deals with the subsitution of type variables
     fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
@@ -101,7 +99,7 @@ impl Infer {
         span: Span,
     ) -> InferResult<()> {
         match (lhs, rhs) {
-              (
+            (
                 &Type::App(TyCon::Unique(_, ref z1), ref types1),
                 &Type::App(TyCon::Unique(_, ref z2), ref types2),
             ) => {
@@ -116,9 +114,8 @@ impl Infer {
                 }
                 Ok(())
             }
-            
-            (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
 
+            (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
                 if tycon1 != tycon2 {
                     let msg = format!("Cannot unify {:?} vs {:?}", tycon1, tycon2);
                     reporter.error(msg, span);
@@ -130,8 +127,6 @@ impl Infer {
                 }
                 Ok(())
             }
-
-          
 
             (&Type::App(TyCon::Fun(ref tyvars, ref ret), ref u), ref t) => {
                 let mut mappings = HashMap::new();

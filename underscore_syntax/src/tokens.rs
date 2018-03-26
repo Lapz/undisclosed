@@ -35,19 +35,19 @@ pub enum TokenType<'a> {
     SLASH, // /
 
     // Puntuation
-    FRETURN,   // ->
-    DOT,       // .
-    QUESTION,  // ?
-    COLON,     // :
-    COMMA,     // ,
-    COMMENT,   // //
-    SEMICOLON, // ;
-    LPAREN,    // (
-    RPAREN,    // )
-    LBRACKET,  // [
-    RBRACKET,  // ]
-    LBRACE,    // {
-    RBRACE,    // }
+    FRETURN,    // ->
+    DOT,        // .
+    QUESTION,   // ?
+    COLON,      // :
+    COMMA,      // ,
+    COMMENT,    // //
+    SEMICOLON,  // ;
+    LPAREN,     // (
+    RPAREN,     // )
+    LBRACKET,   // [
+    RBRACKET,   // ]
+    LBRACE,     // {
+    RBRACE,     // }
     COLONCOLON, // ::
 
     // Comparison
@@ -110,7 +110,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::BANGEQUAL => write!(f, "!="),     // !=
             TokenType::LESSTHANEQUAL => write!(f, "<="), // <=
             TokenType::GREATERTHANEQUAL => write!(f, "=>"), // =>
-            TokenType::COLONCOLON => write!(f,"::"),
+            TokenType::COLONCOLON => write!(f, "::"),
 
             TokenType::COMMA => write!(f, ","),     // ,
             TokenType::COMMENT => write!(f, "//"),  // //

@@ -1,4 +1,8 @@
-fn main() -> nil {
-    "a" + "12";
+fn f<T>(x:i32) -> nil {
     nil;
+}
+
+fn main() {
+    f::<T>();
+    f::<T>();
 }

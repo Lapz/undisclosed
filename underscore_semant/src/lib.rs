@@ -7,5 +7,5 @@ mod env;
 mod trans;
 // mod tiger;
 // mod types;
-pub use env::Env as TypeEnv;
 pub use constraints::Infer;
+pub use env::Env as TypeEnv;

@@ -1,15 +1,20 @@
 use constraints::{Infer, InferResult};
 use constraints::{TyCon, Type, TypeVar, Unique};
 use env::{Entry, Env};
-use syntax::ast::{Expression, Function, Sign,Program, Size,Op,UnaryOp, Literal,Statement, Ty as astType, TyAlias, Var};
+use syntax::ast::{Expression, Function, Literal, Op, Program, Sign, Size, Statement,
+                  Ty as astType, TyAlias, UnaryOp, Var};
 use util::emitter::Reporter;
 use util::pos::Spanned;
 
 impl Infer {
-
-    pub fn infer(&self,program:Program,env:&mut Env,reporter:&mut Reporter) -> InferResult<()> {
-         for alias in &program.type_alias {
-            self.trans_alias(alias, env,reporter)?
+    pub fn infer(
+        &self,
+        program: Program,
+        env: &mut Env,
+        reporter: &mut Reporter,
+    ) -> InferResult<()> {
+        for alias in &program.type_alias {
+            self.trans_alias(alias, env, reporter)?
         }
 
         // for record in &program.structs {
@@ -17,7 +22,7 @@ impl Infer {
         // }
 
         for function in &program.functions {
-            self.trans_function(function, env,reporter)?
+            self.trans_function(function, env, reporter)?
         }
 
         Ok(())
@@ -173,8 +178,7 @@ impl Infer {
             env.add_var(ident.value.name.value, param)
         }
 
-        let body = self.trans_statement(&function.value.body,env,reporter)?;
-
+        let body = self.trans_statement(&function.value.body, env, reporter)?;
 
         self.unify(&returns, &body, reporter, function.value.body.span)?;
 
@@ -324,67 +328,61 @@ impl Infer {
                 ref name,
                 ref value,
             } => {
-                let name = self.trans_var(name, env,reporter)?;
-                let value_ty = self.trans_expr(value, env,reporter)?;
+                let name = self.trans_var(name, env, reporter)?;
+                let value_ty = self.trans_expr(value, env, reporter)?;
 
                 self.unify(&name, &value_ty, reporter, expr.span)?;
 
-            
                 Ok(value_ty)
-            },
+            }
 
             Expression::Binary {
                 ref lhs,
                 ref op,
                 ref rhs,
             } => {
-                let lhs = self.trans_expr(lhs, env,reporter)?;
-                let rhs = self.trans_expr(rhs, env,reporter)?;
+                let lhs = self.trans_expr(lhs, env, reporter)?;
+                let rhs = self.trans_expr(rhs, env, reporter)?;
 
                 match op.value {
                     Op::NEq | Op::Equal => Ok(Type::App(TyCon::Bool, vec![])),
                     Op::LT | Op::LTE | Op::GT | Op::GTE => {
-
-                        self.unify(&lhs, &rhs, reporter,expr.span)?;
-                          Ok(Type::App(TyCon::Bool, vec![]))
+                        self.unify(&lhs, &rhs, reporter, expr.span)?;
+                        Ok(Type::App(TyCon::Bool, vec![]))
                     }
 
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
-                        
                         if !lhs.is_int() {
-                            self.unify(&lhs, &Type::App(TyCon::String, vec![]), reporter, expr.span)?;
+                            self.unify(
+                                &lhs,
+                                &Type::App(TyCon::String, vec![]),
+                                reporter,
+                                expr.span,
+                            )?;
                         }
 
-                        self.unify(&lhs,&rhs, reporter, expr.span)?;
+                        self.unify(&lhs, &rhs, reporter, expr.span)?;
 
-                       
-
-                      
                         Ok(lhs)
                     }
 
                     Op::And | Op::Or => {
-
-
                         self.unify(&lhs, &rhs, reporter, expr.span)?;
-                         Ok(Type::App(TyCon::Bool, vec![]))
+                        Ok(Type::App(TyCon::Bool, vec![]))
                     }
                 }
             }
 
             Expression::Cast { ref expr, ref to } => unimplemented!(),
-            Expression::Call {
-                ref callee,
-                ref args,
-            } => unimplemented!(),
-            Expression::Grouping { ref expr } => self.trans_expr(expr, env,reporter),
+            Expression::Call {..} => unimplemented!(),
+            Expression::Grouping { ref expr } => self.trans_expr(expr, env, reporter),
             Expression::Literal(ref literal) => match *literal {
                 Literal::Char(_) => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![])),
                 Literal::False(_) => Ok(Type::App(TyCon::Bool, vec![])),
                 Literal::True(_) => Ok(Type::App(TyCon::Bool, vec![])),
                 Literal::Str(_) => Ok(Type::App(TyCon::String, vec![])),
                 Literal::Number(ref number) => match number.ty {
-                    Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size),vec![])),
+                    Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size), vec![])),
                     None => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![])),
                 },
                 Literal::Nil => Ok(Type::App(TyCon::Void, vec![])),
@@ -450,7 +448,7 @@ impl Infer {
             }
 
             Expression::Unary { ref op, ref expr } => {
-                let expr_ty = self.trans_expr(expr, env,reporter)?;
+                let expr_ty = self.trans_expr(expr, env, reporter)?;
 
                 match op.value {
                     UnaryOp::Bang => Ok(Type::App(TyCon::Bool, vec![])),
@@ -458,7 +456,7 @@ impl Infer {
                         if !expr_ty.is_int() {
                             let msg = "Expected one of type i8,u8,i32,u32,i64,u64";
 
-                           reporter.error(msg, expr.span);
+                            reporter.error(msg, expr.span);
                             return Err(());
                         }
 
@@ -466,8 +464,7 @@ impl Infer {
                     }
                 }
             }
-            Expression::Var(ref var) => self.trans_var(var, env,reporter),
-            
+            Expression::Var(ref var) => self.trans_var(var, env, reporter),
         }
     }
 
@@ -525,6 +522,7 @@ impl Infer {
 #[cfg(test)]
 mod test {
 
+    use constraints::Infer;
     use env::Env;
     use std::rc::Rc;
     use syntax::ast::*;
@@ -533,7 +531,6 @@ mod test {
     use trans::*;
     use util::emitter::Reporter;
     use util::symbol::*;
-    use constraints::Infer;
 
     #[test]
     fn alias() {
@@ -552,12 +549,13 @@ mod test {
 
         let mut env = Env::new(&strings);
 
-        let infer = Infer{
-        };
+        let infer = Infer {};
 
         // println!("Befor {:#?}",env);
 
-       infer.trans_function(&ast.functions[0], &mut env, &mut reporter).unwrap();
+        infer
+            .trans_function(&ast.functions[0], &mut env, &mut reporter)
+            .unwrap();
 
         reporter.emit(input);
         // println!("After {:#?}",env);

@@ -119,10 +119,7 @@ pub enum Expression {
         to: Spanned<Ty>,
     },
 
-    Call {
-        callee: Box<Spanned<Expression>>,
-        args: Vec<Spanned<Expression>>,
-    },
+    Call(Spanned<Call>),
 
     Grouping {
         expr: Box<Spanned<Expression>>,
@@ -171,13 +168,13 @@ pub enum Var {
 }
 #[derive(Debug)]
 pub enum Call {
-    Simple{
+    Simple {
         callee: Box<Spanned<Expression>>,
         args: Vec<Spanned<Expression>>,
     },
     Instantiation {
         callee: Box<Spanned<Expression>>,
-        ty:Spanned<Vec<Ty>>,
+        tys: Spanned<Vec<Spanned<Ty>>>,
         args: Vec<Spanned<Expression>>,
     },
 }

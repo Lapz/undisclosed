@@ -1,6 +1,6 @@
 use ast::Program;
 use ast::TyAlias;
-use ast::{Expression, Literal, Op, Statement, UnaryOp, Var};
+use ast::{Call, Expression, Literal, Op, Statement, UnaryOp, Var};
 use ast::{Field, Struct, StructLitField};
 use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
 use std::iter::Peekable;
@@ -1087,6 +1087,55 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_ident(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
+        } else if self.recognise(TokenType::COLONCOLON) {
+            self.advance();
+
+            let ident_span = ident.get_span();
+            let open_span = self.consume_get_span(&TokenType::LESSTHAN, "Expected '<' ")?;
+
+            let mut types = vec![];
+
+            if !self.recognise(TokenType::GREATERTHAN) {
+                loop {
+                    types.push(self.parse_type()?);
+
+                    if self.recognise(TokenType::COMMA) {
+                        self.advance();
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            let close_span = self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?;
+
+            let call = self.parse_call(ident)?;
+
+            match call {
+                Spanned {
+                    value:
+                        Expression::Call(Spanned {
+                            value: Call::Simple { args, callee },
+                            ..
+                        }),
+                    ..
+                } => Ok(Spanned {
+                    value: Expression::Call(Spanned {
+                        span: ident_span.to(close_span),
+                        value: Call::Instantiation {
+                            tys: Spanned {
+                                value: types,
+                                span: open_span.to(close_span),
+                            },
+                            callee,
+                            args,
+                        },
+                    }),
+                    span: { ident_span.to(close_span) },
+                }),
+                _ => unreachable!(),
+            }
+            
         } else if self.recognise(TokenType::DOT) {
             self.consume(&TokenType::DOT, "Expected '.' ")?;
 
@@ -1200,10 +1249,13 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(Spanned {
             span: callee.get_span().to(close_span),
-            value: Expression::Call {
-                callee: Box::new(callee),
-                args,
-            },
+            value: Expression::Call(Spanned {
+                span: callee.get_span(),
+                value: Call::Simple {
+                    callee: Box::new(callee),
+                    args,
+                },
+            }),
         })
     }
 }
