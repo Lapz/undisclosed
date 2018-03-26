@@ -193,7 +193,7 @@ impl Infer {
     ) -> InferResult<Type> {
         match statement.value {
             Statement::Block(ref statements) => {
-                let mut result = Type::Nil;
+                let mut result = Type::App(TyCon::Void, vec![]);
 
                 for statement in statements {
                     result = self.trans_statement(statement, env, reporter)?
@@ -288,16 +288,16 @@ impl Infer {
 
                     env.add_var(ident.value, expr_ty);
 
-                    Ok(Type::Nil)
+                    Ok(Type::App(TyCon::Void, vec![]))
                 } else {
                     if let Some(ref ty) = *ty {
                         let ty = self.trans_ty(ty, env, reporter)?;
 
                         env.add_var(ident.value, ty);
-                        return Ok(Type::Nil);
+                        return Ok(Type::App(TyCon::Void, vec![]));
                     }
 
-                    Ok(Type::Nil)
+                    Ok(Type::App(TyCon::Void, vec![]))
                 }
             }
 
@@ -312,7 +312,7 @@ impl Infer {
 
                 self.trans_statement(body, env, reporter)?;
 
-                Ok(Type::Nil)
+                Ok(Type::App(TyCon::Void, vec![]))
             }
         }
     }
