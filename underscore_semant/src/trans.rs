@@ -1,8 +1,9 @@
 use constraints::{Infer, InferResult};
+use std::collections::HashMap;
 use constraints::{TyCon, Type, TypeVar, Unique};
 use env::{Entry, Env};
 use syntax::ast::{Expression, Function, Literal, Op, Program, Sign, Size, Statement,
-                  Ty as astType, TyAlias, UnaryOp, Var};
+                  Ty as astType, TyAlias, UnaryOp, Var,Call};
 use util::emitter::Reporter;
 use util::pos::Spanned;
 
@@ -374,7 +375,7 @@ impl Infer {
             }
 
             Expression::Cast { ref expr, ref to } => unimplemented!(),
-            Expression::Call {..} => unimplemented!(),
+            Expression::Call(ref call) => self.trans_call(call,env,reporter),
             Expression::Grouping { ref expr } => self.trans_expr(expr, env, reporter),
             Expression::Literal(ref literal) => match *literal {
                 Literal::Char(_) => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![])),
@@ -465,6 +466,52 @@ impl Infer {
                 }
             }
             Expression::Var(ref var) => self.trans_var(var, env, reporter),
+        }
+    }
+
+    fn trans_call(&self,call:&Spanned<Call>,env:&mut Env,reporter:&mut Reporter) -> InferResult<Type> {
+        match call.value {
+            Call::Simple{ref callee, ref args} => {
+                // if let Some(ref)
+                unimplemented!()
+            },
+
+            Call::Instantiation{ref callee,ref tys,ref args} => {
+                let mut types = vec![];
+
+                for ty in &tys.value {
+                    types.push(self.trans_ty(ty,env,reporter)?);
+                }
+
+                let func = env.look_var(callee.value).unwrap().clone();
+
+                let mut mappings = HashMap::new();
+
+
+                match func  {
+                    Type::Poly(ref tvars,_) => {
+
+                        for (tvar,ty) in tvars.iter().zip(types) {
+                            mappings.insert(tvar, ty.clone());
+                        }
+
+                    },
+
+                    _ => unreachable!()
+
+                }
+
+               
+
+                println!("{:?}",self.expand(func) );
+
+
+
+
+
+                unimplemented!()
+
+            }
         }
     }
 

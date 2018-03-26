@@ -182,7 +182,7 @@ impl Infer {
         }
     }
 
-    fn expand(&self, ty: Type) -> Type {
+    pub fn expand(&self, ty: Type) -> Type {
         match ty {
             Type::App(TyCon::Fun(vars, ret), types) => {
                 let mut mappings = HashMap::new();

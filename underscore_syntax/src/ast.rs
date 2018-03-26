@@ -169,11 +169,11 @@ pub enum Var {
 #[derive(Debug)]
 pub enum Call {
     Simple {
-        callee: Box<Spanned<Expression>>,
+        callee: Spanned<Ident>,
         args: Vec<Spanned<Expression>>,
     },
     Instantiation {
-        callee: Box<Spanned<Expression>>,
+        callee: Spanned<Ident>,
         tys: Spanned<Vec<Spanned<Ty>>>,
         args: Vec<Spanned<Expression>>,
     },

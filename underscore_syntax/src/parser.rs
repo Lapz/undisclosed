@@ -1239,20 +1239,14 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let close_span = self.consume_get_span(&TokenType::RPAREN, "Expected '(' ")?;
 
-        let callee = Spanned {
-            span: callee.get_span(),
-            value: Expression::Var(Spanned {
-                span: callee.get_span(),
-                value: Var::Simple(callee),
-            }),
-        };
+     
 
         Ok(Spanned {
             span: callee.get_span().to(close_span),
             value: Expression::Call(Spanned {
                 span: callee.get_span(),
                 value: Call::Simple {
-                    callee: Box::new(callee),
+                    callee:callee,
                     args,
                 },
             }),
