@@ -59,7 +59,7 @@ impl Infer {
         Infer {}
     }
     /// Deals with the subsitution of type variables
-    fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
+    pub fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
         match *ty {
             Type::Var(ref tvar) => {
                 if let Some(tyvar) = substions.get(tvar) {

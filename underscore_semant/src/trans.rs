@@ -483,18 +483,41 @@ impl Infer {
                     types.push(self.trans_ty(ty,env,reporter)?);
                 }
 
-                let func = env.look_var(callee.value).unwrap().clone();
+                let func = env.look_var(callee.value).unwrap().clone();// TODO: CHECK IF POLYMORPHIC
 
                 let mut mappings = HashMap::new();
 
+                println!("{:?}",func);
+
 
                 match func  {
-                    Type::Poly(ref tvars,_) => {
+                    Type::Poly(ref tvars,ref ret) => {
 
                         for (tvar,ty) in tvars.iter().zip(types) {
-                            mappings.insert(tvar, ty.clone());
+                            mappings.insert(*tvar, ty.clone());
                         }
 
+                        println!("a {:?}",mappings);
+
+                        match **ret {
+                            Type::App(TyCon::Arrow,ref fn_types) => {
+
+                                
+
+                                for (ty,arg) in fn_types.iter().zip(args) {
+
+                                    self.unify(&self.subst(&self.trans_expr(arg,env,reporter)?, &mut mappings), ty, reporter, arg.span)?;
+                                }
+
+                                return Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
+
+                            },
+
+                            _ => unimplemented!()
+                        }
+
+                        
+                        
                     },
 
                     _ => unreachable!()
@@ -503,7 +526,7 @@ impl Infer {
 
                
 
-                println!("{:?}",self.expand(func) );
+                // println!("{:?}",self.expand(func) );
 
 
 

@@ -1,8 +1,8 @@
-fn f<T>(x:i32) -> nil {
-    nil;
+fn f<T>(x:T) -> T  {
+    x;
 }
 
 fn main() {
-    f::<T>();
-    f::<T>();
+    f::<i32>();
+    f::<nil>();
 }
