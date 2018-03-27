@@ -2,8 +2,8 @@ use constraints::{Infer, InferResult};
 use std::collections::HashMap;
 use constraints::{TyCon, Type, TypeVar, Unique};
 use env::{Entry, Env};
-use syntax::ast::{Expression, Function, Literal, Op, Program, Sign, Size, Statement,
-                  Ty as astType, TyAlias, UnaryOp, Var,Call};
+use syntax::ast::{Call, Expression, Function, Literal, Op, Program, Sign, Size, Statement,
+                  Ty as astType, TyAlias, UnaryOp, Var};
 use util::emitter::Reporter;
 use util::pos::Spanned;
 
@@ -109,7 +109,6 @@ impl Infer {
     ) -> InferResult<()> {
         if alias.value.ident.value.type_params.is_empty() {
             let ty = self.trans_ty(&alias.value.ty, env, reporter)?;
-            println!("{:?}", ty);
 
             env.add_type(alias.value.ident.value.name.value, Entry::Ty(ty));
             return Ok(());
@@ -127,8 +126,6 @@ impl Infer {
             poly_tvs,
             Box::new(self.trans_ty(&alias.value.ty, env, reporter)?),
         ));
-
-        println!("{:?}", entry);
 
         env.add_type(alias.value.ident.value.name.value, entry);
 
@@ -181,7 +178,7 @@ impl Infer {
 
         let body = self.trans_statement(&function.value.body, env, reporter)?;
 
-        self.unify(&returns, &body, reporter, function.value.body.span)?;
+        self.unify(&returns, &body, reporter, function.value.body.span, env)?;
 
         env.end_scope();
 
@@ -237,7 +234,13 @@ impl Infer {
                 if let Some(ref cond) = *cond {
                     let ty = self.trans_expr(cond, env, reporter)?;
 
-                    self.unify(&Type::App(TyCon::Bool, vec![]), &ty, reporter, cond.span)?;
+                    self.unify(
+                        &Type::App(TyCon::Bool, vec![]),
+                        &ty,
+                        reporter,
+                        cond.span,
+                        env,
+                    )?;
                 }
 
                 let body = self.trans_statement(body, env, reporter)?;
@@ -255,6 +258,7 @@ impl Infer {
                     &self.trans_expr(cond, env, reporter)?,
                     reporter,
                     cond.span,
+                    env,
                 )?;
 
                 let then_ty = self.trans_statement(then, env, reporter)?;
@@ -265,6 +269,7 @@ impl Infer {
                         &self.trans_statement(otherwise, env, reporter)?,
                         reporter,
                         otherwise.span,
+                        env,
                     )?;
 
                     Ok(then_ty)
@@ -284,7 +289,7 @@ impl Infer {
                     if let Some(ref ty) = *ty {
                         let t = self.trans_ty(ty, env, reporter)?;
 
-                        self.unify(&expr_ty, &t, reporter, ty.span)?;
+                        self.unify(&expr_ty, &t, reporter, ty.span, env)?;
 
                         return Ok(t);
                     }
@@ -311,6 +316,7 @@ impl Infer {
                     &self.trans_expr(cond, env, reporter)?,
                     reporter,
                     cond.span,
+                    env,
                 )?;
 
                 self.trans_statement(body, env, reporter)?;
@@ -334,7 +340,7 @@ impl Infer {
                 let name = self.trans_var(name, env, reporter)?;
                 let value_ty = self.trans_expr(value, env, reporter)?;
 
-                self.unify(&name, &value_ty, reporter, expr.span)?;
+                self.unify(&name, &value_ty, reporter, expr.span, env)?;
 
                 Ok(value_ty)
             }
@@ -350,22 +356,21 @@ impl Infer {
                 match op.value {
                     Op::NEq | Op::Equal => Ok(Type::App(TyCon::Bool, vec![])),
                     Op::LT | Op::LTE | Op::GT | Op::GTE => {
-                        self.unify(&lhs, &rhs, reporter, expr.span)?;
+                        self.unify(&lhs, &rhs, reporter, expr.span, env)?;
                         Ok(Type::App(TyCon::Bool, vec![]))
                     }
 
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
-                      
-
-                        match self.unify(&lhs, &rhs, reporter, expr.span) {
+                        match self.unify(&lhs, &rhs, reporter, expr.span, env) {
                             Ok(()) => (),
                             Err(_) => {
                                 self.unify(
-                                &lhs,
-                                &Type::App(TyCon::String, vec![]),
-                                reporter,
-                                expr.span,
-                            )?;
+                                    &lhs,
+                                    &Type::App(TyCon::String, vec![]),
+                                    reporter,
+                                    expr.span,
+                                    env,
+                                )?;
                             }
                         }
 
@@ -373,14 +378,14 @@ impl Infer {
                     }
 
                     Op::And | Op::Or => {
-                        self.unify(&lhs, &rhs, reporter, expr.span)?;
+                        self.unify(&lhs, &rhs, reporter, expr.span, env)?;
                         Ok(Type::App(TyCon::Bool, vec![]))
                     }
                 }
             }
 
             Expression::Cast { ref expr, ref to } => unimplemented!(),
-            Expression::Call(ref call) => self.trans_call(call,env,reporter),
+            Expression::Call(ref call) => self.trans_call(call, env, reporter),
             Expression::Grouping { ref expr } => self.trans_expr(expr, env, reporter),
             Expression::Literal(ref literal) => match *literal {
                 Literal::Char(_) => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![])),
@@ -474,76 +479,120 @@ impl Infer {
         }
     }
 
-    fn trans_call(&self,call:&Spanned<Call>,env:&mut Env,reporter:&mut Reporter) -> InferResult<Type> {
+    fn trans_call(
+        &self,
+        call: &Spanned<Call>,
+        env: &mut Env,
+        reporter: &mut Reporter,
+    ) -> InferResult<Type> {
         match call.value {
-            Call::Simple{ref callee, ref args} => {
-                // if let Some(func) = env.look_type(callee.value) {
+            Call::Simple {
+                ref callee,
+                ref args,
+            } => {
+                let func = if let Some(func) = env.look_var(callee.value) {
+                    func.clone()
+                } else {
+                    let msg = format!("Undefined function {}", env.name(callee.value));
 
-                // }
+                    reporter.error(msg, callee.span);
+
+                    return Err(());
+                };
+
+                match func {
+                    Type::Poly(ref tvars, ref ret) => match **ret {
+                        Type::App(TyCon::Arrow, ref fn_types) => {
+                            let mut mappings = HashMap::new();
+
+                            let mut arg_tys = Vec::new();
+
+                            for (ref tvar, ref arg) in tvars.iter().zip(args) {
+                                let ty = self.trans_expr(arg, env, reporter)?;
+                                mappings.insert(**tvar, ty.clone());
+                                arg_tys.push((ty, arg.span));
+                            }
+
+                            for (ty, arg) in fn_types.iter().zip(arg_tys) {
+                                self.unify(
+                                    &self.subst(&arg.0, &mut mappings, &mut env.metavars),
+                                    &self.subst(ty, &mut mappings, &mut env.metavars),
+                                    reporter,
+                                    arg.1,
+                                    env,
+                                )?;
+                            }
+
+                            return Ok(self.subst(
+                                fn_types.last().unwrap(),
+                                &mut mappings,
+                                &mut env.metavars,
+                            ));
+                        }
+
+                        _ => unreachable!(),
+                    },
+                    _ => unimplemented!(),
+                }
                 unimplemented!()
-            },
+            }
 
-            Call::Instantiation{ref callee,ref tys,ref args} => {
+            Call::Instantiation {
+                ref callee,
+                ref tys,
+                ref args,
+            } => {
+                let func = if let Some(func) = env.look_var(callee.value) {
+                    func.clone()
+                } else {
+                    let msg = format!("Undefined function {}", env.name(callee.value));
 
-                    let func = if let Some(func) = env.look_var(callee.value) {
-                        func.clone()
-                    }else {
-                        let msg = format!("Undefined function {}",env.name(callee.value));
+                    reporter.error(msg, callee.span);
 
-                        reporter.error(msg, callee.span);
+                    return Err(());
+                }; // TODO: CHECK IF POLYMORPHIC
 
-                        return Err(())
-                    };// TODO: CHECK IF POLYMORPHIC
-
-                match func  {
-                    Type::Poly(ref tvars,ref ret) => {
+                match func {
+                    Type::Poly(ref tvars, ref ret) => {
                         // TODO check if type params matched defined number
                         // Error if not polymorphic function
                         let mut mappings = HashMap::new();
 
-                        for (tvar,ty) in tvars.iter().zip(&tys.value) {
-                            mappings.insert(*tvar, self.trans_ty(ty,env,reporter)?);
+                        for (tvar, ty) in tvars.iter().zip(&tys.value) {
+                            mappings.insert(*tvar, self.trans_ty(ty, env, reporter)?);
                         }
-
-                        println!("{:?}",mappings);
-
-
 
                         match **ret {
-                            Type::App(TyCon::Arrow,ref fn_types) => {
-                                println!("{:?}",fn_types);
-
-                                
-
-                                for (ty,arg) in fn_types.iter().zip(args) {
-
-                                    self.unify(&self.subst(&self.trans_expr(arg,env,reporter)?, &mut mappings), &self.subst(ty, &mut mappings), reporter, arg.span)?;
+                            Type::App(TyCon::Arrow, ref fn_types) => {
+                                for (ty, arg) in fn_types.iter().zip(args) {
+                                    self.unify(
+                                        &self.subst(
+                                            &self.trans_expr(arg, env, reporter)?,
+                                            &mut mappings,
+                                            &mut env.metavars,
+                                        ),
+                                        &self.subst(ty, &mut mappings, &mut env.metavars),
+                                        reporter,
+                                        arg.span,
+                                        env,
+                                    )?;
                                 }
 
-                                return Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
+                                return Ok(self.subst(
+                                    fn_types.last().unwrap(),
+                                    &mut mappings,
+                                    &mut env.metavars,
+                                ));
+                            }
 
-                            },
-
-                            _ => unimplemented!()
+                            _ => unreachable!(),
                         }
+                    }
 
-                        
-                        
-                    },
-
-                    _ => unreachable!()
-
+                    _ => unreachable!(),
                 }
 
-               
-
-               
-
-
-
-
                 unimplemented!()
-
             }
         }
     }

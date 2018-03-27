@@ -1,14 +1,7 @@
-    type b = i32;
-    type d = i32;
-   type a = b;
-   type b = d;
-   type c = a;
-   type d = a;
-
 fn id<T>(v:T) -> T {
     v;
 }
 
-fn main() -> i32 {
-    id::<u8>('c');
+fn main() -> u8 {
+    id(10u8);
 }

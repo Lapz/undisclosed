@@ -2,20 +2,18 @@ use std::collections::HashMap;
 use syntax::ast::{Sign, Size};
 use util::emitter::Reporter;
 use util::pos::Span;
-use std::sync::Mutex;
+use std::collections::HashSet;
+use std::iter::FromIterator;
+use env::Env;
 
 static mut UNIQUE_COUNT: u32 = 0;
 
 static mut TYPEVAR_COUNT: u32 = 0;
 
-static mut METAVAR_COUNT: u32 = 0;
-
-
 pub type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TypeVar(pub u32);
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct MetaVar(pub u32);
@@ -29,7 +27,6 @@ pub enum Type {
     App(TyCon, Vec<Type>),
     Var(TypeVar),
     Poly(Vec<TypeVar>, Box<Type>),
-    Meta(TypeVar),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -59,14 +56,48 @@ impl TypeVar {
         TypeVar(value)
     }
 
+    fn bind(&self, ty: &Type, subst: &mut HashMap<TypeVar, Type>) -> InferResult<()> {
+        if let &Type::Var(ref u) = ty {
+            if u == self {
+                return Ok(());
+            }
+        }
+
+        // The occurs check prevents illegal recursive types.
+        if ty.ftv().contains(self) {
+            return Err(());
+            // return Err(format!("occur check fails: {:?} vs {:?}", self, ty));
+        }
+        subst.insert(*self, ty.clone());
+        Ok(())
+    }
 }
 
-lazy_static! {
-    pub static ref METAENV:Mutex<HashMap<TypeVar,Type>> = {
-        let mut metaenv = HashMap::new();
+impl Type {
+    fn ftv(&self) -> HashSet<TypeVar> {
+        match *self {
+            Type::Nil => HashSet::new(),
+            Type::App(TyCon::Fun(ref vars, ref ret), ref types) => {
+                let mut ftvs: HashSet<TypeVar> = HashSet::new();
 
-        Mutex::new(metaenv)
-    };
+                for ty in types {
+                    ftvs.extend(ty.ftv());
+                }
+
+                let fvars: HashSet<TypeVar> = HashSet::from_iter(vars.iter().cloned());
+
+                ftvs.extend(fvars);
+
+                ret.ftv().difference(&ftvs).cloned().collect()
+            }
+            Type::Var(ref ty) => [ty.clone()].iter().cloned().collect(),
+            Type::Poly(ref vars, ref ret) => ret.ftv()
+                .difference(&vars.iter().cloned().collect())
+                .cloned()
+                .collect(),
+            _ => unimplemented!(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -77,21 +108,18 @@ impl Infer {
         Infer {}
     }
     /// Deals with the subsitution of type variables
-    pub fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
+    pub fn subst(
+        &self,
+        ty: &Type,
+        substions: &mut HashMap<TypeVar, Type>,
+        meta: &mut HashMap<MetaVar, Type>,
+    ) -> Type {
         match *ty {
             Type::Var(ref tvar) => {
                 if let Some(ty) = substions.get(tvar) {
                     ty.clone()
                 } else {
                     Type::Var(*tvar)
-                }
-            }
-
-            Type::Meta(ref mvar) => {
-                if let Some(ty) = substions.get(mvar).cloned() {
-                    self.subst(&ty, substions)
-                }else {
-                    Type::Meta(*mvar)
                 }
             }
 
@@ -102,17 +130,20 @@ impl Infer {
                     substions.insert(*tvar, ty.clone());
                 }
 
-                self.subst(&self.subst(returns, substions), substions)
+                self.subst(&self.subst(returns, substions, meta), substions, meta)
             }
 
             Type::App(ref tycon, ref types) => Type::App(
                 tycon.clone(),
-                types.iter().map(|ty| self.subst(ty, substions)).collect(),
+                types
+                    .iter()
+                    .map(|ty| self.subst(ty, substions, meta))
+                    .collect(),
             ),
 
             Type::Poly(ref tyvars, ref u) => Type::Poly(
                 tyvars.iter().map(|_| TypeVar::new()).collect(),
-                Box::new(self.subst(u, substions)),
+                Box::new(self.subst(u, substions, meta)),
             ),
         }
     }
@@ -123,6 +154,7 @@ impl Infer {
         rhs: &Type,
         reporter: &mut Reporter,
         span: Span,
+        env: &mut Env,
     ) -> InferResult<()> {
         match (lhs, rhs) {
             (
@@ -136,7 +168,7 @@ impl Infer {
                 }
 
                 for (a, b) in types1.iter().zip(types2.iter()) {
-                    self.unify(a, b, reporter, span)?
+                    self.unify(a, b, reporter, span, env)?
                 }
                 Ok(())
             }
@@ -149,7 +181,7 @@ impl Infer {
                 }
 
                 for (a, b) in types1.iter().zip(types2.iter()) {
-                    self.unify(a, b, reporter, span)?
+                    self.unify(a, b, reporter, span, env)?
                 }
                 Ok(())
             }
@@ -161,9 +193,9 @@ impl Infer {
                     mappings.insert(*var, ty.clone());
                 }
 
-                let lhs = self.subst(ret, &mut mappings);
+                let lhs = self.subst(ret, &mut mappings, &mut env.metavars);
 
-                self.unify(&lhs, t, reporter, span)?;
+                self.unify(&lhs, t, reporter, span, env)?;
                 Ok(())
             }
 
@@ -174,9 +206,9 @@ impl Infer {
                     mappings.insert(*var, ty.clone());
                 }
 
-                let lhs = self.subst(ret, &mut mappings);
+                let lhs = self.subst(ret, &mut mappings, &mut env.metavars);
 
-                self.unify(&lhs, t, reporter, span)?;
+                self.unify(&lhs, t, reporter, span, env)?;
                 Ok(())
             }
 
@@ -191,7 +223,13 @@ impl Infer {
                     mappings.insert(*var, Type::Var(*var));
                 }
 
-                self.unify(ret1, &self.subst(ret2, &mut mappings), reporter, span)
+                self.unify(
+                    ret1,
+                    &self.subst(ret2, &mut mappings, &mut env.metavars),
+                    reporter,
+                    span,
+                    env,
+                )
             }
 
             (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
@@ -199,33 +237,15 @@ impl Infer {
             } else {
                 Err(())
             },
-
-            (&Type::Meta(ref mvar),ref t) => {
-                if let Some(ty) = METAENV.lock().unwrap().get(mvar).cloned() {
-                    self.unify(&ty, t, reporter, span)
-                } else if lhs == rhs {
-                    Ok(())
-                } 
-                else {
-                    METAENV.lock().unwrap().insert(*mvar,rhs.clone());
-                    Ok(())
-                }
-
-            }
-
-            (ref t,&Type::Meta(_)) => {
-                self.unify(rhs,t,reporter,span)
-            }
-
             (t1, t2) => {
-                let msg = format!("Cannot unify {:?} vs {:?}", t1, t2);
+                let msg = format!("Cannot unify  {:?} vs {:?}", t1, t2);
                 reporter.error(msg, span);
                 Err(())
             }
         }
     }
 
-    pub fn expand(&self, ty: Type) -> Type {
+    pub fn expand(&self, ty: Type, env: &mut Env) -> Type {
         match ty {
             Type::App(TyCon::Fun(vars, ret), types) => {
                 let mut mappings = HashMap::new();
@@ -234,12 +254,12 @@ impl Infer {
                     mappings.insert(*var, ty.clone());
                 }
 
-                let ty = self.subst(&ret, &mut mappings);
+                let ty = self.subst(&ret, &mut mappings, &mut env.metavars);
 
-                self.expand(ty)
+                self.expand(ty, env)
             }
 
-            Type::App(TyCon::Unique(tycon, _), types) => self.expand(Type::App(*tycon, types)),
+            Type::App(TyCon::Unique(tycon, _), types) => self.expand(Type::App(*tycon, types), env),
             u => u,
         }
     }

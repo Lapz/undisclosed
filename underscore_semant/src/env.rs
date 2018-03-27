@@ -1,7 +1,8 @@
-use constraints::{TyCon, Type};
+use constraints::{MetaVar, TyCon, Type};
 use std::rc::Rc;
 use syntax::ast::{Ident, Sign, Size};
 use util::symbol::{FactoryMap, Table};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum Entry {
@@ -13,6 +14,7 @@ pub enum Entry {
 pub struct Env {
     types: Table<Ident, Entry>,
     vars: Table<Ident, Type>,
+    pub metavars: HashMap<MetaVar, Type>,
 }
 
 trait GetIdent {
@@ -40,7 +42,6 @@ impl Env {
     pub fn new(strings: &Rc<FactoryMap<Ident>>) -> Self {
         let mut types = Table::new(strings.clone());
         let string_ident = types.ident("str");
-        let char_ident = types.ident("char");
         let i8_ident = types.ident("i8");
         let u8_ident = types.ident("u8");
         let i32_ident = types.ident("i32");
@@ -50,11 +51,12 @@ impl Env {
 
         let nil_ident = types.ident("nil");
         let bool_ident = types.ident("bool");
-
+        
         types.enter(
             i8_ident,
             Type::App(TyCon::Int(Sign::Signed, Size::Bit8), vec![]),
         );
+
         types.enter(
             u8_ident,
             Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
@@ -81,12 +83,9 @@ impl Env {
         types.enter(bool_ident, Type::App(TyCon::Bool, vec![]));
         types.enter(nil_ident, Type::App(TyCon::Void, vec![]));
         types.enter(string_ident, Type::App(TyCon::String, vec![]));
-        types.enter(
-            char_ident,
-            Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
-        );
 
         Env {
+            metavars: HashMap::new(),
             types: Table::new(Rc::clone(&strings)),
             vars: Table::new(Rc::clone(&strings)),
         }
@@ -101,8 +100,13 @@ impl Env {
         self.types.end_scope();
         self.vars.end_scope();
     }
+
     pub fn look_type(&self, ident: Ident) -> Option<&Entry> {
         self.types.look(ident)
+    }
+
+    pub fn look_meta(&self, ident: MetaVar) -> Option<&Type> {
+        self.metavars.get(&ident)
     }
 
     pub fn look_var(&self, ident: Ident) -> Option<&Type> {

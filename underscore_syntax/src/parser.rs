@@ -587,6 +587,11 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::I8,
                 span: self.consume_get_span(&TokenType::I8, "Expected an i8")?,
             })
+        } else if self.recognise(TokenType::U8) {
+            Ok(Spanned {
+                value: Ty::I8,
+                span: self.consume_get_span(&TokenType::U8, "Expected an u8")?,
+            })
         } else if self.recognise(TokenType::I32) {
             Ok(Spanned {
                 value: Ty::I32,
@@ -597,12 +602,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::I64,
                 span: self.consume_get_span(&TokenType::I64, "Expected an i64")?,
             })
-        } else if self.recognise(TokenType::U8) {
-            Ok(Spanned {
-                value: Ty::I8,
-                span: self.consume_get_span(&TokenType::U8, "Expected an u8")?,
-            })
-        } else if self.recognise(TokenType::I32) {
+        } else if self.recognise(TokenType::U32) {
             Ok(Spanned {
                 value: Ty::I32,
                 span: self.consume_get_span(&TokenType::U32, "Expected an u32")?,
@@ -622,7 +622,8 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::Str,
                 span: self.consume_get_span(&TokenType::STR, "Expected a str")?,
             })
-        } else if self.recognise(TokenType::NIL) {
+        }
+        else if self.recognise(TokenType::NIL) {
             Ok(Spanned {
                 value: Ty::Nil,
                 span: self.consume_get_span(&TokenType::NIL, "Expected nil")?,
@@ -1135,7 +1136,6 @@ impl<'a, 'b> Parser<'a, 'b> {
                 }),
                 _ => unreachable!(),
             }
-            
         } else if self.recognise(TokenType::DOT) {
             self.consume(&TokenType::DOT, "Expected '.' ")?;
 
@@ -1239,14 +1239,12 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let close_span = self.consume_get_span(&TokenType::RPAREN, "Expected '(' ")?;
 
-     
-
         Ok(Spanned {
             span: callee.get_span().to(close_span),
             value: Expression::Call(Spanned {
                 span: callee.get_span(),
                 value: Call::Simple {
-                    callee:callee,
+                    callee: callee,
                     args,
                 },
             }),
