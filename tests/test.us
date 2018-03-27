@@ -1,8 +1,11 @@
-fn f<K,V>(a:K,b:K) -> K  {
-    a+b;
+fn f<Z>(a:Z) -> i32 {
+   10;
+}
+
+fn id<T>(v:T) -> T {
+    v;
 }
 
 fn main() -> i32 {
-    f::<i32,i32>();
-    
+    f::<List<u8>>('c');
 }

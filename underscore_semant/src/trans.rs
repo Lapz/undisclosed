@@ -183,6 +183,8 @@ impl Infer {
 
         self.unify(&returns, &body, reporter, function.value.body.span)?;
 
+        env.end_scope();
+
         Ok(())
     }
 
@@ -480,32 +482,30 @@ impl Infer {
             },
 
             Call::Instantiation{ref callee,ref tys,ref args} => {
-                let mut types = vec![];
-
-                for ty in &tys.value {
-                    types.push(self.trans_ty(ty,env,reporter)?);
-                }
 
                 let func = env.look_var(callee.value).unwrap().clone();// TODO: CHECK IF POLYMORPHIC
 
-                let mut mappings = HashMap::new();
-
-             
-
-
                 match func  {
                     Type::Poly(ref tvars,ref ret) => {
+                        // TODO check if type params matched defined number
+                        // Error if not polymorphic function
+                        let mut mappings = HashMap::new();
 
-                        for (tvar,ty) in tvars.iter().zip(types) {
-                            mappings.insert(*tvar, ty.clone());
+                        for (tvar,ty) in tvars.iter().zip(&tys.value) {
+                            mappings.insert(*tvar, self.trans_ty(ty,env,reporter)?);
                         }
+
+                        println!("{:?}",mappings);
+
+
 
                         match **ret {
                             Type::App(TyCon::Arrow,ref fn_types) => {
+                                println!("{:?}",fn_types);
 
                                 
 
-                                for (ty,arg) in fn_types.iter().zip(args) {
+                                for (ty,arg) in fn_types.iter().skip(1).zip(args) {
 
                                     self.unify(&self.subst(&self.trans_expr(arg,env,reporter)?, &mut mappings), ty, reporter, arg.span)?;
                                 }
@@ -527,8 +527,7 @@ impl Infer {
 
                
 
-                // println!("{:?}",self.expand(func) );
-
+               
 
 
 

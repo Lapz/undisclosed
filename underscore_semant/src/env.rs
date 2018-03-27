@@ -96,6 +96,11 @@ impl Env {
         self.types.begin_scope();
         self.vars.begin_scope();
     }
+
+    pub fn end_scope(&mut self) {
+        self.types.end_scope();
+        self.vars.end_scope();
+    }
     pub fn look_type(&self, ident: Ident) -> Option<&Entry> {
         self.types.look(ident)
     }
