@@ -588,7 +588,7 @@ impl Infer {
         }
     }
 }
-
+/*
 #[cfg(test)]
 mod test {
 
@@ -632,3 +632,4 @@ mod test {
     }
 
 }
+*/
