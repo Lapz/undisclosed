@@ -2,15 +2,23 @@ use std::collections::HashMap;
 use syntax::ast::{Sign, Size};
 use util::emitter::Reporter;
 use util::pos::Span;
+use std::sync::Mutex;
 
 static mut UNIQUE_COUNT: u32 = 0;
 
 static mut TYPEVAR_COUNT: u32 = 0;
 
+static mut METAVAR_COUNT: u32 = 0;
+
+
 pub type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TypeVar(pub u32);
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct MetaVar(pub u32);
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Unique(pub u32);
@@ -21,6 +29,7 @@ pub enum Type {
     App(TyCon, Vec<Type>),
     Var(TypeVar),
     Poly(Vec<TypeVar>, Box<Type>),
+    Meta(TypeVar),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,6 +58,15 @@ impl TypeVar {
         unsafe { TYPEVAR_COUNT += 1 };
         TypeVar(value)
     }
+
+}
+
+lazy_static! {
+    pub static ref METAENV:Mutex<HashMap<TypeVar,Type>> = {
+        let mut metaenv = HashMap::new();
+
+        Mutex::new(metaenv)
+    };
 }
 
 #[derive(Debug)]
@@ -66,6 +84,14 @@ impl Infer {
                     ty.clone()
                 } else {
                     Type::Var(*tvar)
+                }
+            }
+
+            Type::Meta(ref mvar) => {
+                if let Some(ty) = substions.get(mvar).cloned() {
+                    self.subst(&ty, substions)
+                }else {
+                    Type::Meta(*mvar)
                 }
             }
 
@@ -173,6 +199,23 @@ impl Infer {
             } else {
                 Err(())
             },
+
+            (&Type::Meta(ref mvar),ref t) => {
+                if let Some(ty) = METAENV.lock().unwrap().get(mvar).cloned() {
+                    self.unify(&ty, t, reporter, span)
+                } else if lhs == rhs {
+                    Ok(())
+                } 
+                else {
+                    METAENV.lock().unwrap().insert(*mvar,rhs.clone());
+                    Ok(())
+                }
+
+            }
+
+            (ref t,&Type::Meta(_)) => {
+                self.unify(rhs,t,reporter,span)
+            }
 
             (t1, t2) => {
                 let msg = format!("Cannot unify {:?} vs {:?}", t1, t2);

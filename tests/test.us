@@ -1,11 +1,14 @@
-fn f<Z>(a:Z) -> i32 {
-   10;
-}
+    type b = i32;
+    type d = i32;
+   type a = b;
+   type b = d;
+   type c = a;
+   type d = a;
 
 fn id<T>(v:T) -> T {
     v;
 }
 
 fn main() -> i32 {
-    f::<u8>('c');
+    id::<u8>('c');
 }

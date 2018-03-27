@@ -477,13 +477,23 @@ impl Infer {
     fn trans_call(&self,call:&Spanned<Call>,env:&mut Env,reporter:&mut Reporter) -> InferResult<Type> {
         match call.value {
             Call::Simple{ref callee, ref args} => {
-                // if let Some(ref)
+                // if let Some(func) = env.look_type(callee.value) {
+
+                // }
                 unimplemented!()
             },
 
             Call::Instantiation{ref callee,ref tys,ref args} => {
 
-                let func = env.look_var(callee.value).unwrap().clone();// TODO: CHECK IF POLYMORPHIC
+                    let func = if let Some(func) = env.look_var(callee.value) {
+                        func.clone()
+                    }else {
+                        let msg = format!("Undefined function {}",env.name(callee.value));
+
+                        reporter.error(msg, callee.span);
+
+                        return Err(())
+                    };// TODO: CHECK IF POLYMORPHIC
 
                 match func  {
                     Type::Poly(ref tvars,ref ret) => {
