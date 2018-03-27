@@ -62,8 +62,8 @@ impl Infer {
     pub fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
         match *ty {
             Type::Var(ref tvar) => {
-                if let Some(tyvar) = substions.get(tvar) {
-                    tyvar.clone()
+                if let Some(ty) = substions.get(tvar) {
+                    ty.clone()
                 } else {
                     Type::Var(*tvar)
                 }

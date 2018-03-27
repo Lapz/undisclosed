@@ -505,9 +505,9 @@ impl Infer {
 
                                 
 
-                                for (ty,arg) in fn_types.iter().skip(1).zip(args) {
+                                for (ty,arg) in fn_types.iter().zip(args) {
 
-                                    self.unify(&self.subst(&self.trans_expr(arg,env,reporter)?, &mut mappings), ty, reporter, arg.span)?;
+                                    self.unify(&self.subst(&self.trans_expr(arg,env,reporter)?, &mut mappings), &self.subst(ty, &mut mappings), reporter, arg.span)?;
                                 }
 
                                 return Ok(self.subst(fn_types.last().unwrap(), &mut mappings))

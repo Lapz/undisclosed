@@ -7,5 +7,5 @@ fn id<T>(v:T) -> T {
 }
 
 fn main() -> i32 {
-    f::<List<u8>>('c');
+    f::<u8>('c');
 }
