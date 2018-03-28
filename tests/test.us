@@ -3,5 +3,5 @@ fn id<T>(v:T) -> T {
 }
 
 fn main() -> u8 {
-    id(10u8);
+    id('c');
 }

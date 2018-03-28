@@ -148,6 +148,8 @@ impl Infer {
 
         let mut param_tys = Vec::new(); //change to use with_capictiy
 
+        println!("{:?}",function.value.returns );
+
         let returns = if let Some(ref return_ty) = function.value.returns {
             self.trans_ty(return_ty, env, reporter)?
         } else {
@@ -177,6 +179,8 @@ impl Infer {
         }
 
         let body = self.trans_statement(&function.value.body, env, reporter)?;
+
+        println!("body {:?} vs returns {:?}",body,returns );
 
         self.unify(&returns, &body, reporter, function.value.body.span, env)?;
 
@@ -504,14 +508,23 @@ impl Infer {
                     Type::Poly(ref tvars, ref ret) => match **ret {
                         Type::App(TyCon::Arrow, ref fn_types) => {
                             let mut mappings = HashMap::new();
-
+                            
                             let mut arg_tys = Vec::new();
 
-                            for (ref tvar, ref arg) in tvars.iter().zip(args) {
+                            for (ref tvar, ref arg) in 
+                            
+                            tvars.iter().zip(args) {
+                                println!("({:?},{:?})",tvar,arg);
                                 let ty = self.trans_expr(arg, env, reporter)?;
                                 mappings.insert(**tvar, ty.clone());
+
+                                // println!("{:?}",ty );
                                 arg_tys.push((ty, arg.span));
                             }
+
+                            println!("{:?}",arg_tys );
+
+                            println!("{:?}",mappings );
 
                             for (ty, arg) in fn_types.iter().zip(arg_tys) {
                                 self.unify(
