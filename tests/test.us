@@ -3,5 +3,8 @@ fn id<T>(v:T) -> T {
 }
 
 fn main() -> u8 {
-    id('c');
+    let list = List::<i32> {
+        head:10,
+        tail:nil
+    } ;
 }

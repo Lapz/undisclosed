@@ -1,0 +1,7 @@
+fn id<T>(v:T) -> T {
+    v;
+}
+
+fn main() -> u8 {
+    id('c');
+}

@@ -127,10 +127,7 @@ pub enum Expression {
 
     Literal(Literal),
 
-    StructLiteral {
-        ident: Spanned<Ident>,
-        fields: Vec<Spanned<StructLitField>>,
-    },
+    StructLit(Spanned<StructLit>),
 
     Unary {
         op: Spanned<UnaryOp>,
@@ -176,6 +173,19 @@ pub enum Call {
         callee: Spanned<Ident>,
         tys: Spanned<Vec<Spanned<Ty>>>,
         args: Vec<Spanned<Expression>>,
+    },
+}
+#[derive(Debug)]
+pub enum StructLit {
+    Simple {
+        ident: Spanned<Ident>,
+        fields: Vec<Spanned<StructLitField>>,
+    },
+
+    Instantiation {
+        ident: Spanned<Ident>,
+        tys: Spanned<Vec<Spanned<Ty>>>,
+        fields: Vec<Spanned<StructLitField>>,
     },
 }
 

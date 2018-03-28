@@ -1,7 +1,7 @@
 use ast::Program;
 use ast::TyAlias;
 use ast::{Call, Expression, Literal, Op, Statement, UnaryOp, Var};
-use ast::{Field, Struct, StructLitField};
+use ast::{Field, Struct, StructLit, StructLitField};
 use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
 use std::iter::Peekable;
 use std::vec::IntoIter;
@@ -622,8 +622,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::Str,
                 span: self.consume_get_span(&TokenType::STR, "Expected a str")?,
             })
-        }
-        else if self.recognise(TokenType::NIL) {
+        } else if self.recognise(TokenType::NIL) {
             Ok(Spanned {
                 value: Ty::Nil,
                 span: self.consume_get_span(&TokenType::NIL, "Expected nil")?,
@@ -1110,31 +1109,60 @@ impl<'a, 'b> Parser<'a, 'b> {
 
             let close_span = self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?;
 
-            let call = self.parse_call(ident)?;
+            if self.recognise(TokenType::LBRACE) {
+                let struct_lit = self.parse_struct_lit(ident)?;
 
-            match call {
-                Spanned {
-                    value:
-                        Expression::Call(Spanned {
-                            value: Call::Simple { args, callee },
-                            ..
-                        }),
-                    ..
-                } => Ok(Spanned {
-                    value: Expression::Call(Spanned {
-                        span: ident_span.to(close_span),
-                        value: Call::Instantiation {
-                            tys: Spanned {
-                                value: types,
-                                span: open_span.to(close_span),
+                match struct_lit {
+                    Spanned {
+                        value:
+                            Expression::StructLit(Spanned {
+                                value: StructLit::Simple { ident, fields },
+                                ..
+                            }),
+                        ..
+                    } => Ok(Spanned {
+                        value: Expression::StructLit(Spanned {
+                            span: ident_span.to(close_span),
+                            value: StructLit::Instantiation {
+                                tys: Spanned {
+                                    value: types,
+                                    span: open_span.to(close_span),
+                                },
+                                ident,
+                                fields,
                             },
-                            callee,
-                            args,
-                        },
+                        }),
+                        span: { ident_span.to(close_span) },
                     }),
-                    span: { ident_span.to(close_span) },
-                }),
-                _ => unreachable!(),
+                    _ => unreachable!(),
+                }
+            } else {
+                let call = self.parse_call(ident)?;
+
+                match call {
+                    Spanned {
+                        value:
+                            Expression::Call(Spanned {
+                                value: Call::Simple { args, callee },
+                                ..
+                            }),
+                        ..
+                    } => Ok(Spanned {
+                        value: Expression::Call(Spanned {
+                            span: ident_span.to(close_span),
+                            value: Call::Instantiation {
+                                tys: Spanned {
+                                    value: types,
+                                    span: open_span.to(close_span),
+                                },
+                                callee,
+                                args,
+                            },
+                        }),
+                        span: { ident_span.to(close_span) },
+                    }),
+                    _ => unreachable!(),
+                }
             }
         } else if self.recognise(TokenType::DOT) {
             self.consume(&TokenType::DOT, "Expected '.' ")?;
@@ -1216,7 +1244,10 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(Spanned {
             span: ident.get_span().to(close_span),
-            value: Expression::StructLiteral { ident, fields },
+            value: Expression::StructLit(Spanned {
+                span: ident.get_span().to(close_span),
+                value: StructLit::Simple { ident, fields },
+            }),
         })
     }
 

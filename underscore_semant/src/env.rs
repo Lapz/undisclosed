@@ -51,7 +51,7 @@ impl Env {
 
         let nil_ident = types.ident("nil");
         let bool_ident = types.ident("bool");
-        
+
         types.enter(
             i8_ident,
             Type::App(TyCon::Int(Sign::Signed, Size::Bit8), vec![]),

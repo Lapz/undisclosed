@@ -55,49 +55,6 @@ impl TypeVar {
         unsafe { TYPEVAR_COUNT += 1 };
         TypeVar(value)
     }
-
-    fn bind(&self, ty: &Type, subst: &mut HashMap<TypeVar, Type>) -> InferResult<()> {
-        if let &Type::Var(ref u) = ty {
-            if u == self {
-                return Ok(());
-            }
-        }
-
-        // The occurs check prevents illegal recursive types.
-        if ty.ftv().contains(self) {
-            return Err(());
-            // return Err(format!("occur check fails: {:?} vs {:?}", self, ty));
-        }
-        subst.insert(*self, ty.clone());
-        Ok(())
-    }
-}
-
-impl Type {
-    fn ftv(&self) -> HashSet<TypeVar> {
-        match *self {
-            Type::Nil => HashSet::new(),
-            Type::App(TyCon::Fun(ref vars, ref ret), ref types) => {
-                let mut ftvs: HashSet<TypeVar> = HashSet::new();
-
-                for ty in types {
-                    ftvs.extend(ty.ftv());
-                }
-
-                let fvars: HashSet<TypeVar> = HashSet::from_iter(vars.iter().cloned());
-
-                ftvs.extend(fvars);
-
-                ret.ftv().difference(&ftvs).cloned().collect()
-            }
-            Type::Var(ref ty) => [ty.clone()].iter().cloned().collect(),
-            Type::Poly(ref vars, ref ret) => ret.ftv()
-                .difference(&vars.iter().cloned().collect())
-                .cloned()
-                .collect(),
-            _ => unimplemented!(),
-        }
-    }
 }
 
 #[derive(Debug)]

@@ -9,7 +9,7 @@ fn main(a:str) -> List {
         head:nil
     };
      List {
-        val:i32,
+        val:10,
         head:nil
     };
 }

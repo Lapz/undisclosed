@@ -204,11 +204,11 @@ impl<'a> Lexer<'a> {
                 let (end, ty) = self.take_whilst(start, |c| c.is_alphanumeric());
 
                 let (sign, size) = match ty {
-                     "u8" => (Sign::Unsigned, Size::Bit8),
+                    "u8" => (Sign::Unsigned, Size::Bit8),
                     "i8" => (Sign::Signed, Size::Bit8),
                     "i32" => (Sign::Signed, Size::Bit32),
                     "u32" => (Sign::Unsigned, Size::Bit32),
-                    "i64" => (Sign::Signed, Size::Bit64),                    
+                    "i64" => (Sign::Signed, Size::Bit64),
                     "u64" => (Sign::Unsigned, Size::Bit64),
                     _ => {
                         let e: String = LexerError::InvalidNumberTy(ty.into()).into();

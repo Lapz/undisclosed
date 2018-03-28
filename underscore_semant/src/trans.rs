@@ -1,9 +1,9 @@
 use constraints::{Infer, InferResult};
 use std::collections::HashMap;
-use constraints::{TyCon, Type, TypeVar, Unique};
+use constraints::{TyCon, Type, TypeVar};
 use env::{Entry, Env};
 use syntax::ast::{Call, Expression, Function, Literal, Op, Program, Sign, Size, Statement,
-                  Ty as astType, TyAlias, UnaryOp, Var};
+                  Ty as astType, TyAlias, UnaryOp, Var,StructLit};
 use util::emitter::Reporter;
 use util::pos::Spanned;
 
@@ -19,7 +19,7 @@ impl Infer {
         }
 
         // for record in &program.structs {
-        //     self.record(record, env)?
+        //     self.trans_struct_lit(record, env)?
         // }
 
         for function in &program.functions {
@@ -148,7 +148,7 @@ impl Infer {
 
         let mut param_tys = Vec::new(); //change to use with_capictiy
 
-        println!("{:?}",function.value.returns );
+        println!("{:?}", function.value.returns);
 
         let returns = if let Some(ref return_ty) = function.value.returns {
             self.trans_ty(return_ty, env, reporter)?
@@ -180,7 +180,7 @@ impl Infer {
 
         let body = self.trans_statement(&function.value.body, env, reporter)?;
 
-        println!("body {:?} vs returns {:?}",body,returns );
+        println!("body {:?} vs returns {:?}", body, returns);
 
         self.unify(&returns, &body, reporter, function.value.body.span, env)?;
 
@@ -397,70 +397,13 @@ impl Infer {
                 Literal::True(_) => Ok(Type::App(TyCon::Bool, vec![])),
                 Literal::Str(_) => Ok(Type::App(TyCon::String, vec![])),
                 Literal::Number(ref number) => match number.ty {
-                    Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size), vec![])),
+                    Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size), vec![])), // Change
                     None => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![])),
                 },
                 Literal::Nil => Ok(Type::App(TyCon::Void, vec![])),
             },
-            Expression::StructLiteral {
-                ref ident,
-                ref fields,
-            } => {
-                /*let ty = if let Some(ty) = env.look_scheme(ident.value).cloned() {
-                    ty
-                } else {
-                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
-                   reporter.error(msg, ident.span);
-                    return Err(());
-                };
-
-                match ty.ty {
-                    Type::Struct(ref type_fields, ref unique) => {
-                        let mut new_fields = Vec::new();
-                        for type_field in type_fields {
-                            let mut found = false;
-
-                            for field in fields {
-                                if type_field.name == field.value.ident.value {
-                                    found = true;
-
-                                    let field_expr = self.trans_expr(&field.value.expr, env,reporter)?;
-
-                                    field_expr.mgu(&type_field.ty, field.span, &mut self.reporter)?;
-
-                                    new_fields.push(Field {
-                                        name: type_field.name,
-                                        ty: field_expr,
-                                    });
-                                }
-                            }
-
-                            if !found {
-                                let msg =
-                                    format!("Struct {} is missing fields", env.name(ident.value));
-                               reporter.error(msg, expr.span);
-                                return Err(());
-                            } else if type_fields.len() != fields.len() {
-                                let msg =
-                                    format!("Struct {} has too many fields", env.name(ident.value));
-                               reporter.error(msg, expr.span);
-                                return Err(());
-                            }
-                        }
-
-                        env.add_type(ident.value, Type::Struct(new_fields.clone(), *unique));
-                        Ok(Type::Struct(new_fields, *unique))
-                    }
-
-                    _ => {
-                        let msg = format!("{} is not a 'struct' ", env.name(ident.value));
-                       reporter.error(msg, ident.span);
-                        Err(())
-                    }
-                }*/
-
-                unimplemented!()
-            }
+            Expression::StructLit(ref struct_lit) => { self.trans_struct_lit(struct_lit,env,reporter)},
+    
 
             Expression::Unary { ref op, ref expr } => {
                 let expr_ty = self.trans_expr(expr, env, reporter)?;
@@ -508,23 +451,16 @@ impl Infer {
                     Type::Poly(ref tvars, ref ret) => match **ret {
                         Type::App(TyCon::Arrow, ref fn_types) => {
                             let mut mappings = HashMap::new();
-                            
+
                             let mut arg_tys = Vec::new();
 
-                            for (ref tvar, ref arg) in 
-                            
-                            tvars.iter().zip(args) {
-                                println!("({:?},{:?})",tvar,arg);
+                            for (ref tvar, ref arg) in tvars.iter().zip(args) {
+                                println!("({:?},{:?})", tvar, arg);
                                 let ty = self.trans_expr(arg, env, reporter)?;
                                 mappings.insert(**tvar, ty.clone());
 
-                                // println!("{:?}",ty );
                                 arg_tys.push((ty, arg.span));
                             }
-
-                            println!("{:?}",arg_tys );
-
-                            println!("{:?}",mappings );
 
                             for (ty, arg) in fn_types.iter().zip(arg_tys) {
                                 self.unify(
@@ -545,9 +481,8 @@ impl Infer {
 
                         _ => unreachable!(),
                     },
-                    _ => unimplemented!(),
+                    _ => unreachable!(),
                 }
-                unimplemented!()
             }
 
             Call::Instantiation {
@@ -604,10 +539,71 @@ impl Infer {
 
                     _ => unreachable!(),
                 }
-
-                unimplemented!()
             }
         }
+    }
+
+    fn trans_struct_lit(&self,lit:&Spanned<StructLit>,env:&mut Env,reporter:&mut Reporter) -> InferResult<Type> {
+
+        match lit.value {
+            StructLit::Simple{ref ident,ref fields} => {
+                let ty = if let Some(ty) = env.look_var(ident.value).cloned() {
+                    ty
+                } else {
+                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
+                   reporter.error(msg, ident.span);
+                    return Err(());
+                };
+
+                // match ty.ty {
+                //     Type::Struct(ref type_fields, ref unique) => {
+                //         let mut new_fields = Vec::new();
+                //         for type_field in type_fields {
+                //             let mut found = false;
+
+                //             for field in fields {
+                //                 if type_field.name == field.value.ident.value {
+                //                     found = true;
+
+                //                     let field_expr = self.trans_expr(&field.value.expr, env,reporter)?;
+
+                //                     field_expr.mgu(&type_field.ty, field.span, &mut self.reporter)?;
+
+                //                     new_fields.push(Field {
+                //                         name: type_field.name,
+                //                         ty: field_expr,
+                //                     });
+                //                 }
+                //             }
+
+                //             if !found {
+                //                 let msg =
+                //                     format!("Struct {} is missing fields", env.name(ident.value));
+                //                reporter.error(msg, expr.span);
+                //                 return Err(());
+                //             } else if type_fields.len() != fields.len() {
+                //                 let msg =
+                //                     format!("Struct {} has too many fields", env.name(ident.value));
+                //                reporter.error(msg, expr.span);
+                //                 return Err(());
+                //             }
+                //         }
+
+                //         env.add_type(ident.value, Type::Struct(new_fields.clone(), *unique));
+                //         Ok(Type::Struct(new_fields, *unique))
+                //     }
+
+                //     _ => {
+                //         let msg = format!("{} is not a 'struct' ", env.name(ident.value));
+                //        reporter.error(msg, ident.span);
+                //         Err(())
+                //     }
+                // }
+            },
+            _ => unimplemented!()
+        }
+        unimplemented!()
+         
     }
 
     fn trans_var(
@@ -660,48 +656,3 @@ impl Infer {
         }
     }
 }
-/*
-#[cfg(test)]
-mod test {
-
-    use constraints::Infer;
-    use env::Env;
-    use std::rc::Rc;
-    use syntax::ast::*;
-    use syntax::lexer::Lexer;
-    use syntax::parser::Parser;
-    use trans::*;
-    use util::emitter::Reporter;
-    use util::symbol::*;
-
-    #[test]
-    fn alias() {
-        let mut reporter = Reporter::new();
-        let input = "fn main(a:i32){
-            a = \"a\";
-        }";
-        let tokens = Lexer::new(&input, reporter.clone()).lex();
-        let strings = Rc::new(FactoryMap::new());
-
-        let mut table = Table::new(Rc::clone(&strings));
-
-        let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
-
-        let mut ast = parser.parse().expect("Failed to parse input");
-
-        let mut env = Env::new(&strings);
-
-        let infer = Infer {};
-
-        // println!("Befor {:#?}",env);
-
-        infer
-            .trans_function(&ast.functions[0], &mut env, &mut reporter)
-            .unwrap();
-
-        reporter.emit(input);
-        // println!("After {:#?}",env);
-    }
-
-}
-*/
