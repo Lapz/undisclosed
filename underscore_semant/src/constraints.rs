@@ -2,9 +2,8 @@ use std::collections::HashMap;
 use syntax::ast::{Sign, Size};
 use util::emitter::Reporter;
 use util::pos::Span;
-use std::collections::HashSet;
-use std::iter::FromIterator;
 use env::Env;
+use syntax::ast::Ident;
 
 static mut UNIQUE_COUNT: u32 = 0;
 
@@ -29,6 +28,13 @@ pub enum Type {
     Poly(Vec<TypeVar>, Box<Type>),
 }
 
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Field {
+    pub name: Ident,
+    pub ty: Type,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum TyCon {
     Int(Sign, Size),
@@ -37,6 +43,7 @@ pub enum TyCon {
     Void,
     Arrow,
     Bool,
+    Struct(Vec<Field>),
     Fun(Vec<TypeVar>, Box<Type>),
     Unique(Box<TyCon>, Unique),
 }
@@ -57,12 +64,12 @@ impl TypeVar {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Default)]
 pub struct Infer {}
 
 impl Infer {
     pub fn new() -> Self {
-        Infer {}
+        Self::default()
     }
     /// Deals with the subsitution of type variables
     pub fn subst(
@@ -143,7 +150,7 @@ impl Infer {
                 Ok(())
             }
 
-            (&Type::App(TyCon::Fun(ref tyvars, ref ret), ref u), ref t) => {
+            (&Type::App(TyCon::Fun(ref tyvars, ref ret), ref u), t) => {
                 let mut mappings = HashMap::new();
 
                 for (var, ty) in tyvars.iter().zip(u) {
@@ -156,7 +163,7 @@ impl Infer {
                 Ok(())
             }
 
-            (ref t, &Type::App(TyCon::Fun(ref tyvars, ref ret), ref u)) => {
+            ( t, &Type::App(TyCon::Fun(ref tyvars, ref ret), ref u)) => {
                 let mut mappings = HashMap::new();
 
                 for (var, ty) in tyvars.iter().zip(u) {

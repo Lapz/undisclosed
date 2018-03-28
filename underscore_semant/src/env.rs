@@ -86,8 +86,8 @@ impl Env {
 
         Env {
             metavars: HashMap::new(),
-            types: Table::new(Rc::clone(&strings)),
-            vars: Table::new(Rc::clone(&strings)),
+            types: Table::new(Rc::clone(strings)),
+            vars: Table::new(Rc::clone(strings)),
         }
     }
 

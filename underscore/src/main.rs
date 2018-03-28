@@ -96,7 +96,7 @@ fn run(path: String, dump_file: Option<String>) {
 
     let mut type_env = TypeEnv::new(&Rc::clone(&strings));
 
-    match infer.infer(ast, &mut type_env, &mut reporter) {
+    match infer.infer(&ast, &mut type_env, &mut reporter) {
         Ok(_) => (),
         Err(_) => {
             reporter.emit(&input);

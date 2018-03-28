@@ -4,16 +4,11 @@ struct List {
     head:i32,
     body:nil
 }
-struct List2 {
-    head:i32,
-    body:nil
-}
 
 fn main() -> List {
-    let list = List {
+    let list = char {
         head:10,
-        ad:10,
-        hea:10
+        body:nil
     };
 
     list;

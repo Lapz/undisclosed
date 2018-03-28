@@ -10,11 +10,10 @@ struct List2 {
 }
 
 fn main() -> List {
-    let list = List {
+    let list = List2 {
         head:10,
-        ad:10,
-        hea:10
-    };
+        body:nil
+    } ;
 
     list;
 }
