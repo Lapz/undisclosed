@@ -604,12 +604,12 @@ impl<'a, 'b> Parser<'a, 'b> {
             })
         } else if self.recognise(TokenType::U32) {
             Ok(Spanned {
-                value: Ty::I32,
+                value: Ty::U32,
                 span: self.consume_get_span(&TokenType::U32, "Expected an u32")?,
             })
-        } else if self.recognise(TokenType::I64) {
+        } else if self.recognise(TokenType::U64) {
             Ok(Spanned {
-                value: Ty::I64,
+                value: Ty::U64,
                 span: self.consume_get_span(&TokenType::U64, "Expected an u64")?,
             })
         } else if self.recognise(TokenType::BOOL) {
