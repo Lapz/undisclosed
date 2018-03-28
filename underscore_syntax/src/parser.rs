@@ -589,7 +589,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             })
         } else if self.recognise(TokenType::U8) {
             Ok(Spanned {
-                value: Ty::I8,
+                value: Ty::U8,
                 span: self.consume_get_span(&TokenType::U8, "Expected an u8")?,
             })
         } else if self.recognise(TokenType::I32) {
