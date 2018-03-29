@@ -69,7 +69,7 @@ impl Infer {
                 let mut ty = match ty {
                     Entry::TyCon(ty) => ty,
                     Entry::Ty(Type::App(tycon,_)) => tycon,
-                    _ => panic!("Dont think I should get here {:?}",),
+                    _=> panic!("Dont think I should get here "),
                 };
 
                 let mut trans_types = Vec::new();
@@ -532,6 +532,16 @@ impl Infer {
 
                 match func {
                     Type::Poly(ref tvars, ref ret) => {
+
+
+                        if tvars.len() > tys.value.len() ||  tvars.len() < tys.value.len() {
+
+                            let msg = format!("Found `{}` type params expected `{}`",tys.value.len(), tvars.len());
+
+                            reporter.error(msg, tys.span);
+
+                            return Err(())
+                        }
                         // TODO check if type params matched defined number
                         // Error if not polymorphic function
                         let mut mappings = HashMap::new();
@@ -588,7 +598,7 @@ impl Infer {
                 let mut tycon = match ty {
                     Entry::TyCon(tycon) => tycon,
                     Entry::Ty(Type::App(tycon,_)) => tycon,
-                    _ => panic!("Dont think I should get here {:?}",),
+                    _ => panic!("Dont think I should get here "),
                 };
                
                     if let TyCon::Unique(ref tycon,ref unique) = tycon {
