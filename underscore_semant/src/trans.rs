@@ -67,9 +67,17 @@ impl Infer {
                 };
 
                 let mut ty = match ty {
-                    Entry::TyCon(ty) => ty,
-                    Entry::Ty(Type::App(tycon,_)) => tycon,
-                    _=> panic!("Dont think I should get here "),
+                    Entry::Ty(Type::Poly(_,ty)) =>{
+                        match *ty {
+                            Type::App(tycon,_) => tycon,
+                            _ => unreachable!()
+                        }
+                    },
+                    _ => {
+                        let msg = format!("Type {} is not",env.name(ident.value));
+                        reporter.error(msg, ident.span);
+                        return Err(());
+                    }
                 };
 
                 let mut trans_types = Vec::new();
@@ -120,17 +128,11 @@ impl Infer {
                 });
         }
 
-        if  struct_def.value.name.value.type_params.is_empty() {
-            env.add_type(struct_def.value.name.value.name.value, Entry::Ty(Type::App(TyCon::Unique(Box::new(TyCon::Struct(type_fields)),Unique::new()),vec![]
-        )));
-        }else {
-             env.add_type(struct_def.value.name.value.name.value, Entry::TyCon(
-            TyCon::Unique(Box::new(TyCon::Struct(type_fields)),Unique::new())
-        ));
 
-        }
-
-       
+        
+        env.add_type(struct_def.value.name.value.name.value,Entry::Ty(Type::Poly(poly_tvs,Box::new(
+            Type::App(TyCon::Struct(type_fields),vec![])
+        ))));
 
         Ok(())
 
@@ -670,7 +672,22 @@ impl Infer {
                    Err(())
                 }
             },
-            _ => unimplemented!()
+            StructLit::Instantiation{ref ident,ref fields,ref tys} => {
+
+                let ty = if let Some(ty) = env.look_type(ident.value).cloned() {
+                    ty
+                } else {
+                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
+                   reporter.error(msg, ident.span);
+                    return Err(());
+                };
+
+                println!("{:?}",ty );
+
+                unimplemented!()
+
+
+            }
         }
         
          

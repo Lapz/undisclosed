@@ -1,5 +1,15 @@
-fn id<T>(v:T) -> T {
-    v;
+struct List {
+    head:i32,
+    body:nil
+}
+
+fn main() -> List<i32> {
+    let list = List {
+        head:10,
+        body:nil
+    };
+
+    list;
 }
 
 fn main() -> u8 {
