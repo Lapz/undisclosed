@@ -28,7 +28,6 @@ pub enum Type {
     Poly(Vec<TypeVar>, Box<Type>),
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
     pub name: Ident,
@@ -64,7 +63,7 @@ impl TypeVar {
     }
 }
 
-#[derive(Debug,Default)]
+#[derive(Debug, Default)]
 pub struct Infer {}
 
 impl Infer {
@@ -163,7 +162,7 @@ impl Infer {
                 Ok(())
             }
 
-            ( t, &Type::App(TyCon::Fun(ref tyvars, ref ret), ref u)) => {
+            (t, &Type::App(TyCon::Fun(ref tyvars, ref ret), ref u)) => {
                 let mut mappings = HashMap::new();
 
                 for (var, ty) in tyvars.iter().zip(u) {
