@@ -73,11 +73,7 @@ impl Infer {
                             _ => unreachable!()
                         }
                     },
-                    _ => {
-                        let msg = format!("Type {} is not",env.name(ident.value));
-                        reporter.error(msg, ident.span);
-                        return Err(());
-                    }
+                    o
                 };
 
                 let mut trans_types = Vec::new();
