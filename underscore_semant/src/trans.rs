@@ -1,6 +1,6 @@
 use cast_check::*;
-use constraints::{Field, TyCon, Type, TypeVar, Unique};
-use constraints::{Infer, InferResult};
+use semant::{Field, TyCon, Type, TypeVar, Unique};
+use semant::{Infer, InferResult};
 use env::{Entry, Env};
 use std::collections::HashMap;
 use std::mem;
@@ -47,9 +47,9 @@ impl Infer {
             astType::U64 => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit64), vec![])),
             astType::I64 => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit64), vec![])),
             astType::Simple(ref ident) => {
-                if let Some(ty) = env.look_type(ident.value).cloned() {
+                if let Some(ty) = env.look_type(ident.value) {
                     match ty {
-                        Entry::Ty(ref ty) => Ok(ty.clone()),
+                        Entry::Ty(ty) => Ok(ty.clone()),
                         _ => panic!(""),
                     }
                 } else {
@@ -62,7 +62,7 @@ impl Infer {
             astType::Poly(ref ident, ref types) => {
                 //Concrete generics i.e List<i32>. List<bool>
                 let mut ty = if let Some(ty) = env.look_type(ident.value).cloned() {
-                    ty.clone()
+                    ty
                 } else {
                     let msg = format!("Undefined Type '{}'", env.name(ident.value));
                     reporter.error(msg, ident.span);
@@ -90,8 +90,7 @@ impl Infer {
                                 } // First create the mappings
 
                                 for field in fields.iter_mut() {
-                                    let mut ty =
-                                        self.subst(&field.ty, &mut mappings, &mut env.metavars);
+                                    let mut ty = self.subst(&field.ty, &mut mappings);
                                     mem::swap(&mut field.ty, &mut ty);
                                 }
 
@@ -377,7 +376,7 @@ impl Infer {
                         return Ok(Type::App(TyCon::Void, vec![]));
                     }
 
-                    env.add_var(ident.value,Type::App(TyCon::Void, vec![]));
+                    env.add_var(ident.value, Type::App(TyCon::Void, vec![]));
 
                     Ok(Type::App(TyCon::Void, vec![]))
                 }
@@ -460,7 +459,7 @@ impl Infer {
                 match cast_check(&expr_ty, &ty) {
                     Ok(()) => Ok(ty),
                     Err(_) => {
-                        let msg = format!("Cannot cast {:?} to type {:?}",expr_ty,ty);
+                        let msg = format!("Cannot cast {:?} to type {:?}", expr_ty, ty);
                         reporter.error(msg, expr.span);
                         Err(())
                     }
@@ -515,8 +514,8 @@ impl Infer {
                 ref callee,
                 ref args,
             } => {
-                let func = if let Some(func) = env.look_var(callee.value) {
-                    func.clone()
+                let func = if let Some(func) = env.look_var(callee.value).cloned() {
+                    func
                 } else {
                     let msg = format!("Undefined function {}", env.name(callee.value));
 
@@ -541,8 +540,8 @@ impl Infer {
 
                             for (ty, arg) in fn_types.iter().zip(arg_tys) {
                                 self.unify(
-                                    &self.subst(&arg.0, &mut mappings, &mut env.metavars),
-                                    &self.subst(ty, &mut mappings, &mut env.metavars),
+                                    &self.subst(&arg.0, &mut mappings),
+                                    &self.subst(ty, &mut mappings),
                                     reporter,
                                     arg.1,
                                     env,
@@ -551,8 +550,8 @@ impl Infer {
 
                             Ok(self.subst(
                                 fn_types.last().unwrap(),
-                                &mut mappings,
-                                &mut env.metavars,
+                                &mut mappings
+                               
                             ))
                         }
 
@@ -604,10 +603,9 @@ impl Infer {
                                     self.unify(
                                         &self.subst(
                                             &self.trans_expr(arg, env, reporter)?,
-                                            &mut mappings,
-                                            &mut env.metavars,
+                                            &mut mappings
                                         ),
-                                        &self.subst(ty, &mut mappings, &mut env.metavars),
+                                        &self.subst(ty, &mut mappings),
                                         reporter,
                                         arg.span,
                                         env,
@@ -616,8 +614,7 @@ impl Infer {
 
                                 Ok(self.subst(
                                     fn_types.last().unwrap(),
-                                    &mut mappings,
-                                    &mut env.metavars,
+                                    &mut mappings
                                 ))
                             }
 
@@ -674,10 +671,9 @@ impl Infer {
                                         self.unify(
                                             &self.subst(
                                                 &def_ty.ty,
-                                                &mut mappings,
-                                                &mut env.metavars,
+                                                &mut mappings
                                             ),
-                                            &self.subst(&ty, &mut mappings, &mut env.metavars),
+                                            &self.subst(&ty, &mut mappings),
                                             reporter,
                                             lit_expr.span,
                                             env,
@@ -788,13 +784,11 @@ impl Infer {
                                             self.unify(
                                                 &self.subst(
                                                     &instance_ty,
-                                                    &mut mappings,
-                                                    &mut env.metavars,
+                                                    &mut mappings
                                                 ),
                                                 &self.subst(
                                                     &ty.ty,
-                                                    &mut mappings,
-                                                    &mut env.metavars,
+                                                    &mut mappings
                                                 ),
                                                 reporter,
                                                 expr.span,
@@ -873,7 +867,7 @@ impl Infer {
         match var.value {
             Var::Simple(ref ident) => {
                 if let Some(var) = env.look_var(ident.value).cloned() {
-                    Ok(var.clone())
+                    Ok(var)
                 } else {
                     let msg = format!("Undefined variable '{}' ", env.name(ident.value));
                     reporter.error(msg, var.span);

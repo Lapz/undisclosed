@@ -1,5 +1,5 @@
-use constraints::{MetaVar, TyCon, Type};
-use std::collections::HashMap;
+use semant::{TyCon, Type};
+
 use std::rc::Rc;
 use syntax::ast::{Ident, Sign, Size};
 use util::symbol::{FactoryMap, Table};
@@ -14,7 +14,6 @@ pub enum Entry {
 pub struct Env {
     types: Table<Ident, Entry>,
     vars: Table<Ident, Type>,
-    pub metavars: HashMap<MetaVar, Type>,
 }
 
 trait GetIdent {
@@ -85,7 +84,6 @@ impl Env {
         types.enter(string_ident, Type::App(TyCon::String, vec![]));
 
         Env {
-            metavars: HashMap::new(),
             types: Table::new(Rc::clone(strings)),
             vars: Table::new(Rc::clone(strings)),
         }
@@ -103,10 +101,6 @@ impl Env {
 
     pub fn look_type(&self, ident: Ident) -> Option<&Entry> {
         self.types.look(ident)
-    }
-
-    pub fn look_meta(&self, ident: MetaVar) -> Option<&Type> {
-        self.metavars.get(&ident)
     }
 
     pub fn look_var(&self, ident: Ident) -> Option<&Type> {

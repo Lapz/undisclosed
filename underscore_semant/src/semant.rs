@@ -14,8 +14,6 @@ pub type InferResult<T> = Result<T, ()>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TypeVar(pub u32);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct MetaVar(pub u32);
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Unique(pub u32);
@@ -71,12 +69,7 @@ impl Infer {
         Self::default()
     }
     /// Deals with the subsitution of type variables
-    pub fn subst(
-        &self,
-        ty: &Type,
-        substions: &mut HashMap<TypeVar, Type>,
-        meta: &mut HashMap<MetaVar, Type>,
-    ) -> Type {
+    pub fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
         match *ty {
             Type::Var(ref tvar) => {
                 if let Some(ty) = substions.get(tvar) {
@@ -93,20 +86,17 @@ impl Infer {
                     substions.insert(*tvar, ty.clone());
                 }
 
-                self.subst(&self.subst(returns, substions, meta), substions, meta)
+                self.subst(&self.subst(returns, substions), substions)
             }
 
             Type::App(ref tycon, ref types) => Type::App(
                 tycon.clone(),
-                types
-                    .iter()
-                    .map(|ty| self.subst(ty, substions, meta))
-                    .collect(),
+                types.iter().map(|ty| self.subst(ty, substions)).collect(),
             ),
 
             Type::Poly(ref tyvars, ref u) => Type::Poly(
                 tyvars.iter().map(|_| TypeVar::new()).collect(),
-                Box::new(self.subst(u, substions, meta)),
+                Box::new(self.subst(u, substions)),
             ),
         }
     }
@@ -162,7 +152,7 @@ impl Infer {
                     mappings.insert(*var, ty.clone());
                 }
 
-                let lhs = self.subst(ret, &mut mappings, &mut env.metavars);
+                let lhs = self.subst(ret, &mut mappings);
 
                 self.unify(&lhs, t, reporter, span, env)?;
                 Ok(())
@@ -175,7 +165,7 @@ impl Infer {
                     mappings.insert(*var, ty.clone());
                 }
 
-                let lhs = self.subst(ret, &mut mappings, &mut env.metavars);
+                let lhs = self.subst(ret, &mut mappings);
 
                 self.unify(&lhs, t, reporter, span, env)?;
                 Ok(())
@@ -192,13 +182,7 @@ impl Infer {
                     mappings.insert(*var, Type::Var(*var));
                 }
 
-                self.unify(
-                    ret1,
-                    &self.subst(ret2, &mut mappings, &mut env.metavars),
-                    reporter,
-                    span,
-                    env,
-                )
+                self.unify(ret1, &self.subst(ret2, &mut mappings), reporter, span, env)
             }
 
             (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
@@ -223,7 +207,7 @@ impl Infer {
                     mappings.insert(*var, ty.clone());
                 }
 
-                let ty = self.subst(&ret, &mut mappings, &mut env.metavars);
+                let ty = self.subst(&ret, &mut mappings);
 
                 self.expand(ty, env)
             }

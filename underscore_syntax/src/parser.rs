@@ -846,9 +846,13 @@ impl<'a, 'b> Parser<'a, 'b> {
         if self.recognise(TokenType::SEMICOLON) {
             self.advance();
             return Ok(Spanned {
-            span: open_span.to(ident.get_span()),
-            value: Statement::Let { ident, ty, expr:None },
-            })
+                span: open_span.to(ident.get_span()),
+                value: Statement::Let {
+                    ident,
+                    ty,
+                    expr: None,
+                },
+            });
         }
 
         self.consume(&TokenType::ASSIGN, "Expected '='")?;
@@ -951,27 +955,23 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         use self::TokenType::*;
 
-
         if self.recognise(TokenType::AS) {
             self.advance();
 
             let ty = self.parse_type()?;
 
-            Ok(Spanned{
-                span:lhs.span.to(ty.get_span()),
-                value:Expression::Cast{
-                    from:Box::new(lhs),
-                    to:ty
-                }
+            Ok(Spanned {
+                span: lhs.span.to(ty.get_span()),
+                value: Expression::Cast {
+                    from: Box::new(lhs),
+                    to: ty,
+                },
             })
-
         } else {
             binary!(self, OR, lhs, parse_equality);
 
             Ok(lhs)
         }
-
-        
     }
 
     fn parse_equality(&mut self) -> ParserResult<Spanned<Expression>> {
@@ -1113,8 +1113,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_ident(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
-        }
-         else if self.recognise(TokenType::COLONCOLON) {
+        } else if self.recognise(TokenType::COLONCOLON) {
             self.advance();
 
             let ident_span = ident.get_span();
@@ -1277,8 +1276,6 @@ impl<'a, 'b> Parser<'a, 'b> {
             }),
         })
     }
-
-    
 
     fn parse_call(&mut self, callee: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
         self.consume(&TokenType::LPAREN, "Expected '(' ")?;
