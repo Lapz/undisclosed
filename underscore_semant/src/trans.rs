@@ -377,6 +377,8 @@ impl Infer {
                         return Ok(Type::App(TyCon::Void, vec![]));
                     }
 
+                    env.add_var(ident.value,Type::App(TyCon::Void, vec![]));
+
                     Ok(Type::App(TyCon::Void, vec![]))
                 }
             }

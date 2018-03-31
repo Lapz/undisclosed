@@ -843,6 +843,14 @@ impl<'a, 'b> Parser<'a, 'b> {
             None
         };
 
+        if self.recognise(TokenType::SEMICOLON) {
+            self.advance();
+            return Ok(Spanned {
+            span: open_span.to(ident.get_span()),
+            value: Statement::Let { ident, ty, expr:None },
+            })
+        }
+
         self.consume(&TokenType::ASSIGN, "Expected '='")?;
 
         let expr = if self.recognise(TokenType::SEMICOLON) {
