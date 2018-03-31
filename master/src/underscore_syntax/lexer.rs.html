@@ -10,8 +10,11 @@
     <title>lexer.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    
+    <link rel="stylesheet" type="text/css" href="../../dark.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <script src="../../storage.js"></script>
     
 
     
@@ -33,6 +36,13 @@
         
     </nav>
 
+    <div class="theme-picker">
+        <button id="theme-picker" aria-label="Pick another theme!">
+            <img src="../../brush.svg" width="18" alt="Pick another theme!">
+        </button>
+        <div id="theme-choices"></div>
+    </div>
+    <script src="../../theme.js"></script>
     <nav class="sub">
         <form class="search-form js-only">
             <div class="search-container">
@@ -499,13 +509,22 @@
 <span id="453">453</span>
 <span id="454">454</span>
 <span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">tokens</span>::{<span class="ident">Token</span>, <span class="ident">TokenType</span>};
 <span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">Number</span>, <span class="ident">Sign</span>, <span class="ident">Size</span>};
-<span class="kw">use</span> <span class="ident">util</span>::<span class="ident">pos</span>::{<span class="ident">CharPosition</span>, <span class="ident">Position</span>, <span class="ident">Span</span>, <span class="ident">Spanned</span>};
-<span class="kw">use</span> <span class="ident">util</span>::<span class="ident">emitter</span>::<span class="ident">Reporter</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>};
+<span class="kw">use</span> <span class="ident">tokens</span>::{<span class="ident">Token</span>, <span class="ident">TokenType</span>};
+<span class="kw">use</span> <span class="ident">util</span>::<span class="ident">emitter</span>::<span class="ident">Reporter</span>;
+<span class="kw">use</span> <span class="ident">util</span>::<span class="ident">pos</span>::{<span class="ident">CharPosition</span>, <span class="ident">Position</span>, <span class="ident">Span</span>, <span class="ident">Spanned</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LexerError</span> {
@@ -706,11 +725,11 @@
                 <span class="kw">let</span> (<span class="ident">end</span>, <span class="ident">ty</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">take_whilst</span>(<span class="ident">start</span>, <span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_alphanumeric</span>());
 
                 <span class="kw">let</span> (<span class="ident">sign</span>, <span class="ident">size</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">ty</span> {
+                    <span class="string">&quot;u8&quot;</span> <span class="op">=&gt;</span> (<span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>),
                     <span class="string">&quot;i8&quot;</span> <span class="op">=&gt;</span> (<span class="ident">Sign</span>::<span class="ident">Signed</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>),
                     <span class="string">&quot;i32&quot;</span> <span class="op">=&gt;</span> (<span class="ident">Sign</span>::<span class="ident">Signed</span>, <span class="ident">Size</span>::<span class="ident">Bit32</span>),
-                    <span class="string">&quot;i64&quot;</span> <span class="op">=&gt;</span> (<span class="ident">Sign</span>::<span class="ident">Signed</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
-                    <span class="string">&quot;u8&quot;</span> <span class="op">=&gt;</span> (<span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>),
                     <span class="string">&quot;u32&quot;</span> <span class="op">=&gt;</span> (<span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit32</span>),
+                    <span class="string">&quot;i64&quot;</span> <span class="op">=&gt;</span> (<span class="ident">Sign</span>::<span class="ident">Signed</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
                     <span class="string">&quot;u64&quot;</span> <span class="op">=&gt;</span> (<span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
                     _ <span class="op">=&gt;</span> {
                         <span class="kw">let</span> <span class="ident">e</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">LexerError</span>::<span class="ident">InvalidNumberTy</span>(<span class="ident">ty</span>.<span class="ident">into</span>()).<span class="ident">into</span>();
@@ -776,7 +795,14 @@
                 <span class="string">&#39;(&#39;</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">LPAREN</span>, <span class="ident">start</span>)),
                 <span class="string">&#39;)&#39;</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">RPAREN</span>, <span class="ident">start</span>)),
                 <span class="string">&#39;,&#39;</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">COMMA</span>, <span class="ident">start</span>)),
-                <span class="string">&#39;:&#39;</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">COLON</span>, <span class="ident">start</span>)),
+                <span class="string">&#39;:&#39;</span> <span class="op">=&gt;</span> {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>(<span class="op">|</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;:&#39;</span>) {
+                        <span class="self">self</span>.<span class="ident">advance</span>();
+                        <span class="prelude-val">Some</span>(<span class="ident">spans</span>(<span class="ident">TokenType</span>::<span class="ident">COLONCOLON</span>, <span class="ident">start</span>, <span class="ident">start</span>.<span class="ident">shift</span>(<span class="string">&#39;:&#39;</span>)))
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">COLON</span>, <span class="ident">start</span>))
+                    }
+                }
                 <span class="string">&#39;&quot;&#39;</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">string_literal</span>(<span class="ident">start</span>) {
                     <span class="prelude-val">Ok</span>(<span class="ident">token</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>),
                     <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> {
@@ -928,6 +954,7 @@
         <span class="string">&quot;type&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">TYPE</span>,
         <span class="comment">// Functions and vars</span>
         <span class="string">&quot;fn&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">FUNCTION</span>,
+        <span class="string">&quot;as&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">AS</span>,
         <span class="string">&quot;external&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">EXTERNAL</span>,
         <span class="string">&quot;let&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">LET</span>,
         <span class="string">&quot;struct&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">STRUCT</span>,
@@ -952,6 +979,7 @@
         <span class="string">&quot;i8&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">I8</span>,
         <span class="string">&quot;i32&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">I32</span>,
         <span class="string">&quot;i64&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">I64</span>,
+        <span class="string">&quot;str&quot;</span> <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">STR</span>,
         _ <span class="op">=&gt;</span> <span class="ident">TokenType</span>::<span class="ident">IDENTIFIER</span>(<span class="ident">id</span>),
     }
 }
@@ -969,20 +997,22 @@
                 <h2>Keyboard Shortcuts</h2>
 
                 <dl>
-                    <dt>?</dt>
+                    <dt><kbd>?</kbd></dt>
                     <dd>Show this help dialog</dd>
-                    <dt>S</dt>
+                    <dt><kbd>S</kbd></dt>
                     <dd>Focus the search field</dd>
-                    <dt>↑</dt>
+                    <dt><kbd>↑</kbd></dt>
                     <dd>Move up in search results</dd>
-                    <dt>↓</dt>
+                    <dt><kbd>↓</kbd></dt>
                     <dd>Move down in search results</dd>
-                    <dt>↹</dt>
+                    <dt><kbd>↹</kbd></dt>
                     <dd>Switch tab</dd>
-                    <dt>&#9166;</dt>
+                    <dt><kbd>&#9166;</kbd></dt>
                     <dd>Go to active search result</dd>
-                    <dt style="width:31px;">+ / -</dt>
-                    <dd>Collapse/expand all sections</dd>
+                    <dt><kbd>+</kbd></dt>
+                    <dd>Expand all sections</dd>
+                    <dt><kbd>-</kbd></dt>
+                    <dd>Collapse all sections</dd>
                 </dl>
             </div>
 

@@ -10,8 +10,11 @@
     <title>tokens.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    
+    <link rel="stylesheet" type="text/css" href="../../dark.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <script src="../../storage.js"></script>
     
 
     
@@ -33,6 +36,13 @@
         
     </nav>
 
+    <div class="theme-picker">
+        <button id="theme-picker" aria-label="Pick another theme!">
+            <img src="../../brush.svg" width="18" alt="Pick another theme!">
+        </button>
+        <div id="theme-choices"></div>
+    </div>
+    <script src="../../theme.js"></script>
     <nav class="sub">
         <form class="search-form js-only">
             <div class="search-container">
@@ -186,9 +196,15 @@
 <span id="140">140</span>
 <span id="141">141</span>
 <span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>};
 <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">Number</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Token</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -213,6 +229,7 @@
     <span class="ident">U32</span>,  <span class="comment">// u32</span>
     <span class="ident">U64</span>,  <span class="comment">// u64</span>
     <span class="ident">BOOL</span>, <span class="comment">// bool</span>
+    <span class="ident">STR</span>,  <span class="comment">// str</span>
     <span class="comment">// Assignment</span>
     <span class="ident">ASSIGN</span>, <span class="comment">// =</span>
     <span class="comment">// Operators</span>
@@ -223,19 +240,20 @@
     <span class="ident">SLASH</span>, <span class="comment">// /</span>
 
     <span class="comment">// Puntuation</span>
-    <span class="ident">FRETURN</span>,   <span class="comment">// -&gt;</span>
-    <span class="ident">DOT</span>,       <span class="comment">// .</span>
-    <span class="ident">QUESTION</span>,  <span class="comment">// ?</span>
-    <span class="ident">COLON</span>,     <span class="comment">// :</span>
-    <span class="ident">COMMA</span>,     <span class="comment">// ,</span>
-    <span class="ident">COMMENT</span>,   <span class="comment">// //</span>
-    <span class="ident">SEMICOLON</span>, <span class="comment">// ;</span>
-    <span class="ident">LPAREN</span>,    <span class="comment">// (</span>
-    <span class="ident">RPAREN</span>,    <span class="comment">// )</span>
-    <span class="ident">LBRACKET</span>,  <span class="comment">// [</span>
-    <span class="ident">RBRACKET</span>,  <span class="comment">// ]</span>
-    <span class="ident">LBRACE</span>,    <span class="comment">// {</span>
-    <span class="ident">RBRACE</span>,    <span class="comment">// }</span>
+    <span class="ident">FRETURN</span>,    <span class="comment">// -&gt;</span>
+    <span class="ident">DOT</span>,        <span class="comment">// .</span>
+    <span class="ident">QUESTION</span>,   <span class="comment">// ?</span>
+    <span class="ident">COLON</span>,      <span class="comment">// :</span>
+    <span class="ident">COMMA</span>,      <span class="comment">// ,</span>
+    <span class="ident">COMMENT</span>,    <span class="comment">// //</span>
+    <span class="ident">SEMICOLON</span>,  <span class="comment">// ;</span>
+    <span class="ident">LPAREN</span>,     <span class="comment">// (</span>
+    <span class="ident">RPAREN</span>,     <span class="comment">// )</span>
+    <span class="ident">LBRACKET</span>,   <span class="comment">// [</span>
+    <span class="ident">RBRACKET</span>,   <span class="comment">// ]</span>
+    <span class="ident">LBRACE</span>,     <span class="comment">// {</span>
+    <span class="ident">RBRACE</span>,     <span class="comment">// }</span>
+    <span class="ident">COLONCOLON</span>, <span class="comment">// ::</span>
 
     <span class="comment">// Comparison</span>
     <span class="ident">LESSTHAN</span>,         <span class="comment">// &lt;</span>
@@ -246,6 +264,7 @@
     <span class="ident">GREATERTHANEQUAL</span>, <span class="comment">// =&gt;</span>
     <span class="comment">// Keywords,</span>
     <span class="ident">FUNCTION</span>,    <span class="comment">// fn</span>
+    <span class="ident">AS</span>,          <span class="comment">// as</span>
     <span class="ident">BREAK</span>,       <span class="comment">// break</span>
     <span class="ident">CONTINUE</span>,    <span class="comment">// continue</span>
     <span class="ident">LET</span>,         <span class="comment">// let</span>
@@ -277,7 +296,8 @@
             <span class="ident">TokenType</span>::<span class="ident">U32</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;u32&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">U64</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;u64&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">BOOL</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;bool&quot;</span>),
-            <span class="ident">TokenType</span>::<span class="ident">IDENTIFIER</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;id {}&quot;</span>, <span class="ident">s</span>),
+            <span class="ident">TokenType</span>::<span class="ident">STR</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;str&quot;</span>),
+            <span class="ident">TokenType</span>::<span class="ident">IDENTIFIER</span>(<span class="ident">s</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">s</span>),
             <span class="ident">TokenType</span>::<span class="ident">CHAR</span>(<span class="kw-2">ref</span> <span class="ident">c</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">c</span>),
             <span class="ident">TokenType</span>::<span class="ident">STRING</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">s</span>),
             <span class="ident">TokenType</span>::<span class="ident">ASSIGN</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;=&quot;</span>),
@@ -296,6 +316,7 @@
             <span class="ident">TokenType</span>::<span class="ident">BANGEQUAL</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;!=&quot;</span>),     <span class="comment">// !=</span>
             <span class="ident">TokenType</span>::<span class="ident">LESSTHANEQUAL</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;=&quot;</span>), <span class="comment">// &lt;=</span>
             <span class="ident">TokenType</span>::<span class="ident">GREATERTHANEQUAL</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;=&gt;&quot;</span>), <span class="comment">// =&gt;</span>
+            <span class="ident">TokenType</span>::<span class="ident">COLONCOLON</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;::&quot;</span>),
 
             <span class="ident">TokenType</span>::<span class="ident">COMMA</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;,&quot;</span>),     <span class="comment">// ,</span>
             <span class="ident">TokenType</span>::<span class="ident">COMMENT</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;//&quot;</span>),  <span class="comment">// //</span>
@@ -309,6 +330,7 @@
             <span class="ident">TokenType</span>::<span class="ident">FRETURN</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;-&gt;&quot;</span>),
             <span class="comment">// Keywords,</span>
             <span class="ident">TokenType</span>::<span class="ident">FUNCTION</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;fun&quot;</span>),
+            <span class="ident">TokenType</span>::<span class="ident">AS</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;as&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">TYPE</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;type&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">BREAK</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;break&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">CONTINUE</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;continue&quot;</span>),
@@ -343,20 +365,22 @@
                 <h2>Keyboard Shortcuts</h2>
 
                 <dl>
-                    <dt>?</dt>
+                    <dt><kbd>?</kbd></dt>
                     <dd>Show this help dialog</dd>
-                    <dt>S</dt>
+                    <dt><kbd>S</kbd></dt>
                     <dd>Focus the search field</dd>
-                    <dt>↑</dt>
+                    <dt><kbd>↑</kbd></dt>
                     <dd>Move up in search results</dd>
-                    <dt>↓</dt>
+                    <dt><kbd>↓</kbd></dt>
                     <dd>Move down in search results</dd>
-                    <dt>↹</dt>
+                    <dt><kbd>↹</kbd></dt>
                     <dd>Switch tab</dd>
-                    <dt>&#9166;</dt>
+                    <dt><kbd>&#9166;</kbd></dt>
                     <dd>Go to active search result</dd>
-                    <dt style="width:31px;">+ / -</dt>
-                    <dd>Collapse/expand all sections</dd>
+                    <dt><kbd>+</kbd></dt>
+                    <dd>Expand all sections</dd>
+                    <dt><kbd>-</kbd></dt>
+                    <dd>Collapse all sections</dd>
                 </dl>
             </div>
 
