@@ -1,13 +1,17 @@
-type a = i32;
-
 struct List<T> {
     head:T,
-    body:T
+    body:List<T>
 }
 
 
-fn main() -> i32 {
-    let list;
+fn id<T>(v:T) -> T {
+    v;
+}
 
-    list as i32;
+
+fn main() -> List<i32> {
+    let list = List::<i32> {
+        a:a
+    };
+
 }

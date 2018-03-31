@@ -1,4 +1,4 @@
-use semant::{InferResult, TyCon, Type};
+use unify::{InferResult, TyCon, Type};
 
 pub fn cast_check(expr: &Type, to: &Type) -> InferResult<()> {
     match *to {

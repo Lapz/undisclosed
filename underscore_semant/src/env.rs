@@ -1,4 +1,4 @@
-use semant::{TyCon, Type};
+use unify::{TyCon, Type};
 
 use std::rc::Rc;
 use syntax::ast::{Ident, Sign, Size};

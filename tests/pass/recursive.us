@@ -1,0 +1,15 @@
+struct List<T> {
+    head:T,
+    body:List<T>
+}
+
+fn main() -> List<i32> {
+    let list = List {
+        head:10,
+        body:List {
+            head:10,
+            body:nil
+        }
+    };
+
+}

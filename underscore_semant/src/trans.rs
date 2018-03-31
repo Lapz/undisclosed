@@ -1,6 +1,6 @@
 use cast_check::*;
-use semant::{Field, TyCon, Type, TypeVar, Unique};
-use semant::{Infer, InferResult};
+use unify::{Field, TyCon, Type, TypeVar, Unique};
+use unify::{Infer, InferResult};
 use env::{Entry, Env};
 use std::collections::HashMap;
 use std::mem;
@@ -153,6 +153,39 @@ impl Infer {
 
         let mut type_fields = Vec::with_capacity(struct_def.value.fields.value.len());
 
+        let unique = Unique::new();
+
+        env.add_type(
+            struct_def.value.name.value.name.value,
+            Entry::Ty(Type::Poly(
+                poly_tvs.clone(),
+                Box::new(Type::App(
+                    TyCon::Unique(Box::new(TyCon::Struct(vec![])), None),
+                    vec![],
+                )),
+            )),
+        );
+
+        for field in &struct_def.value.fields.value {
+            type_fields.push(Field {
+                name: field.value.name.value,
+                ty: self.trans_ty(&field.value.ty, env, reporter)?,
+            });
+        }
+
+        env.add_type(
+            struct_def.value.name.value.name.value,
+            Entry::Ty(Type::Poly(
+                poly_tvs.clone(),
+                Box::new(Type::App(
+                    TyCon::Unique(Box::new(TyCon::Struct(type_fields)), Some(unique)),
+                    vec![],
+                )),
+            )),
+        );
+
+        let mut type_fields = Vec::with_capacity(struct_def.value.fields.value.len());
+
         for field in &struct_def.value.fields.value {
             type_fields.push(Field {
                 name: field.value.name.value,
@@ -165,11 +198,13 @@ impl Infer {
             Entry::Ty(Type::Poly(
                 poly_tvs,
                 Box::new(Type::App(
-                    TyCon::Unique(Box::new(TyCon::Struct(type_fields)), Unique::new()),
+                    TyCon::Unique(Box::new(TyCon::Struct(type_fields)), Some(unique)),
                     vec![],
                 )),
             )),
         );
+
+       
 
         Ok(())
     }
@@ -696,14 +731,14 @@ impl Infer {
 
                                 if def_fields.len() > fields.len() {
                                     let msg = format!(
-                                        "Struct {} is missing fields",
+                                        "Struct `{}` is missing fields",
                                         env.name(ident.value)
                                     );
                                     reporter.error(msg, lit.span);
                                     return Err(());
                                 } else if def_fields.len() < fields.len() {
                                     let msg = format!(
-                                        "Struct {} has too many fields",
+                                        "Struct `{}` has too many fields",
                                         env.name(ident.value)
                                     );
                                     reporter.error(msg, lit.span);
@@ -812,14 +847,14 @@ impl Infer {
 
                                     if type_fields.len() > fields.len() {
                                         let msg = format!(
-                                            "Struct {} is missing fields",
+                                            "Struct `{}` is missing fields",
                                             env.name(ident.value)
                                         );
                                         reporter.error(msg, lit.span);
                                         return Err(());
                                     } else if type_fields.len() < fields.len() {
                                         let msg = format!(
-                                            "Struct {} has too many fields",
+                                            "Struct `{}` has too many fields",
                                             env.name(ident.value)
                                         );
                                         reporter.error(msg, lit.span);
