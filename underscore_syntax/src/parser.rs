@@ -21,7 +21,7 @@ pub type ParserResult<T> = Result<T, ()>;
 
 /// Macro that is used to generate the code that parse a binary op
 macro_rules! binary {
-    ($_self: ident, $e: ident, $lhs: expr, $func: ident) => {
+    ($_self:ident, $e:ident, $lhs:expr, $func:ident) => {
         while $_self.recognise($e) {
             let op = $_self.get_binary_op()?;
 
@@ -38,7 +38,7 @@ macro_rules! binary {
         }
     };
 
-    ($_self: ident, $expr: expr, $lhs: expr, $func: ident) => {
+    ($_self:ident, $expr:expr, $lhs:expr, $func:ident) => {
         while $_self.matched($expr) {
             let op = $_self.get_binary_op()?;
 
@@ -943,9 +943,27 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         use self::TokenType::*;
 
-        binary!(self, OR, lhs, parse_equality);
 
-        Ok(lhs)
+        if self.recognise(TokenType::AS) {
+            self.advance();
+
+            let ty = self.parse_type()?;
+
+            Ok(Spanned{
+                span:lhs.span.to(ty.get_span()),
+                value:Expression::Cast{
+                    from:Box::new(lhs),
+                    to:ty
+                }
+            })
+
+        } else {
+            binary!(self, OR, lhs, parse_equality);
+
+            Ok(lhs)
+        }
+
+        
     }
 
     fn parse_equality(&mut self) -> ParserResult<Spanned<Expression>> {
@@ -1087,7 +1105,8 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_ident(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
-        } else if self.recognise(TokenType::COLONCOLON) {
+        }
+         else if self.recognise(TokenType::COLONCOLON) {
             self.advance();
 
             let ident_span = ident.get_span();
@@ -1250,6 +1269,8 @@ impl<'a, 'b> Parser<'a, 'b> {
             }),
         })
     }
+
+    
 
     fn parse_call(&mut self, callee: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
         self.consume(&TokenType::LPAREN, "Expected '(' ")?;

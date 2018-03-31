@@ -1,8 +1,8 @@
 use constraints::{MetaVar, TyCon, Type};
+use std::collections::HashMap;
 use std::rc::Rc;
 use syntax::ast::{Ident, Sign, Size};
 use util::symbol::{FactoryMap, Table};
-use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub enum Entry {

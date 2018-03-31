@@ -115,7 +115,7 @@ pub enum Expression {
     },
 
     Cast {
-        expr: Box<Spanned<Expression>>,
+        from: Box<Spanned<Expression>>,
         to: Spanned<Ty>,
     },
 

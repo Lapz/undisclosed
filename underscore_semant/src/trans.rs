@@ -1,12 +1,14 @@
-use constraints::{Infer, InferResult};
-use std::collections::HashMap;
+use cast_check::*;
 use constraints::{Field, TyCon, Type, TypeVar, Unique};
+use constraints::{Infer, InferResult};
 use env::{Entry, Env};
+use std::collections::HashMap;
+use std::mem;
 use syntax::ast::{Call, Expression, Function, Literal, Op, Program, Sign, Size, Statement, Struct,
                   StructLit, Ty as astType, TyAlias, UnaryOp, Var};
 use util::emitter::Reporter;
 use util::pos::Spanned;
-use std::mem;
+
 impl Infer {
     pub fn infer(
         &self,
@@ -449,7 +451,19 @@ impl Infer {
                 }
             }
 
-            Expression::Cast { ref expr, ref to } => unimplemented!(),
+            Expression::Cast { ref from, ref to } => {
+                let expr_ty = self.trans_expr(from, env, reporter)?;
+                let ty = self.trans_ty(to, env, reporter)?;
+
+                match cast_check(&expr_ty, &ty) {
+                    Ok(()) => Ok(ty),
+                    Err(_) => {
+                        let msg = format!("Cannot cast {:?} to type {:?}",expr_ty,ty);
+                        reporter.error(msg, expr.span);
+                        Err(())
+                    }
+                }
+            }
             Expression::Call(ref call) => self.trans_call(call, env, reporter),
             Expression::Grouping { ref expr } => self.trans_expr(expr, env, reporter),
             Expression::Literal(ref literal) => match *literal {

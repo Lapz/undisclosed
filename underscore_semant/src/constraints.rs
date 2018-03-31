@@ -1,9 +1,9 @@
+use env::Env;
 use std::collections::HashMap;
+use syntax::ast::Ident;
 use syntax::ast::{Sign, Size};
 use util::emitter::Reporter;
 use util::pos::Span;
-use env::Env;
-use syntax::ast::Ident;
 
 static mut UNIQUE_COUNT: u32 = 0;
 

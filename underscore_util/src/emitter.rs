@@ -1,11 +1,11 @@
 //! Error reporting that reports all compiler errors.
-use std::iter::repeat;
-use pos::Span;
-use std::rc::Rc;
-use std::cell::RefCell;
-use std::fmt::{self, Display};
 use ansi_term::Colour::{Blue, Fixed, Red, Yellow};
 use pos::EMPTYSPAN;
+use pos::Span;
+use std::cell::RefCell;
+use std::fmt::{self, Display};
+use std::iter::repeat;
+use std::rc::Rc;
 #[derive(Debug)]
 pub struct Diagnostic {
     msg: String,
