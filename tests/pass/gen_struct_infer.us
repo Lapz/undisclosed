@@ -1,12 +1,10 @@
-type a = i32;
-
 struct List<T> {
     head:T,
     body:T
 }
 
 
-fn main() -> List<str> {
+fn main() -> List<i32> {
     let list = List{
         head:10,
         body:10

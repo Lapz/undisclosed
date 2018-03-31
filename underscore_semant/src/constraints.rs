@@ -121,11 +121,17 @@ impl Infer {
     ) -> InferResult<()> {
         match (lhs, rhs) {
             (
-                &Type::App(TyCon::Unique(_, ref z1), ref types1),
-                &Type::App(TyCon::Unique(_, ref z2), ref types2),
+                &Type::App(TyCon::Unique(ref tycon1, ref z1), ref types1),
+                &Type::App(TyCon::Unique(ref tycon2, ref z2), ref types2),
             ) => {
                 if z1 != z2 {
                     let msg = format!("Cannot unify {:?} vs {:?}", z1, z2);
+                    reporter.error(msg, span);
+                    return Err(());
+                }
+
+                if tycon1 != tycon2 {
+                    let msg = format!("Cannot unify {:?} vs {:?}", tycon1, tycon2);
                     reporter.error(msg, span);
                     return Err(());
                 }
