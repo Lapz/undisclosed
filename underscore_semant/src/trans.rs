@@ -49,7 +49,7 @@ impl Infer {
             astType::Simple(ref ident) => {
                 if let Some(ty) = env.look_type(ident.value) {
                     match ty {
-                        Entry::Ty(ty) => Ok(ty.clone()),
+                        &Entry::Ty(ref ty) => Ok(ty.clone()),
                         _ => panic!(""),
                     }
                 } else {
