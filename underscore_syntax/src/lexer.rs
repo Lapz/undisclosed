@@ -1,9 +1,9 @@
-use tokens::{Token, TokenType};
 use ast::{Number, Sign, Size};
-use util::pos::{CharPosition, Position, Span, Spanned};
-use util::emitter::Reporter;
-use std::fmt::{Display, Formatter};
 use std::fmt;
+use std::fmt::{Display, Formatter};
+use tokens::{Token, TokenType};
+use util::emitter::Reporter;
+use util::pos::{CharPosition, Position, Span, Spanned};
 
 #[derive(Debug)]
 pub enum LexerError {
@@ -204,11 +204,11 @@ impl<'a> Lexer<'a> {
                 let (end, ty) = self.take_whilst(start, |c| c.is_alphanumeric());
 
                 let (sign, size) = match ty {
+                    "u8" => (Sign::Unsigned, Size::Bit8),
                     "i8" => (Sign::Signed, Size::Bit8),
                     "i32" => (Sign::Signed, Size::Bit32),
-                    "i64" => (Sign::Signed, Size::Bit64),
-                    "u8" => (Sign::Unsigned, Size::Bit8),
                     "u32" => (Sign::Unsigned, Size::Bit32),
+                    "i64" => (Sign::Signed, Size::Bit64),
                     "u64" => (Sign::Unsigned, Size::Bit64),
                     _ => {
                         let e: String = LexerError::InvalidNumberTy(ty.into()).into();
@@ -274,7 +274,14 @@ impl<'a> Lexer<'a> {
                 '(' => Some(span(TokenType::LPAREN, start)),
                 ')' => Some(span(TokenType::RPAREN, start)),
                 ',' => Some(span(TokenType::COMMA, start)),
-                ':' => Some(span(TokenType::COLON, start)),
+                ':' => {
+                    if self.peek(|ch| ch == ':') {
+                        self.advance();
+                        Some(spans(TokenType::COLONCOLON, start, start.shift(':')))
+                    } else {
+                        Some(span(TokenType::COLON, start))
+                    }
+                }
                 '"' => match self.string_literal(start) {
                     Ok(token) => Some(token),
                     Err(e) => {
@@ -426,6 +433,7 @@ fn look_up_identifier(id: &str) -> TokenType {
         "type" => TokenType::TYPE,
         // Functions and vars
         "fn" => TokenType::FUNCTION,
+        "as" => TokenType::AS,
         "external" => TokenType::EXTERNAL,
         "let" => TokenType::LET,
         "struct" => TokenType::STRUCT,
@@ -450,6 +458,7 @@ fn look_up_identifier(id: &str) -> TokenType {
         "i8" => TokenType::I8,
         "i32" => TokenType::I32,
         "i64" => TokenType::I64,
+        "str" => TokenType::STR,
         _ => TokenType::IDENTIFIER(id),
     }
 }

@@ -1,0 +1,13 @@
+type a = i32;
+
+struct List<T> {
+    head:T,
+    body:T
+}
+
+
+fn main() -> i32 {
+    let list;
+
+    list as i32;
+}

@@ -1,0 +1,16 @@
+struct List <T> {
+    val:T,
+    head:nil
+}
+
+fn main(a:str) -> List {
+    List {
+        val:"a",
+        head:nil
+    };
+     List {
+        val:10,
+        head:nil
+    };
+
+}

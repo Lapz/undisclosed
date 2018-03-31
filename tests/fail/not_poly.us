@@ -1,0 +1,19 @@
+struct List {
+    head:i32,
+    body:nil
+}
+
+struct List2 {
+    head:i32,
+    body:nil
+}
+
+
+fn main() -> List2<i32> {
+    let list = List {
+        head:10,
+        body:nil
+    };
+
+    list;
+}

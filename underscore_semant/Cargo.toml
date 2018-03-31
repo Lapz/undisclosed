@@ -1,0 +1,9 @@
+[package]
+name = "underscore_semant"
+version = "0.1.0"
+authors = ["rowlandsonpratt <striderman34@gmail.com>"]
+
+[dependencies]
+underscore_util = {path ="../underscore_util"}
+underscore_syntax = {path ="../underscore_syntax"}
+# lazy_static = "1.0"

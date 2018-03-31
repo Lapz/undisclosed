@@ -1,11 +1,16 @@
 use std::fmt::{self, Display};
 use util::pos::{Span, Spanned};
-
 #[derive(Debug)]
 pub struct Program {
     pub structs: Vec<Spanned<Struct>>,
     pub functions: Vec<Spanned<Function>>,
     pub type_alias: Vec<Spanned<TyAlias>>,
+}
+
+impl Program {
+    pub fn fmt(&mut self) -> String {
+        format!("{:#?}", self)
+    }
 }
 
 #[derive(Hash, Debug, Copy, Clone, PartialEq, Eq)]
@@ -49,7 +54,9 @@ pub enum Linkage {
 }
 #[derive(Debug)]
 pub enum Ty {
-    Name(Spanned<Ident>, Vec<Spanned<Ty>>),
+    Func(Vec<Spanned<Ty>>, Option<Box<Spanned<Ty>>>),
+    Poly(Spanned<Ident>, Vec<Spanned<Ty>>),
+    Simple(Spanned<Ident>),
     Nil,
     I8,
     I32,
@@ -58,11 +65,12 @@ pub enum Ty {
     U32,
     U64,
     Bool,
+    Str,
 }
 
 #[derive(Debug)]
 pub struct TyAlias {
-    pub alias: Spanned<Ident>,
+    pub ident: Spanned<ItemName>,
     pub ty: Spanned<Ty>,
 }
 
@@ -107,14 +115,11 @@ pub enum Expression {
     },
 
     Cast {
-        expr: Box<Spanned<Expression>>,
+        from: Box<Spanned<Expression>>,
         to: Spanned<Ty>,
     },
 
-    Call {
-        callee: Box<Spanned<Expression>>,
-        args: Vec<Spanned<Expression>>,
-    },
+    Call(Spanned<Call>),
 
     Grouping {
         expr: Box<Spanned<Expression>>,
@@ -122,10 +127,7 @@ pub enum Expression {
 
     Literal(Literal),
 
-    StructLiteral {
-        ident: Spanned<Ident>,
-        fields: Vec<Spanned<StructLitField>>,
-    },
+    StructLit(Spanned<StructLit>),
 
     Unary {
         op: Spanned<UnaryOp>,
@@ -161,6 +163,32 @@ pub enum Var {
         target: Spanned<Ident>,
     },
 }
+#[derive(Debug)]
+pub enum Call {
+    Simple {
+        callee: Spanned<Ident>,
+        args: Vec<Spanned<Expression>>,
+    },
+    Instantiation {
+        callee: Spanned<Ident>,
+        tys: Spanned<Vec<Spanned<Ty>>>,
+        args: Vec<Spanned<Expression>>,
+    },
+}
+#[derive(Debug)]
+pub enum StructLit {
+    Simple {
+        ident: Spanned<Ident>,
+        fields: Vec<Spanned<StructLitField>>,
+    },
+
+    Instantiation {
+        ident: Spanned<Ident>,
+        tys: Spanned<Vec<Spanned<Ty>>>,
+        fields: Vec<Spanned<StructLitField>>,
+    },
+}
+
 #[derive(Debug)]
 pub enum Op {
     NEq,

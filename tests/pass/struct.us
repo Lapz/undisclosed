@@ -1,0 +1,12 @@
+struct List<T> {
+    head:T,
+    tail:List<T>
+}
+
+
+fn main() {
+    let list = List::<i32> {
+        head:10,
+        tail:nil,
+    };
+}

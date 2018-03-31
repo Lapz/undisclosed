@@ -14,6 +14,34 @@ $ cargo install
 $ underscore foo.us
 ```
 
+# Features
+Currently no code is genereated but basic parsing and type inference has been implemented
+e.g. 
+```rust
+
+fn id<T>(v:T) -> T {
+    v;
+}
+
+fn main() -> u8 {
+    id::<u8>('c');
+}
+
+```
+or 
+```rust 
+
+struct List<T> {
+    head:T,
+    body:List<T>  
+}
+
+```
+
+# TODO
+[ ] Add support for recursive types
+[ ] Add proper printing of types
+[ ] 
 # References
 
 * [rust](https://github.com/rust-lang/rust)

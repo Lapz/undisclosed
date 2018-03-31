@@ -1,5 +1,5 @@
-use std::fmt::{self, Display, Formatter};
 use ast::Number;
+use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug)]
 pub struct Token<'a> {
@@ -24,6 +24,7 @@ pub enum TokenType<'a> {
     U32,  // u32
     U64,  // u64
     BOOL, // bool
+    STR,  // str
     // Assignment
     ASSIGN, // =
     // Operators
@@ -34,19 +35,20 @@ pub enum TokenType<'a> {
     SLASH, // /
 
     // Puntuation
-    FRETURN,   // ->
-    DOT,       // .
-    QUESTION,  // ?
-    COLON,     // :
-    COMMA,     // ,
-    COMMENT,   // //
-    SEMICOLON, // ;
-    LPAREN,    // (
-    RPAREN,    // )
-    LBRACKET,  // [
-    RBRACKET,  // ]
-    LBRACE,    // {
-    RBRACE,    // }
+    FRETURN,    // ->
+    DOT,        // .
+    QUESTION,   // ?
+    COLON,      // :
+    COMMA,      // ,
+    COMMENT,    // //
+    SEMICOLON,  // ;
+    LPAREN,     // (
+    RPAREN,     // )
+    LBRACKET,   // [
+    RBRACKET,   // ]
+    LBRACE,     // {
+    RBRACE,     // }
+    COLONCOLON, // ::
 
     // Comparison
     LESSTHAN,         // <
@@ -57,6 +59,7 @@ pub enum TokenType<'a> {
     GREATERTHANEQUAL, // =>
     // Keywords,
     FUNCTION,    // fn
+    AS,          // as
     BREAK,       // break
     CONTINUE,    // continue
     LET,         // let
@@ -88,7 +91,8 @@ impl<'a> Display for TokenType<'a> {
             TokenType::U32 => write!(f, "u32"),
             TokenType::U64 => write!(f, "u64"),
             TokenType::BOOL => write!(f, "bool"),
-            TokenType::IDENTIFIER(s) => write!(f, "id {}", s),
+            TokenType::STR => write!(f, "str"),
+            TokenType::IDENTIFIER(s) => write!(f, "{}", s),
             TokenType::CHAR(ref c) => write!(f, "{}", c),
             TokenType::STRING(ref s) => write!(f, "{}", s),
             TokenType::ASSIGN => write!(f, "="),
@@ -107,6 +111,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::BANGEQUAL => write!(f, "!="),     // !=
             TokenType::LESSTHANEQUAL => write!(f, "<="), // <=
             TokenType::GREATERTHANEQUAL => write!(f, "=>"), // =>
+            TokenType::COLONCOLON => write!(f, "::"),
 
             TokenType::COMMA => write!(f, ","),     // ,
             TokenType::COMMENT => write!(f, "//"),  // //
@@ -120,6 +125,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::FRETURN => write!(f, "->"),
             // Keywords,
             TokenType::FUNCTION => write!(f, "fun"),
+            TokenType::AS => write!(f, "as"),
             TokenType::TYPE => write!(f, "type"),
             TokenType::BREAK => write!(f, "break"),
             TokenType::CONTINUE => write!(f, "continue"),

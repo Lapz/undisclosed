@@ -1,8 +1,17 @@
-
-
 struct List<T> {
     head:T,
     tail:List<T>
+}
+
+fn append(a:List<i32>,b:List<i32>) -> List<i32> {
+    if a == nil {
+        return b;
+    } else {
+        return List {
+            head:a.head,
+            tail: append(a.tail,b)
+        }; 
+    }
 }
 
 fn main() {

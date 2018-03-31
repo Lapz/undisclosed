@@ -1,14 +1,14 @@
-use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
-use ast::{Expression, Literal, Op, Statement, UnaryOp, Var};
-use ast::{Field, Struct, StructLitField};
-use ast::TyAlias;
 use ast::Program;
+use ast::TyAlias;
+use ast::{Call, Expression, Literal, Op, Statement, UnaryOp, Var};
+use ast::{Field, Struct, StructLit, StructLitField};
+use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
 use std::iter::Peekable;
 use std::vec::IntoIter;
-use util::pos::{Span, Spanned};
 use tokens::{Token, TokenType};
-use util::symbol::Table;
 use util::emitter::Reporter;
+use util::pos::{Span, Spanned};
+use util::symbol::Table;
 
 pub struct Parser<'a, 'b> {
     reporter: Reporter,
@@ -21,13 +21,13 @@ pub type ParserResult<T> = Result<T, ()>;
 
 /// Macro that is used to generate the code that parse a binary op
 macro_rules! binary {
-    ($_self:ident,$e:ident,$lhs:expr,$func:ident) => {
+    ($_self:ident, $e:ident, $lhs:expr, $func:ident) => {
         while $_self.recognise($e) {
             let op = $_self.get_binary_op()?;
 
             let rhs = Box::new($_self.$func()?);
 
-           $lhs = Spanned {
+            $lhs = Spanned {
                 span: $lhs.get_span().to(rhs.get_span()),
                 value: Expression::Binary {
                     lhs: Box::new($lhs),
@@ -38,13 +38,13 @@ macro_rules! binary {
         }
     };
 
-    ($_self:ident,$expr:expr, $lhs:expr,$func:ident) => {
+    ($_self:ident, $expr:expr, $lhs:expr, $func:ident) => {
         while $_self.matched($expr) {
             let op = $_self.get_binary_op()?;
 
             let rhs = Box::new($_self.$func()?);
 
-           $lhs = Spanned {
+            $lhs = Spanned {
                 span: $lhs.get_span().to(rhs.get_span()),
                 value: Expression::Binary {
                     lhs: Box::new($lhs),
@@ -406,7 +406,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_ty_alias(&mut self) -> ParserResult<Spanned<TyAlias>> {
         let open_span = self.consume_get_span(&TokenType::TYPE, "Expected 'type' ")?;
 
-        let alias = self.consume_get_ident("Expected an identifier")?;
+        let ident = self.parse_item_name()?;
 
         self.consume(&TokenType::ASSIGN, "Expected '=' ")?;
 
@@ -416,7 +416,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(Spanned {
             span: open_span.to(close_span),
-            value: TyAlias { alias, ty },
+            value: TyAlias { ident, ty },
         })
     }
 
@@ -573,7 +573,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
 
         let close_span =
-            self.consume_get_span(&TokenType::RPAREN, "Expected a '(' after function params")?;
+            self.consume_get_span(&TokenType::RPAREN, "Expected a ')' after function params")?;
 
         Ok(Spanned {
             span: open_span.to(close_span),
@@ -587,6 +587,11 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::I8,
                 span: self.consume_get_span(&TokenType::I8, "Expected an i8")?,
             })
+        } else if self.recognise(TokenType::U8) {
+            Ok(Spanned {
+                value: Ty::U8,
+                span: self.consume_get_span(&TokenType::U8, "Expected an u8")?,
+            })
         } else if self.recognise(TokenType::I32) {
             Ok(Spanned {
                 value: Ty::I32,
@@ -597,19 +602,14 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::I64,
                 span: self.consume_get_span(&TokenType::I64, "Expected an i64")?,
             })
-        } else if self.recognise(TokenType::U8) {
+        } else if self.recognise(TokenType::U32) {
             Ok(Spanned {
-                value: Ty::I8,
-                span: self.consume_get_span(&TokenType::U8, "Expected an u8")?,
-            })
-        } else if self.recognise(TokenType::I32) {
-            Ok(Spanned {
-                value: Ty::I32,
+                value: Ty::U32,
                 span: self.consume_get_span(&TokenType::U32, "Expected an u32")?,
             })
-        } else if self.recognise(TokenType::I64) {
+        } else if self.recognise(TokenType::U64) {
             Ok(Spanned {
-                value: Ty::I64,
+                value: Ty::U64,
                 span: self.consume_get_span(&TokenType::U64, "Expected an u64")?,
             })
         } else if self.recognise(TokenType::BOOL) {
@@ -617,17 +617,52 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::Bool,
                 span: self.consume_get_span(&TokenType::BOOL, "Expected a bool")?,
             })
+        } else if self.recognise(TokenType::STR) {
+            Ok(Spanned {
+                value: Ty::Str,
+                span: self.consume_get_span(&TokenType::STR, "Expected a str")?,
+            })
         } else if self.recognise(TokenType::NIL) {
             Ok(Spanned {
                 value: Ty::Nil,
                 span: self.consume_get_span(&TokenType::NIL, "Expected nil")?,
             })
+        } else if self.recognise(TokenType::FUNCTION) {
+            let open_span = self.consume_get_span(&TokenType::FUNCTION, "Expected 'fn' ")?;
+            self.consume(&TokenType::LPAREN, "Expected a \'(\'")?;
+
+            let mut param_ty = Vec::new();
+
+            if !self.recognise(TokenType::RPAREN) {
+                loop {
+                    param_ty.push(self.parse_type()?);
+
+                    if self.recognise(TokenType::COMMA) {
+                        self.advance();
+                    } else {
+                        break;
+                    }
+                }
+            }
+            let close_span = self.consume_get_span(&TokenType::RPAREN, "Expected  \')\'")?;
+
+            if self.recognise(TokenType::FRETURN) {
+                self.advance();
+                let ty = self.parse_type()?;
+                Ok(Spanned {
+                    span: open_span.to(ty.get_span()),
+                    value: Ty::Func(param_ty, Some(Box::new(ty))),
+                })
+            } else {
+                Ok(Spanned {
+                    span: open_span.to(close_span),
+                    value: Ty::Func(param_ty, None),
+                })
+            }
         } else {
             let ident = self.consume_get_ident("Expected an identifer")?;
 
             let mut types = vec![];
-
-            let mut close_span = None;
 
             if self.recognise(TokenType::LESSTHAN) {
                 self.consume(&TokenType::LESSTHAN, "Expected '<' ")?;
@@ -641,13 +676,18 @@ impl<'a, 'b> Parser<'a, 'b> {
                     }
                 }
 
-                close_span = Some(self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?);
+                Ok(Spanned {
+                    span: ident
+                        .get_span()
+                        .to(self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?),
+                    value: Ty::Poly(ident, types),
+                })
+            } else {
+                Ok(Spanned {
+                    span: ident.get_span().to(ident.get_span()),
+                    value: Ty::Simple(ident),
+                })
             }
-
-            Ok(Spanned {
-                span: ident.get_span().to(close_span.unwrap_or(ident.get_span())),
-                value: Ty::Name(ident, types),
-            })
         }
     }
 
@@ -803,6 +843,18 @@ impl<'a, 'b> Parser<'a, 'b> {
             None
         };
 
+        if self.recognise(TokenType::SEMICOLON) {
+            self.advance();
+            return Ok(Spanned {
+                span: open_span.to(ident.get_span()),
+                value: Statement::Let {
+                    ident,
+                    ty,
+                    expr: None,
+                },
+            });
+        }
+
         self.consume(&TokenType::ASSIGN, "Expected '='")?;
 
         let expr = if self.recognise(TokenType::SEMICOLON) {
@@ -903,9 +955,23 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         use self::TokenType::*;
 
-        binary!(self, OR, lhs, parse_equality);
+        if self.recognise(TokenType::AS) {
+            self.advance();
 
-        Ok(lhs)
+            let ty = self.parse_type()?;
+
+            Ok(Spanned {
+                span: lhs.span.to(ty.get_span()),
+                value: Expression::Cast {
+                    from: Box::new(lhs),
+                    to: ty,
+                },
+            })
+        } else {
+            binary!(self, OR, lhs, parse_equality);
+
+            Ok(lhs)
+        }
     }
 
     fn parse_equality(&mut self) -> ParserResult<Spanned<Expression>> {
@@ -1047,6 +1113,83 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_ident(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
+        } else if self.recognise(TokenType::COLONCOLON) {
+            self.advance();
+
+            let ident_span = ident.get_span();
+            let open_span = self.consume_get_span(&TokenType::LESSTHAN, "Expected '<' ")?;
+
+            let mut types = vec![];
+
+            if !self.recognise(TokenType::GREATERTHAN) {
+                loop {
+                    types.push(self.parse_type()?);
+
+                    if self.recognise(TokenType::COMMA) {
+                        self.advance();
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            let close_span = self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?;
+
+            if self.recognise(TokenType::LBRACE) {
+                let struct_lit = self.parse_struct_lit(ident)?;
+
+                match struct_lit {
+                    Spanned {
+                        value:
+                            Expression::StructLit(Spanned {
+                                value: StructLit::Simple { ident, fields },
+                                ..
+                            }),
+                        ..
+                    } => Ok(Spanned {
+                        value: Expression::StructLit(Spanned {
+                            span: ident_span.to(close_span),
+                            value: StructLit::Instantiation {
+                                tys: Spanned {
+                                    value: types,
+                                    span: open_span.to(close_span),
+                                },
+                                ident,
+                                fields,
+                            },
+                        }),
+                        span: { ident_span.to(close_span) },
+                    }),
+                    _ => unreachable!(),
+                }
+            } else {
+                let call = self.parse_call(ident)?;
+
+                match call {
+                    Spanned {
+                        value:
+                            Expression::Call(Spanned {
+                                value: Call::Simple { args, callee },
+                                ..
+                            }),
+                        ..
+                    } => Ok(Spanned {
+                        value: Expression::Call(Spanned {
+                            span: ident_span.to(close_span),
+                            value: Call::Instantiation {
+                                tys: Spanned {
+                                    value: types,
+                                    span: open_span.to(close_span),
+                                },
+                                callee,
+                                args,
+                            },
+                        }),
+                        span: { ident_span.to(close_span) },
+                    }),
+                    _ => unreachable!(),
+                }
+            }
         } else if self.recognise(TokenType::DOT) {
             self.consume(&TokenType::DOT, "Expected '.' ")?;
 
@@ -1098,7 +1241,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             });
         }
 
-        self.consume(&TokenType::LBRACE, "Expected '}'")?;
+        self.consume(&TokenType::LBRACE, "Expected '{'")?;
 
         let mut fields = vec![];
 
@@ -1127,7 +1270,10 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(Spanned {
             span: ident.get_span().to(close_span),
-            value: Expression::StructLiteral { ident, fields },
+            value: Expression::StructLit(Spanned {
+                span: ident.get_span().to(close_span),
+                value: StructLit::Simple { ident, fields },
+            }),
         })
     }
 
@@ -1150,20 +1296,15 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let close_span = self.consume_get_span(&TokenType::RPAREN, "Expected '(' ")?;
 
-        let callee = Spanned {
-            span: callee.get_span(),
-            value: Expression::Var(Spanned {
-                span: callee.get_span(),
-                value: Var::Simple(callee),
-            }),
-        };
-
         Ok(Spanned {
             span: callee.get_span().to(close_span),
-            value: Expression::Call {
-                callee: Box::new(callee),
-                args,
-            },
+            value: Expression::Call(Spanned {
+                span: callee.get_span(),
+                value: Call::Simple {
+                    callee: callee,
+                    args,
+                },
+            }),
         })
     }
 }

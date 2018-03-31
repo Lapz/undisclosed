@@ -1,23 +1,24 @@
-extern crate underscore_syntax;
-
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
+extern crate underscore_semant;
+extern crate underscore_syntax;
 extern crate underscore_util;
 
-use underscore_util::emitter::Reporter;
-use underscore_util::symbol::{FactoryMap, Table};
-use underscore_syntax::lexer::Lexer;
-use underscore_syntax::parser::Parser;
+use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-use std::io::{self, Write};
+use underscore_semant::{Infer, TypeEnv};
+use underscore_syntax::lexer::Lexer;
+use underscore_syntax::parser::Parser;
+use underscore_util::emitter::Reporter;
+use underscore_util::symbol::{FactoryMap, Table};
 
 fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file);
+        run(file, opts.file);
     } else {
         repl()
     }
@@ -49,7 +50,7 @@ fn repl() {
     }
 }
 
-fn run(path: String) {
+fn run(path: String, dump_file: Option<String>) {
     use std::fs::File;
     use std::io::Read;
 
@@ -66,7 +67,7 @@ fn run(path: String) {
         ::std::process::exit(0)
     }
 
-    let reporter = Reporter::new();
+    let mut reporter = Reporter::new();
 
     let tokens = Lexer::new(&input, reporter.clone()).lex();
 
@@ -76,13 +77,39 @@ fn run(path: String) {
 
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
-    match parser.parse() {
-        Ok(_) => (),
+    let ast = match parser.parse() {
+        Ok(mut ast) => {
+            if dump_file.is_some() {
+                let mut file = File::create(dump_file.unwrap()).expect("Couldn't create file");
+                file.write(ast.fmt().as_bytes())
+                    .expect("Couldn't write to the file");
+            }
+            ast
+        }
         Err(_) => {
             reporter.emit(&input);
             ::std::process::exit(65)
         }
     };
+
+    let infer = Infer::new();
+
+    let mut type_env = TypeEnv::new(&Rc::clone(&strings));
+
+    match infer.infer(&ast, &mut type_env, &mut reporter) {
+        Ok(_) => (),
+        Err(_) => {
+            reporter.emit(&input);
+            ::std::process::exit(65)
+        }
+    }
+
+    // let mut env = TypeEnv::new(reporter.clone());
+
+    // match env.ti(&ast) {
+    //     Ok(()) => (),
+    //     Err(_) => ::std::process::exit(65),
+    // };
 }
 
 #[derive(StructOpt, Debug)]
@@ -90,4 +117,7 @@ fn run(path: String) {
 pub struct Cli {
     /// The source code file
     pub source: Option<String>,
+    /// Dump the ast to a give file
+    #[structopt(short = "d", long = "dump")]
+    pub file: Option<String>,
 }

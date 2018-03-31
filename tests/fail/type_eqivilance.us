@@ -1,0 +1,15 @@
+struct List <T> {
+    val:T,
+    head:nil
+}
+struct List2 <T> {
+    val:T,
+    head:nil
+}
+
+fn main(a:str) -> List<i32> {
+    List2{
+        val:10,
+        head:nil
+    };
+}
