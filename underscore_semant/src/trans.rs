@@ -1,5 +1,5 @@
 use cast_check::*;
-use unify::{Field, TyCon, Type, TypeVar, Unique};
+use types::{Field, TyCon, Type, TypeVar, Unique};
 use unify::{Infer, InferResult};
 use env::{Entry, Env};
 use std::collections::HashMap;

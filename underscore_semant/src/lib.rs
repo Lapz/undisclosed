@@ -5,6 +5,8 @@ mod cast_check;
 mod unify;
 mod env;
 mod trans;
+mod subst;
+mod types;
 
 pub use unify::Infer;
 pub use env::Env as TypeEnv;
