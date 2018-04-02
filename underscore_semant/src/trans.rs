@@ -52,8 +52,8 @@ impl Infer {
                 let mut mappings = HashMap::new();
 
                 let mut ty = match ty {
-                    Entry::Ty(Type::Poly(ref tvars, ref ty)) => match **ty {
-                        Type::App(TyCon::Unique(ref tycon, ref unique), _) => {
+                    Entry::Ty(Type::Poly(ref tvars, ref ty)) => match *ty.clone() {
+                        Type::Unique(TyCon::Struct(mut fields), unique) => {
                             if tvars.is_empty() {
                                 let msg =
                                     format!("Type `{}` is not polymorphic", env.name(ident.value));
@@ -63,21 +63,17 @@ impl Infer {
 
                             // For structs we need to return the substituted types
 
-                            if let TyCon::Struct(mut fields) = *tycon.clone() {
-                                // TODO Remove the clone
-                                for (tvar, ty) in tvars.iter().zip(types) {
-                                    mappings.insert(*tvar, self.trans_ty(ty, env, reporter)?);
-                                } // First create the mappings
+                            // TODO Remove the clone
+                            for (tvar, ty) in tvars.iter().zip(types) {
+                                mappings.insert(*tvar, self.trans_ty(ty, env, reporter)?);
+                            } // First create the mappings
 
-                                for field in fields.iter_mut() {
-                                    let mut ty = self.subst(&field.ty, &mut mappings);
-                                    mem::swap(&mut field.ty, &mut ty);
-                                }
-
-                                TyCon::Unique(Box::new(TyCon::Struct(fields)), *unique)
-                            } else {
-                                *tycon.clone() // TODO Remove the clone
+                            for field in fields.iter_mut() {
+                                let mut ty = self.subst(&field.ty, &mut mappings);
+                                mem::swap(&mut field.ty, &mut ty);
                             }
+
+                            TyCon::Struct(fields)
                         }
                         _ => unreachable!(),
                     },
@@ -139,10 +135,7 @@ impl Infer {
             struct_def.value.name.value.name.value,
             Entry::Ty(Type::Poly(
                 poly_tvs.clone(),
-                Box::new(Type::App(
-                    TyCon::Unique(Box::new(TyCon::Struct(vec![])), None),
-                    vec![],
-                )),
+                Box::new(Type::Unique(TyCon::Struct(vec![]), unique)),
             )),
         );
 
@@ -157,10 +150,7 @@ impl Infer {
             struct_def.value.name.value.name.value,
             Entry::Ty(Type::Poly(
                 poly_tvs.clone(),
-                Box::new(Type::App(
-                    TyCon::Unique(Box::new(TyCon::Struct(type_fields)), Some(unique)),
-                    vec![],
-                )),
+                Box::new(Type::Unique(TyCon::Struct(type_fields), unique)),
             )),
         );
 
@@ -177,10 +167,7 @@ impl Infer {
             struct_def.value.name.value.name.value,
             Entry::Ty(Type::Poly(
                 poly_tvs,
-                Box::new(Type::App(
-                    TyCon::Unique(Box::new(TyCon::Struct(type_fields)), Some(unique)),
-                    vec![],
-                )),
+                Box::new(Type::Unique(TyCon::Struct(type_fields), unique)),
             )),
         );
 
@@ -652,92 +639,23 @@ impl Infer {
                     reporter.error(msg, ident.span);
                     return Err(());
                 };
+                
+            },
+        
 
-                match record {
-                    Entry::Ty(Type::Poly(ref tvars, ref ty)) => match **ty {
-                        Type::App(TyCon::Unique(ref tycon, ref unique), _) => {
-                            if let TyCon::Struct(ref def_fields) = **tycon {
-                                let mut mappings = HashMap::new();
-
-                                for (tvar, field) in tvars.iter().zip(fields) {
-                                    let ty = self.trans_expr(&field.value.expr, env, reporter)?;
-                                    mappings.insert(*tvar, ty);
-                                }
-
-                                let mut instance_fields = Vec::new();
-                                let mut found = false;
-
-                                for (def_ty, lit_expr) in def_fields.iter().zip(fields) {
-                                    if def_ty.name == lit_expr.value.ident.value {
-                                        found = true;
-
-                                        let ty =
-                                            self.trans_expr(&lit_expr.value.expr, env, reporter)?;
-
-                                        self.unify(
-                                            &self.subst(&def_ty.ty, &mut mappings),
-                                            &self.subst(&ty, &mut mappings),
-                                            reporter,
-                                            lit_expr.span,
-                                            env,
-                                        )?;
-
-                                        instance_fields.push(Field {
-                                            name: lit_expr.value.ident.value,
-                                            ty,
-                                        })
-                                    } else {
-                                        found = false;
-                                        let msg = format!(
-                                            "`{}` is not a member of `{}` ",
-                                            env.name(lit_expr.value.ident.value),
-                                            env.name(ident.value)
-                                        );
-                                        reporter.error(msg, lit_expr.value.ident.span);
-                                    }
-                                }
-
-                                if def_fields.len() > fields.len() {
-                                    let msg = format!(
-                                        "Struct `{}` is missing fields",
-                                        env.name(ident.value)
-                                    );
-                                    reporter.error(msg, lit.span);
-                                    return Err(());
-                                } else if def_fields.len() < fields.len() {
-                                    let msg = format!(
-                                        "Struct `{}` has too many fields",
-                                        env.name(ident.value)
-                                    );
-                                    reporter.error(msg, lit.span);
-                                    return Err(());
-                                } else if !found {
-                                    return Err(());
-                                }
-
-                                Ok(Type::App(
-                                    TyCon::Unique(
-                                        Box::new(TyCon::Struct(instance_fields)),
-                                        *unique,
-                                    ),
-                                    vec![],
-                                ))
-                            } else {
-                                let msg = format!("`{}`is not a struct", env.name(ident.value));
-                                reporter.error(msg, ident.span);
-                                Err(())
-                            }
-                        }
-
-                        _ => unimplemented!(),
-                    },
-                    _ => {
-                        let msg = format!("`{}`is not a struct", env.name(ident.value));
-                        reporter.error(msg, ident.span);
-                        Err(())
-                    }
-                }
-            }
+                //         _ => {
+                //             let msg = format!("`{}`is not a struct", env.name(ident.value));
+                //                 reporter.error(msg, ident.span);
+                //                 Err(())
+                //         },
+                //     },
+                //     _ => {
+                //         let msg = format!("`{}`is not a struct", env.name(ident.value));
+                //         reporter.error(msg, ident.span);
+                //         Err(())
+                //     }
+                // }
+            
 
             StructLit::Instantiation {
                 ref ident,
@@ -837,9 +755,8 @@ impl Infer {
                                 }
                             }
 
-                            _ => unimplemented!(),
-                        }
-                    }
+                         
+                    
 
                     _ => {
                         let msg = format!(
@@ -853,6 +770,7 @@ impl Infer {
                 }
             }
         }
+            }
     }
 
     fn trans_var(
@@ -905,3 +823,4 @@ impl Infer {
         }
     }
 }
+    

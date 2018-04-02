@@ -33,6 +33,8 @@ impl Infer {
                 tyvars.iter().map(|_| TypeVar::new()).collect(),
                 Box::new(self.subst(u, substions)),
             ),
+
+            Type::Unique(ref tycon, ref unique) => Type::Unique(tycon.clone(), *unique),
         }
     }
 }

@@ -80,7 +80,7 @@ impl Env {
         );
 
         types.enter(bool_ident, Type::App(TyCon::Bool, vec![]));
-        types.enter(nil_ident, Type::App(TyCon::Void, vec![]));
+        types.enter(nil_ident, Type::Nil);
         types.enter(string_ident, Type::App(TyCon::String, vec![]));
 
         Env {
@@ -101,6 +101,10 @@ impl Env {
 
     pub fn look_type(&self, ident: Ident) -> Option<&Entry> {
         self.types.look(ident)
+    }
+
+    pub fn replace_type(&mut self, ident: Ident, data: Entry) {
+        self.types.replace(ident, data)
     }
 
     pub fn look_var(&self, ident: Ident) -> Option<&Type> {

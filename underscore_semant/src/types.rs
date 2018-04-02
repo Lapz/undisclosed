@@ -16,6 +16,7 @@ pub enum Type {
     App(TyCon, Vec<Type>),
     Var(TypeVar),
     Poly(Vec<TypeVar>, Box<Type>),
+    Unique(TyCon, Unique),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -34,7 +35,7 @@ pub enum TyCon {
     Bool,
     Struct(Vec<Field>),
     Fun(Vec<TypeVar>, Box<Type>),
-    Unique(Box<TyCon>, Option<Unique>),
+    Unique(Box<TyCon>, Unique),
 }
 
 impl Unique {
