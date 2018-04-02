@@ -1,35 +1,15 @@
 use cast_check::*;
 use types::{Field, TyCon, Type, TypeVar, Unique};
-use unify::{Infer, InferResult};
+use super::{Infer, InferResult};
 use env::{Entry, Env};
 use std::collections::HashMap;
 use std::mem;
-use syntax::ast::{Call, Expression, Function, Literal, Op, Program, Sign, Size, Statement, Struct,
+use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, Struct,
                   StructLit, Ty as astType, TyAlias, UnaryOp, Var};
 use util::emitter::Reporter;
 use util::pos::Spanned;
 
 impl Infer {
-    pub fn infer(
-        &self,
-        program: &Program,
-        env: &mut Env,
-        reporter: &mut Reporter,
-    ) -> InferResult<()> {
-        for alias in &program.type_alias {
-            self.trans_alias(alias, env, reporter)?
-        }
-
-        for record in &program.structs {
-            self.trans_struct(record, env, reporter)?
-        }
-
-        for function in &program.functions {
-            self.trans_function(function, env, reporter)?
-        }
-
-        Ok(())
-    }
     pub fn trans_ty(
         &self,
         ty: &Spanned<astType>,
@@ -203,8 +183,6 @@ impl Infer {
                 )),
             )),
         );
-
-       
 
         Ok(())
     }
@@ -583,11 +561,7 @@ impl Infer {
                                 )?;
                             }
 
-                            Ok(self.subst(
-                                fn_types.last().unwrap(),
-                                &mut mappings
-                               
-                            ))
+                            Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
                         }
 
                         _ => unreachable!(),
@@ -638,7 +612,7 @@ impl Infer {
                                     self.unify(
                                         &self.subst(
                                             &self.trans_expr(arg, env, reporter)?,
-                                            &mut mappings
+                                            &mut mappings,
                                         ),
                                         &self.subst(ty, &mut mappings),
                                         reporter,
@@ -647,10 +621,7 @@ impl Infer {
                                     )?;
                                 }
 
-                                Ok(self.subst(
-                                    fn_types.last().unwrap(),
-                                    &mut mappings
-                                ))
+                                Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
                             }
 
                             _ => unreachable!(),
@@ -704,10 +675,7 @@ impl Infer {
                                             self.trans_expr(&lit_expr.value.expr, env, reporter)?;
 
                                         self.unify(
-                                            &self.subst(
-                                                &def_ty.ty,
-                                                &mut mappings
-                                            ),
+                                            &self.subst(&def_ty.ty, &mut mappings),
                                             &self.subst(&ty, &mut mappings),
                                             reporter,
                                             lit_expr.span,
@@ -817,14 +785,8 @@ impl Infer {
                                             let instance_ty =
                                                 self.trans_expr(&expr.value.expr, env, reporter)?;
                                             self.unify(
-                                                &self.subst(
-                                                    &instance_ty,
-                                                    &mut mappings
-                                                ),
-                                                &self.subst(
-                                                    &ty.ty,
-                                                    &mut mappings
-                                                ),
+                                                &self.subst(&instance_ty, &mut mappings),
+                                                &self.subst(&ty.ty, &mut mappings),
                                                 reporter,
                                                 expr.span,
                                                 env,

@@ -1,59 +1,12 @@
 use env::Env;
 use std::collections::HashMap;
-use syntax::ast::Ident;
-use syntax::ast::{Sign, Size};
-use types::{Field, TyCon, Type, TypeVar, Unique};
+
+use types::{TyCon, Type};
 use util::emitter::Reporter;
 use util::pos::Span;
-
-static mut UNIQUE_COUNT: u32 = 0;
-
-static mut TYPEVAR_COUNT: u32 = 0;
-
-pub type InferResult<T> = Result<T, ()>;
-
-
-
-#[derive(Debug, Default)]
-pub struct Infer {}
+use super::{Infer, InferResult};
 
 impl Infer {
-    pub fn new() -> Self {
-        Self::default()
-    }
-    /// Deals with the subsitution of type variables
-    pub fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
-        match *ty {
-            Type::Var(ref tvar) => {
-                if let Some(ty) = substions.get(tvar) {
-                    ty.clone()
-                } else {
-                    Type::Var(*tvar)
-                }
-            }
-
-            Type::Nil => Type::Nil,
-
-            Type::App(TyCon::Fun(ref tvars, ref returns), ref types) => {
-                for (tvar, ty) in tvars.iter().zip(types.iter()) {
-                    substions.insert(*tvar, ty.clone());
-                }
-
-                self.subst(&self.subst(returns, substions), substions)
-            }
-
-            Type::App(ref tycon, ref types) => Type::App(
-                tycon.clone(),
-                types.iter().map(|ty| self.subst(ty, substions)).collect(),
-            ),
-
-            Type::Poly(ref tyvars, ref u) => Type::Poly(
-                tyvars.iter().map(|_| TypeVar::new()).collect(),
-                Box::new(self.subst(u, substions)),
-            ),
-        }
-    }
-
     pub fn unify(
         &self,
         lhs: &Type,
@@ -67,45 +20,37 @@ impl Infer {
                 &Type::App(TyCon::Unique(_, ref z1), ref types1),
                 &Type::App(TyCon::Unique(_, ref z2), ref types2),
             ) => {
-
                 if z1 != z2 {
                     let msg = format!("Cannot unify {:?} vs {:?}", z1, z2);
                     reporter.error(msg, span);
                     return Err(());
                 }
-            
 
                 for (a, b) in types1.iter().zip(types2.iter()) {
                     self.unify(a, b, reporter, span, env)?
                 }
-                
+
                 Ok(())
-            } 
+            }
 
-            
-
-            (&Type::App(TyCon::Void,_),&Type::App(TyCon::Struct(_),_)) => Ok(()),
-            (&Type::App(TyCon::Struct(_),_),&Type::App(TyCon::Void,_),) => Ok(()),
-
-
+            (&Type::App(TyCon::Void, _), &Type::App(TyCon::Struct(_), _)) => Ok(()),
+            (&Type::App(TyCon::Struct(_), _), &Type::App(TyCon::Void, _)) => Ok(()),
 
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
-                match (&*tycon1,&*tycon2) {
-                    (&TyCon::Void,&TyCon::Unique(ref tycon,_)) | (&TyCon::Unique(ref tycon,_),  &TyCon::Void)=> {
-                        if let &TyCon::Struct(_) =  &**tycon {
+                match (&*tycon1, &*tycon2) {
+                    (&TyCon::Void, &TyCon::Unique(ref tycon, _))
+                    | (&TyCon::Unique(ref tycon, _), &TyCon::Void) => {
+                        if let &TyCon::Struct(_) = &**tycon {
                             ()
                         }
-                    },
-                    _  => {
-                       if tycon1 != tycon2 {
-                            let msg = format!("Cannot unify {:?} vs {:?}", tycon1, tycon2);
-                    reporter.error(msg, span);
-                    return Err(());
-                       }
-
-                       
                     }
-
+                    _ => {
+                        if tycon1 != tycon2 {
+                            let msg = format!("Cannot unify {:?} vs {:?}", tycon1, tycon2);
+                            reporter.error(msg, span);
+                            return Err(());
+                        }
+                    }
                 }
 
                 for (a, b) in types1.iter().zip(types2.iter()) {

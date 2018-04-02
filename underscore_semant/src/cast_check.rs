@@ -1,4 +1,5 @@
-use unify::{InferResult, TyCon, Type};
+use super::InferResult;
+use types::{TyCon, Type};
 
 pub fn cast_check(expr: &Type, to: &Type) -> InferResult<()> {
     match *to {

@@ -1,6 +1,11 @@
+use syntax::ast::{Ident, Sign, Size};
+
+static mut UNIQUE_COUNT: u32 = 0;
+
+static mut TYPEVAR_COUNT: u32 = 0;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TypeVar(pub u32);
-
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Unique(pub u32);
