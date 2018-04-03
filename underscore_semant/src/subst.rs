@@ -1,6 +1,6 @@
 use super::Infer;
-use types::{TyCon, Type, TypeVar};
 use std::collections::HashMap;
+use types::{TyCon, Type, TypeVar,Field};
 
 impl Infer {
     /// Deals with the subsitution of type variables
@@ -22,19 +22,31 @@ impl Infer {
                 }
 
                 self.subst(&self.subst(returns, substions), substions)
+            },
+            Type::App(ref tycon,ref types) => {
+                Type::App(
+                    tycon.clone(),
+                    types.iter().map(|ty| self.subst(ty, substions)).collect(),
+                    )
             }
 
-            Type::App(ref tycon, ref types) => Type::App(
-                tycon.clone(),
-                types.iter().map(|ty| self.subst(ty, substions)).collect(),
-            ),
+            Type::Struct(ref name,ref fields,ref unique) => {
+                 let mut new_fields = Vec::new();
+
+                    for field in fields {
+                        new_fields.push(Field{
+                            name:field.name,
+                            ty:self.subst(&field.ty,substions)
+                        });
+                    }
+
+                    Type::Struct(*name,new_fields,*unique)
+            } 
 
             Type::Poly(ref tyvars, ref u) => Type::Poly(
                 tyvars.iter().map(|_| TypeVar::new()).collect(),
                 Box::new(self.subst(u, substions)),
             ),
-
-            Type::Unique(ref tycon, ref unique) => Type::Unique(tycon.clone(), *unique),
         }
     }
 }

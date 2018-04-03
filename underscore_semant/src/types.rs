@@ -16,7 +16,7 @@ pub enum Type {
     App(TyCon, Vec<Type>),
     Var(TypeVar),
     Poly(Vec<TypeVar>, Box<Type>),
-    Unique(TyCon, Unique),
+    Struct(Ident,Vec<Field>,Unique), // Name, Fields, Unique
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -35,7 +35,6 @@ pub enum TyCon {
     Bool,
     Struct(Vec<Field>),
     Fun(Vec<TypeVar>, Box<Type>),
-    Unique(Box<TyCon>, Unique),
 }
 
 impl Unique {
@@ -51,5 +50,14 @@ impl TypeVar {
         let value = unsafe { TYPEVAR_COUNT };
         unsafe { TYPEVAR_COUNT += 1 };
         TypeVar(value)
+    }
+}
+
+impl Type {
+    pub fn is_int(&self) -> bool {
+        match *self {
+            Type::App(TyCon::Int(_, _), _) => true,
+            _ => false,
+        }
     }
 }

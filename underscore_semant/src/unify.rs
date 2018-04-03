@@ -1,10 +1,10 @@
 use env::Env;
 use std::collections::HashMap;
 
+use super::{Infer, InferResult};
 use types::{TyCon, Type};
 use util::emitter::Reporter;
 use util::pos::Span;
-use super::{Infer, InferResult};
 
 impl Infer {
     pub fn unify(
@@ -16,31 +16,30 @@ impl Infer {
         env: &mut Env,
     ) -> InferResult<()> {
         match (lhs, rhs) {
-            (
-                &Type::App(TyCon::Unique(ref tycon1, ref z1), ref types1),
-                &Type::App(TyCon::Unique(ref tycon2, ref z2), ref types2),
-            ) => {
-                if z1 != z2 {
-                    let msg = format!("Cannot unify {:?} vs {:?}", z1, z2);
+
+
+            (&Type::Struct(ref name1,ref fields1,ref unique1),&Type::Struct(ref name2,ref fields2,ref unique2)) => {
+
+                if unique1 != unique2 {
+                    let msg = format!("Struct `{}` != Struct `{}`",env.name(*name1),env.name(*name2));
+
                     reporter.error(msg, span);
-                    return Err(());
+                    return Err(())
                 }
 
-                if tycon1 != tycon2 {
-                    let msg = format!("Cannot unify {:?} vs {:?}", tycon1, tycon2);
-                    reporter.error(msg, span);
-                    return Err(());
-                }
 
-                for (a, b) in types1.iter().zip(types2.iter()) {
-                    self.unify(a, b, reporter, span, env)?
+                for (field1,field2) in fields1.iter().zip(fields2) {
+                    self.unify(&field1.ty,&field2.ty,reporter,span,env)?;
                 }
 
                 Ok(())
             }
+          
 
-            (&Type::App(TyCon::Void, _), &Type::App(TyCon::Struct(_), _)) => Ok(()),
-            (&Type::App(TyCon::Struct(_), _), &Type::App(TyCon::Void, _)) => Ok(()),
+            
+
+            (&Type::Struct(_,_, _), &Type::App(TyCon::Struct(_), _)) => Ok(()),
+            (&Type::Struct(_,_, _), &Type::App(TyCon::Void, _)) => Ok(()),
 
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
                 if tycon1 != tycon2 {
@@ -105,34 +104,6 @@ impl Infer {
                 reporter.error(msg, span);
                 Err(())
             }
-        }
-    }
-
-    pub fn expand(&self, ty: Type, env: &mut Env) -> Type {
-        match ty {
-            Type::App(TyCon::Fun(vars, ret), types) => {
-                let mut mappings = HashMap::new();
-
-                for (var, ty) in vars.iter().zip(types) {
-                    mappings.insert(*var, ty.clone());
-                }
-
-                let ty = self.subst(&ret, &mut mappings);
-
-                self.expand(ty, env)
-            }
-
-            Type::App(TyCon::Unique(tycon, _), types) => self.expand(Type::App(*tycon, types), env),
-            u => u,
-        }
-    }
-}
-
-impl Type {
-    pub fn is_int(&self) -> bool {
-        match *self {
-            Type::App(TyCon::Int(_, _), _) => true,
-            _ => false,
         }
     }
 }
