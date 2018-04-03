@@ -3,7 +3,7 @@ struct List<T> {
     body:List<T>
 }
 
-fn main() -> List<i32> {
+fn main() {
     let list = List {
         head:10,
         body:nil

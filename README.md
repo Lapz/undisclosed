@@ -39,9 +39,9 @@ struct List<T> {
 ```
 
 # TODO
-[ ] Add support for recursive types
-[ ] Add proper printing of types
-[ ] 
+* ~~Add support for recursive types~~
+* Add proper printing of types
+* Add codegen 
 # References
 
 * [rust](https://github.com/rust-lang/rust)
