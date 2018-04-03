@@ -182,30 +182,30 @@
         <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Env</span>,
     ) <span class="op">-&gt;</span> <span class="ident">InferResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> (<span class="ident">lhs</span>, <span class="ident">rhs</span>) {
-
-
-            (<span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">Struct</span>(<span class="kw-2">ref</span> <span class="ident">name1</span>,<span class="kw-2">ref</span> <span class="ident">fields1</span>,<span class="kw-2">ref</span> <span class="ident">unique1</span>),<span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">Struct</span>(<span class="kw-2">ref</span> <span class="ident">name2</span>,<span class="kw-2">ref</span> <span class="ident">fields2</span>,<span class="kw-2">ref</span> <span class="ident">unique2</span>)) <span class="op">=&gt;</span> {
-
+            (
+                <span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">Struct</span>(<span class="kw-2">ref</span> <span class="ident">name1</span>, <span class="kw-2">ref</span> <span class="ident">fields1</span>, <span class="kw-2">ref</span> <span class="ident">unique1</span>),
+                <span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">Struct</span>(<span class="kw-2">ref</span> <span class="ident">name2</span>, <span class="kw-2">ref</span> <span class="ident">fields2</span>, <span class="kw-2">ref</span> <span class="ident">unique2</span>),
+            ) <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="ident">unique1</span> <span class="op">!=</span> <span class="ident">unique2</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Struct `{}` != Struct `{}`&quot;</span>,<span class="ident">env</span>.<span class="ident">name</span>(<span class="kw-2">*</span><span class="ident">name1</span>),<span class="ident">env</span>.<span class="ident">name</span>(<span class="kw-2">*</span><span class="ident">name2</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(
+                        <span class="string">&quot;Struct `{}` != Struct `{}`&quot;</span>,
+                        <span class="ident">env</span>.<span class="ident">name</span>(<span class="kw-2">*</span><span class="ident">name1</span>),
+                        <span class="ident">env</span>.<span class="ident">name</span>(<span class="kw-2">*</span><span class="ident">name2</span>)
+                    );
 
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">span</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(())
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 }
 
-
-                <span class="kw">for</span> (<span class="ident">field1</span>,<span class="ident">field2</span>) <span class="kw">in</span> <span class="ident">fields1</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">fields2</span>) {
-                    <span class="self">self</span>.<span class="ident">unify</span>(<span class="kw-2">&amp;</span><span class="ident">field1</span>.<span class="ident">ty</span>,<span class="kw-2">&amp;</span><span class="ident">field2</span>.<span class="ident">ty</span>,<span class="ident">reporter</span>,<span class="ident">span</span>,<span class="ident">env</span>)<span class="question-mark">?</span>;
+                <span class="kw">for</span> (<span class="ident">field1</span>, <span class="ident">field2</span>) <span class="kw">in</span> <span class="ident">fields1</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">fields2</span>) {
+                    <span class="self">self</span>.<span class="ident">unify</span>(<span class="kw-2">&amp;</span><span class="ident">field1</span>.<span class="ident">ty</span>, <span class="kw-2">&amp;</span><span class="ident">field2</span>.<span class="ident">ty</span>, <span class="ident">reporter</span>, <span class="ident">span</span>, <span class="ident">env</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="prelude-val">Ok</span>(())
             }
-          
 
-            
-
-            (<span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">Struct</span>(_,_, _), <span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Struct</span>(_), _)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
-            (<span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">Struct</span>(_,_, _), <span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Void</span>, _)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
+            (<span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">Struct</span>(_, _, _), <span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Struct</span>(_), _)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
+            (<span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">Struct</span>(_, _, _), <span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Void</span>, _)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
 
             (<span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">App</span>(<span class="kw-2">ref</span> <span class="ident">tycon1</span>, <span class="kw-2">ref</span> <span class="ident">types1</span>), <span class="kw-2">&amp;</span><span class="ident">Type</span>::<span class="ident">App</span>(<span class="kw-2">ref</span> <span class="ident">tycon2</span>, <span class="kw-2">ref</span> <span class="ident">types2</span>)) <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="ident">tycon1</span> <span class="op">!=</span> <span class="ident">tycon2</span> {
