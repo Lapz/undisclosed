@@ -517,7 +517,6 @@
 <span id="461">461</span>
 <span id="462">462</span>
 <span id="463">463</span>
-<span id="464">464</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">Number</span>, <span class="ident">Sign</span>, <span class="ident">Size</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
@@ -556,13 +555,13 @@
 <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LexerError</span> {
     <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">LexerError</span>::<span class="ident">UnclosedString</span> <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Unclosed string&quot;</span>),
-            <span class="ident">LexerError</span>::<span class="ident">UnclosedChar</span> <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Unclosed char literal&quot;</span>),
-            <span class="ident">LexerError</span>::<span class="ident">InvalidCharLit</span> <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Invalid escape sequence&quot;</span>),
-            <span class="ident">LexerError</span>::<span class="ident">EmptyCharLit</span> <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Empty char literal&quot;</span>),
-            <span class="ident">LexerError</span>::<span class="ident">EOF</span> <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Unexpected EOF&quot;</span>),
+            <span class="ident">LexerError</span>::<span class="ident">UnclosedString</span> <span class="op">=&gt;</span> <span class="string">&quot;Unclosed string&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">LexerError</span>::<span class="ident">UnclosedChar</span> <span class="op">=&gt;</span> <span class="string">&quot;Unclosed char literal&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">LexerError</span>::<span class="ident">InvalidCharLit</span> <span class="op">=&gt;</span> <span class="string">&quot;Invalid escape sequence&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">LexerError</span>::<span class="ident">EmptyCharLit</span> <span class="op">=&gt;</span> <span class="string">&quot;Empty char literal&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">LexerError</span>::<span class="ident">EOF</span> <span class="op">=&gt;</span> <span class="string">&quot;Unexpected EOF&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">LexerError</span>::<span class="ident">InvalidNumberTy</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Invalid number suffix &#39;{}&#39; &quot;</span>, <span class="ident">e</span>),
-            <span class="ident">LexerError</span>::<span class="ident">UnclosedBlockComment</span> <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Unclosed block comment&quot;</span>),
+            <span class="ident">LexerError</span>::<span class="ident">UnclosedBlockComment</span> <span class="op">=&gt;</span> <span class="string">&quot;Unclosed block comment&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">LexerError</span>::<span class="ident">Unexpected</span>(<span class="kw-2">ref</span> <span class="ident">c</span>, _) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Unexpected char &#39;{}&#39; &quot;</span>, <span class="ident">c</span>),
         }
     }
@@ -584,11 +583,11 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">CharPosition</span>::<span class="ident">new</span>(<span class="ident">input</span>);
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">pos</span>;
         <span class="ident">Lexer</span> {
-            <span class="ident">input</span>: <span class="ident">input</span>,
-            <span class="ident">end</span>: <span class="ident">end</span>,
+            <span class="ident">input</span>,
+            <span class="ident">end</span>,
             <span class="ident">reporter</span>,
             <span class="ident">lookahead</span>: <span class="ident">chars</span>.<span class="ident">next</span>(),
-            <span class="ident">chars</span>: <span class="ident">chars</span>,
+            <span class="ident">chars</span>,
         }
     }
 
@@ -912,10 +911,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tokens</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
 
-        <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">lookahead</span>.<span class="ident">is_none</span>() {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=&gt;</span> <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">token</span>),
-                _ <span class="op">=&gt;</span> (),
+        <span class="kw">while</span> <span class="self">self</span>.<span class="ident">lookahead</span>.<span class="ident">is_some</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>() {
+                <span class="ident">tokens</span>.<span class="ident">push</span>(<span class="ident">token</span>);
             }
         }
 
