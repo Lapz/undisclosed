@@ -16,7 +16,7 @@ pub enum Type {
     App(TyCon, Vec<Type>),
     Var(TypeVar),
     Poly(Vec<TypeVar>, Box<Type>),
-    Struct(Ident,Vec<Field>,Unique), // Name, Fields, Unique
+    Struct(Ident, Vec<Field>, Unique), // Name, Fields, Unique
 }
 
 #[derive(Debug, Clone, PartialEq)]

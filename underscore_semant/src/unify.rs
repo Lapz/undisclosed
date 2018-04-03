@@ -16,30 +16,30 @@ impl Infer {
         env: &mut Env,
     ) -> InferResult<()> {
         match (lhs, rhs) {
-
-
-            (&Type::Struct(ref name1,ref fields1,ref unique1),&Type::Struct(ref name2,ref fields2,ref unique2)) => {
-
+            (
+                &Type::Struct(ref name1, ref fields1, ref unique1),
+                &Type::Struct(ref name2, ref fields2, ref unique2),
+            ) => {
                 if unique1 != unique2 {
-                    let msg = format!("Struct `{}` != Struct `{}`",env.name(*name1),env.name(*name2));
+                    let msg = format!(
+                        "Struct `{}` != Struct `{}`",
+                        env.name(*name1),
+                        env.name(*name2)
+                    );
 
                     reporter.error(msg, span);
-                    return Err(())
+                    return Err(());
                 }
 
-
-                for (field1,field2) in fields1.iter().zip(fields2) {
-                    self.unify(&field1.ty,&field2.ty,reporter,span,env)?;
+                for (field1, field2) in fields1.iter().zip(fields2) {
+                    self.unify(&field1.ty, &field2.ty, reporter, span, env)?;
                 }
 
                 Ok(())
             }
-          
 
-            
-
-            (&Type::Struct(_,_, _), &Type::App(TyCon::Struct(_), _)) => Ok(()),
-            (&Type::Struct(_,_, _), &Type::App(TyCon::Void, _)) => Ok(()),
+            (&Type::Struct(_, _, _), &Type::App(TyCon::Struct(_), _)) => Ok(()),
+            (&Type::Struct(_, _, _), &Type::App(TyCon::Void, _)) => Ok(()),
 
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
                 if tycon1 != tycon2 {
