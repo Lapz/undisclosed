@@ -1195,19 +1195,19 @@ impl<'a, 'b> Parser<'a, 'b> {
 
             let value = self.consume_get_ident("Expected an Identifer")?;
 
-            return Ok(Spanned {
+           Ok(Spanned {
                 span: ident.get_span().to(value.get_span()),
                 value: Expression::Var(Spanned {
                     span: ident.get_span().to(value.get_span()),
                     value: Var::Field { ident, value },
                 }),
-            });
+            })
         } else if self.recognise(TokenType::LBRACKET) {
             self.consume(&TokenType::LBRACKET, "Expected '[' ")?;
             let expr = Box::new(self.parse_expression()?);
             let close_span = self.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
 
-            return Ok(Spanned {
+            Ok(Spanned {
                 span: ident.get_span().to(close_span),
                 value: Expression::Var(Spanned {
                     span: ident.get_span().to(close_span),
@@ -1216,17 +1216,17 @@ impl<'a, 'b> Parser<'a, 'b> {
                         target: ident,
                     },
                 }),
-            });
+            })
         } else if self.recognise(TokenType::LBRACE) {
             self.parse_struct_lit(ident)
         } else {
-            return Ok(Spanned {
+            Ok(Spanned {
                 span: ident.get_span(),
                 value: Expression::Var(Spanned {
                     span: ident.get_span(),
                     value: Var::Simple(ident),
                 }),
-            });
+            })
         }
     }
 
@@ -1301,7 +1301,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             value: Expression::Call(Spanned {
                 span: callee.get_span(),
                 value: Call::Simple {
-                    callee: callee,
+                    callee,
                     args,
                 },
             }),
