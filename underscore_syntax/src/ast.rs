@@ -13,7 +13,7 @@ impl Program {
     }
 }
 
-#[derive(Hash, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Hash, Debug, Copy, Clone, PartialEq, Eq,Default)]
 pub struct Ident(pub u32);
 #[derive(Debug)]
 pub struct ItemName {

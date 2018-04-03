@@ -28,9 +28,9 @@ impl Infer {
             astType::I64 => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit64), vec![])),
             astType::Simple(ref ident) => {
                 if let Some(ty) = env.look_type(ident.value) {
-                    match ty {
-                        &Entry::Ty(ref ty) => match ty {
-                            &Type::Poly(ref tvars, ref ret) => {
+                    match *ty {
+                        Entry::Ty(ref ty) => match *ty {
+                            Type::Poly(ref tvars, ref ret) => {
                                 if !tvars.is_empty() {
                                     let msg = format!(
                                         "Type `{}` is polymorphic,Type arguments missing",
@@ -80,7 +80,7 @@ impl Infer {
                                 mappings.insert(*tvar, self.trans_ty(ty, env, reporter)?);
                             } // First create the mappings
 
-                            for field in fields.iter_mut() {
+                            for field in &mut fields {
                                 let mut ty = self.subst(&field.ty, &mut mappings);
 
                                 mem::swap(&mut field.ty, &mut ty);
@@ -93,7 +93,7 @@ impl Infer {
                     _ => {
                         let msg = format!("Type `{}` is not polymorphic", env.name(ident.value));
                         reporter.error(msg, ident.span);
-                        return Err(());
+                        Err(())
                     }
                 }
             }

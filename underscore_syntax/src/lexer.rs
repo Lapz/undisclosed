@@ -35,13 +35,13 @@ impl Display for LexerError {
 impl Into<String> for LexerError {
     fn into(self) -> String {
         match self {
-            LexerError::UnclosedString => format!("Unclosed string"),
-            LexerError::UnclosedChar => format!("Unclosed char literal"),
-            LexerError::InvalidCharLit => format!("Invalid escape sequence"),
-            LexerError::EmptyCharLit => format!("Empty char literal"),
-            LexerError::EOF => format!("Unexpected EOF"),
+            LexerError::UnclosedString => "Unclosed string".to_string(),
+            LexerError::UnclosedChar => "Unclosed char literal".to_string(),
+            LexerError::InvalidCharLit => "Invalid escape sequence".to_string(),
+            LexerError::EmptyCharLit => "Empty char literal".to_string(),
+            LexerError::EOF => "Unexpected EOF".to_string(),
             LexerError::InvalidNumberTy(ref e) => format!("Invalid number suffix '{}' ", e),
-            LexerError::UnclosedBlockComment => format!("Unclosed block comment"),
+            LexerError::UnclosedBlockComment => "Unclosed block comment".to_string(),
             LexerError::Unexpected(ref c, _) => format!("Unexpected char '{}' ", c),
         }
     }
@@ -63,11 +63,11 @@ impl<'a> Lexer<'a> {
         let mut chars = CharPosition::new(input);
         let end = chars.pos;
         Lexer {
-            input: input,
-            end: end,
+            input,
+            end,
             reporter,
             lookahead: chars.next(),
-            chars: chars,
+            chars,
         }
     }
 
@@ -391,10 +391,9 @@ impl<'a> Lexer<'a> {
     pub fn lex(&mut self) -> Vec<Spanned<Token<'a>>> {
         let mut tokens = vec![];
 
-        while !self.lookahead.is_none() {
-            match self.next() {
-                Some(token) => tokens.push(token),
-                _ => (),
+        while self.lookahead.is_some() {
+            if let Some(token) = self.next() {
+                tokens.push(token);
             }
         }
 
