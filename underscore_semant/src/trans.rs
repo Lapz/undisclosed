@@ -1,35 +1,15 @@
 use cast_check::*;
-use semant::{Field, TyCon, Type, TypeVar, Unique};
-use semant::{Infer, InferResult};
+use types::{Field, TyCon, Type, TypeVar, Unique};
+use super::{Infer, InferResult};
 use env::{Entry, Env};
 use std::collections::HashMap;
 use std::mem;
-use syntax::ast::{Call, Expression, Function, Literal, Op, Program, Sign, Size, Statement, Struct,
+use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, Struct,
                   StructLit, Ty as astType, TyAlias, UnaryOp, Var};
 use util::emitter::Reporter;
 use util::pos::Spanned;
 
 impl Infer {
-    pub fn infer(
-        &self,
-        program: &Program,
-        env: &mut Env,
-        reporter: &mut Reporter,
-    ) -> InferResult<()> {
-        for alias in &program.type_alias {
-            self.trans_alias(alias, env, reporter)?
-        }
-
-        for record in &program.structs {
-            self.trans_struct(record, env, reporter)?
-        }
-
-        for function in &program.functions {
-            self.trans_function(function, env, reporter)?
-        }
-
-        Ok(())
-    }
     pub fn trans_ty(
         &self,
         ty: &Spanned<astType>,
@@ -69,11 +49,9 @@ impl Infer {
                     return Err(());
                 };
 
-                let mut mappings = HashMap::new();
-
-                let mut ty = match ty {
-                    Entry::Ty(Type::Poly(ref tvars, ref ty)) => match **ty {
-                        Type::App(TyCon::Unique(ref tycon, ref unique), _) => {
+                match ty {
+                    Entry::Ty(Type::Poly(ref tvars, ref ty)) => match *ty.clone() {
+                        Type::Struct(_,mut fields,unique) => {
                             if tvars.is_empty() {
                                 let msg =
                                     format!("Type `{}` is not polymorphic", env.name(ident.value));
@@ -81,23 +59,27 @@ impl Infer {
                                 return Err(());
                             }
 
-                            // For structs we need to return the substituted types
+                            let mut mappings = HashMap::new();
 
-                            if let TyCon::Struct(mut fields) = *tycon.clone() {
-                                // TODO Remove the clone
-                                for (tvar, ty) in tvars.iter().zip(types) {
+                            for (tvar, ty) in tvars.iter().zip(types) {
                                     mappings.insert(*tvar, self.trans_ty(ty, env, reporter)?);
                                 } // First create the mappings
 
-                                for field in fields.iter_mut() {
+                            
+                            for field in fields.iter_mut() {
                                     let mut ty = self.subst(&field.ty, &mut mappings);
-                                    mem::swap(&mut field.ty, &mut ty);
-                                }
 
-                                TyCon::Unique(Box::new(TyCon::Struct(fields)), *unique)
-                            } else {
-                                *tycon.clone() // TODO Remove the clone
+                                    println!("{:?}",ty );
+                                    mem::swap(&mut field.ty, &mut ty);
                             }
+
+
+                            Ok(Type::Struct(ident.value,fields,unique))
+
+
+
+                            // For structs we need to return the substituted types
+
                         }
                         _ => unreachable!(),
                     },
@@ -106,15 +88,7 @@ impl Infer {
                         reporter.error(msg, ident.span);
                         return Err(());
                     }
-                };
-
-                let mut trans_types = Vec::new();
-
-                for ty in types {
-                    trans_types.push(self.trans_ty(ty, env, reporter)?)
                 }
-
-                Ok(Type::App(ty, trans_types))
             }
 
             astType::Func(ref param_types, ref returns) => {
@@ -153,6 +127,33 @@ impl Infer {
 
         let mut type_fields = Vec::with_capacity(struct_def.value.fields.value.len());
 
+        let unique = Unique::new();
+
+        env.add_type(
+            struct_def.value.name.value.name.value,
+            Entry::Ty(Type::Poly(
+                poly_tvs.clone(),
+                Box::new(Type::Struct(struct_def.value.name.value.name.value,vec![],unique)),
+            )),
+        );
+
+        for field in &struct_def.value.fields.value {
+            type_fields.push(Field {
+                name: field.value.name.value,
+                ty: self.trans_ty(&field.value.ty, env, reporter)?,
+            });
+        }
+
+        env.add_type(
+            struct_def.value.name.value.name.value,
+            Entry::Ty(Type::Poly(
+                poly_tvs.clone(),
+                Box::new(Type::Struct(struct_def.value.name.value.name.value,type_fields,unique)),
+            )),
+        );
+
+        let mut type_fields = Vec::with_capacity(struct_def.value.fields.value.len());
+
         for field in &struct_def.value.fields.value {
             type_fields.push(Field {
                 name: field.value.name.value,
@@ -164,10 +165,7 @@ impl Infer {
             struct_def.value.name.value.name.value,
             Entry::Ty(Type::Poly(
                 poly_tvs,
-                Box::new(Type::App(
-                    TyCon::Unique(Box::new(TyCon::Struct(type_fields)), Unique::new()),
-                    vec![],
-                )),
+                Box::new(Type::Struct(struct_def.value.name.value.name.value,type_fields,unique)),
             )),
         );
 
@@ -548,11 +546,7 @@ impl Infer {
                                 )?;
                             }
 
-                            Ok(self.subst(
-                                fn_types.last().unwrap(),
-                                &mut mappings
-                               
-                            ))
+                            Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
                         }
 
                         _ => unreachable!(),
@@ -603,7 +597,7 @@ impl Infer {
                                     self.unify(
                                         &self.subst(
                                             &self.trans_expr(arg, env, reporter)?,
-                                            &mut mappings
+                                            &mut mappings,
                                         ),
                                         &self.subst(ty, &mut mappings),
                                         reporter,
@@ -612,10 +606,7 @@ impl Infer {
                                     )?;
                                 }
 
-                                Ok(self.subst(
-                                    fn_types.last().unwrap(),
-                                    &mut mappings
-                                ))
+                                Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
                             }
 
                             _ => unreachable!(),
@@ -649,8 +640,11 @@ impl Infer {
 
                 match record {
                     Entry::Ty(Type::Poly(ref tvars, ref ty)) => match **ty {
-                        Type::App(TyCon::Unique(ref tycon, ref unique), _) => {
-                            if let TyCon::Struct(ref def_fields) = **tycon {
+
+                        Type::Struct(_,ref def_fields,ref unique) => {
+
+
+                           
                                 let mut mappings = HashMap::new();
 
                                 for (tvar, field) in tvars.iter().zip(fields) {
@@ -669,10 +663,7 @@ impl Infer {
                                             self.trans_expr(&lit_expr.value.expr, env, reporter)?;
 
                                         self.unify(
-                                            &self.subst(
-                                                &def_ty.ty,
-                                                &mut mappings
-                                            ),
+                                            &self.subst(&def_ty.ty, &mut mappings),
                                             &self.subst(&ty, &mut mappings),
                                             reporter,
                                             lit_expr.span,
@@ -696,14 +687,14 @@ impl Infer {
 
                                 if def_fields.len() > fields.len() {
                                     let msg = format!(
-                                        "Struct {} is missing fields",
+                                        "Struct `{}` is missing fields",
                                         env.name(ident.value)
                                     );
                                     reporter.error(msg, lit.span);
                                     return Err(());
                                 } else if def_fields.len() < fields.len() {
                                     let msg = format!(
-                                        "Struct {} has too many fields",
+                                        "Struct `{}` has too many fields",
                                         env.name(ident.value)
                                     );
                                     reporter.error(msg, lit.span);
@@ -712,22 +703,12 @@ impl Infer {
                                     return Err(());
                                 }
 
-                                Ok(Type::App(
-                                    TyCon::Unique(
-                                        Box::new(TyCon::Struct(instance_fields)),
-                                        *unique,
-                                    ),
-                                    vec![],
-                                ))
-                            } else {
-                                let msg = format!("`{}`is not a struct", env.name(ident.value));
-                                reporter.error(msg, ident.span);
-                                Err(())
-                            }
+                                Ok(Type::Struct(ident.value,instance_fields,*unique))
+                                  
                         }
-
-                        _ => unimplemented!(),
+                        _ => unreachable!(),
                     },
+
                     _ => {
                         let msg = format!("`{}`is not a struct", env.name(ident.value));
                         reporter.error(msg, ident.span);
@@ -770,8 +751,8 @@ impl Infer {
                         }
 
                         match **ret {
-                            Type::App(TyCon::Unique(ref ty, ref unique), _) => {
-                                if let TyCon::Struct(ref type_fields) = **ty {
+                            Type::Struct(_,ref type_fields,ref unique,) => {
+                                
                                     let mut instance_fields = Vec::new();
 
                                     let mut found = false;
@@ -782,14 +763,8 @@ impl Infer {
                                             let instance_ty =
                                                 self.trans_expr(&expr.value.expr, env, reporter)?;
                                             self.unify(
-                                                &self.subst(
-                                                    &instance_ty,
-                                                    &mut mappings
-                                                ),
-                                                &self.subst(
-                                                    &ty.ty,
-                                                    &mut mappings
-                                                ),
+                                                &self.subst(&instance_ty, &mut mappings),
+                                                &self.subst(&ty.ty, &mut mappings),
                                                 reporter,
                                                 expr.span,
                                                 env,
@@ -812,14 +787,14 @@ impl Infer {
 
                                     if type_fields.len() > fields.len() {
                                         let msg = format!(
-                                            "Struct {} is missing fields",
+                                            "Struct `{}` is missing fields",
                                             env.name(ident.value)
                                         );
                                         reporter.error(msg, lit.span);
                                         return Err(());
                                     } else if type_fields.len() < fields.len() {
                                         let msg = format!(
-                                            "Struct {} has too many fields",
+                                            "Struct `{}` has too many fields",
                                             env.name(ident.value)
                                         );
                                         reporter.error(msg, lit.span);
@@ -828,22 +803,13 @@ impl Infer {
                                         return Err(());
                                     }
 
-                                    Ok(Type::App(
-                                        TyCon::Unique(
-                                            Box::new(TyCon::Struct(instance_fields)),
-                                            *unique,
-                                        ),
-                                        vec![],
-                                    ))
-                                } else {
-                                    unreachable!()
-                                }
-                            }
+                                    Ok(Type::Struct(ident.value,instance_fields,*unique))
 
-                            _ => unimplemented!(),
-                        }
+                                    
+                                } 
+                            _ => unreachable!(),
+                        } //
                     }
-
                     _ => {
                         let msg = format!(
                             "`{}` is not polymorphic and cannot be instantiated",

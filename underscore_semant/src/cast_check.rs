@@ -1,4 +1,5 @@
-use semant::{InferResult, TyCon, Type};
+use super::InferResult;
+use types::{TyCon, Type};
 
 pub fn cast_check(expr: &Type, to: &Type) -> InferResult<()> {
     match *to {
@@ -21,7 +22,6 @@ fn check_tycon(tycon: &TyCon) -> InferResult<()> {
     match *tycon {
         TyCon::Bool | TyCon::Char => Ok(()),
         TyCon::Int(_, _) => Ok(()),
-        TyCon::Unique(ref tycon, _) => check_tycon(tycon),
         _ => Err(()),
     }
 }

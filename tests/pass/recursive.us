@@ -3,11 +3,13 @@ struct List<T> {
     body:List<T>
 }
 
-fn main() {
+fn main() -> List<i32> {
     let list = List {
         head:10,
-        body:nil
+        body:List {
+            head:10,
+            body:nil
+        }
     };
 
-    list;
 }
