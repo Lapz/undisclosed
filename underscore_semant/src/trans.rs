@@ -29,7 +29,22 @@ impl Infer {
             astType::Simple(ref ident) => {
                 if let Some(ty) = env.look_type(ident.value) {
                     match ty {
-                        &Entry::Ty(ref ty) => Ok(ty.clone()),
+                        &Entry::Ty(ref ty) => match ty {
+                            &Type::Poly(ref tvars, ref ret) => {
+                                if !tvars.is_empty() {
+                                    let msg = format!(
+                                        "Type `{}` is polymorphic,Type arguments missing",
+                                        env.name(ident.value)
+                                    );
+
+                                    reporter.error(msg, ident.span);
+                                    return Err(());
+                                }
+
+                                Ok(*ret.clone())
+                            }
+                            _ => Ok(ty.clone()),
+                        },
                         _ => panic!(""),
                     }
                 } else {
@@ -68,15 +83,12 @@ impl Infer {
                             for field in fields.iter_mut() {
                                 let mut ty = self.subst(&field.ty, &mut mappings);
 
-                                println!("{:?}", ty);
                                 mem::swap(&mut field.ty, &mut ty);
                             }
 
                             Ok(Type::Struct(ident.value, fields, unique))
-
-                            // For structs we need to return the substituted types
                         }
-                        _ => unreachable!(),
+                        _ => unreachable!(), // Polymorphic functions are not stored as types they are stored as vars
                     },
                     _ => {
                         let msg = format!("Type `{}` is not polymorphic", env.name(ident.value));
@@ -96,7 +108,7 @@ impl Infer {
                 let ret = if let Some(ref ret) = *returns {
                     self.trans_ty(ret, env, reporter)?
                 } else {
-                    Type::App(TyCon::Void, vec![])
+                    Type::Nil
                 };
 
                 trans_types.push(ret); // Return type will always be last
@@ -134,7 +146,7 @@ impl Infer {
                     unique,
                 )),
             )),
-        );
+        ); // For recursive types we need to add the empty struct
 
         for field in &struct_def.value.fields.value {
             type_fields.push(Field {
@@ -147,27 +159,6 @@ impl Infer {
             struct_def.value.name.value.name.value,
             Entry::Ty(Type::Poly(
                 poly_tvs.clone(),
-                Box::new(Type::Struct(
-                    struct_def.value.name.value.name.value,
-                    type_fields,
-                    unique,
-                )),
-            )),
-        );
-
-        let mut type_fields = Vec::with_capacity(struct_def.value.fields.value.len());
-
-        for field in &struct_def.value.fields.value {
-            type_fields.push(Field {
-                name: field.value.name.value,
-                ty: self.trans_ty(&field.value.ty, env, reporter)?,
-            });
-        }
-
-        env.add_type(
-            struct_def.value.name.value.name.value,
-            Entry::Ty(Type::Poly(
-                poly_tvs,
                 Box::new(Type::Struct(
                     struct_def.value.name.value.name.value,
                     type_fields,
@@ -224,12 +215,12 @@ impl Infer {
             poly_tvs.push(tv);
         }
 
-        let mut param_tys = Vec::new(); //change to use with_capictiy
+        let mut param_tys = Vec::with_capacity(function.value.params.value.len());
 
         let returns = if let Some(ref return_ty) = function.value.returns {
             self.trans_ty(return_ty, env, reporter)?
         } else {
-            Type::App(TyCon::Void, vec![])
+            Type::Nil
         };
 
         for param in &function.value.params.value {
@@ -269,16 +260,19 @@ impl Infer {
     ) -> InferResult<Type> {
         match statement.value {
             Statement::Block(ref statements) => {
-                let mut result = Type::App(TyCon::Void, vec![]);
+                let mut result = Type::Nil;
 
                 for statement in statements {
-                    result = self.trans_statement(statement, env, reporter)?
+                    result = self.trans_statement(statement, env, reporter)?;
                 }
 
                 Ok(result)
             }
             Statement::Break | Statement::Continue => Ok(Type::Nil),
-            Statement::Expr(ref expr) => self.trans_expr(expr, env, reporter),
+            Statement::Expr(ref expr) => {
+                self.trans_expr(expr, env, reporter)?;
+                Ok(Type::Nil) // Expressions are given the type of Nil to signify that they return nothing
+            }
             Statement::For {
                 ref init,
                 ref cond,
@@ -319,9 +313,9 @@ impl Infer {
                     )?;
                 }
 
-                let body = self.trans_statement(body, env, reporter)?;
+                self.trans_statement(body, env, reporter)?;
 
-                Ok(body)
+                Ok(Type::Nil)
             }
 
             Statement::If {
@@ -367,23 +361,23 @@ impl Infer {
 
                         self.unify(&expr_ty, &t, reporter, ty.span, env)?;
 
-                        return Ok(t);
+                        return Ok(Type::Nil);
                     }
 
                     env.add_var(ident.value, expr_ty);
 
-                    Ok(Type::App(TyCon::Void, vec![]))
+                    Ok(Type::Nil)
                 } else {
                     if let Some(ref ty) = *ty {
                         let ty = self.trans_ty(ty, env, reporter)?;
 
                         env.add_var(ident.value, ty);
-                        return Ok(Type::App(TyCon::Void, vec![]));
+                        return Ok(Type::Nil);
                     }
 
-                    env.add_var(ident.value, Type::App(TyCon::Void, vec![]));
+                    env.add_var(ident.value, Type::Nil);
 
-                    Ok(Type::App(TyCon::Void, vec![]))
+                    Ok(Type::Nil)
                 }
             }
 
@@ -399,7 +393,7 @@ impl Infer {
 
                 self.trans_statement(body, env, reporter)?;
 
-                Ok(Type::App(TyCon::Void, vec![]))
+                Ok(Type::Nil)
             }
         }
     }
@@ -478,10 +472,10 @@ impl Infer {
 
                 Literal::Str(_) => Ok(Type::App(TyCon::String, vec![])),
                 Literal::Number(ref number) => match number.ty {
-                    Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size), vec![])), // Change
-                    None => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![])),
+                    Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size), vec![])),
+                    None => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![])), // Change to use own supply
                 },
-                Literal::Nil => Ok(Type::App(TyCon::Void, vec![])),
+                Literal::Nil => Ok(Type::App(TyCon::Void, vec![])), // Nil is given the type void as only statements return Nil
             },
             Expression::StructLit(ref struct_lit) => {
                 self.trans_struct_lit(struct_lit, env, reporter)
@@ -532,6 +526,16 @@ impl Infer {
                 match func {
                     Type::Poly(ref tvars, ref ret) => match **ret {
                         Type::App(TyCon::Arrow, ref fn_types) => {
+                            if fn_types.len() - 1 != args.len() {
+                                let msg = format!(
+                                    "Expected `{}` args found `{}` ",
+                                    fn_types.len() - 1,
+                                    args.len()
+                                );
+                                reporter.error(msg, call.span);
+                                return Err(());
+                            }
+
                             let mut mappings = HashMap::new();
 
                             let mut arg_tys = Vec::new();
@@ -556,9 +560,15 @@ impl Infer {
                             Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
                         }
 
-                        _ => unreachable!(),
+                        _ => unreachable!(), // Structs are not stored in the var environment so this path cannot be reached
                     },
-                    _ => unreachable!(),
+                    _ => {
+                        let msg = format!("{} is not callable", env.name(callee.value));
+
+                        reporter.error(msg, callee.span);
+
+                        Err(())
+                    }
                 }
             }
 
@@ -590,6 +600,7 @@ impl Infer {
 
                             return Err(());
                         }
+
                         // TODO check if type params matched defined number
                         // Error if not polymorphic function
                         let mut mappings = HashMap::new();
@@ -600,6 +611,15 @@ impl Infer {
 
                         match **ret {
                             Type::App(TyCon::Arrow, ref fn_types) => {
+                                if fn_types.len() - 1 != args.len() {
+                                    let msg = format!(
+                                        "Expected `{}` args found `{}` ",
+                                        fn_types.len() - 1,
+                                        args.len()
+                                    );
+                                    reporter.error(msg, call.span);
+                                    return Err(());
+                                }
                                 for (ty, arg) in fn_types.iter().zip(args) {
                                     self.unify(
                                         &self.subst(
@@ -616,11 +636,17 @@ impl Infer {
                                 Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
                             }
 
-                            _ => unreachable!(),
+                            _ => unreachable!(), // Structs are not stored in the var environment so this path cannot be reached
                         }
                     }
 
-                    _ => unreachable!(),
+                    _ => {
+                        let msg = format!("{} is not callable", env.name(callee.value));
+
+                        reporter.error(msg, callee.span);
+
+                        Err(())
+                    }
                 }
             }
         }
@@ -705,7 +731,7 @@ impl Infer {
 
                             Ok(Type::Struct(ident.value, instance_fields, *unique))
                         }
-                        _ => unreachable!(),
+                        _ => unreachable!(), // Polymorphics functions are stored in the var environment
                     },
 
                     _ => {
@@ -803,8 +829,8 @@ impl Infer {
 
                                 Ok(Type::Struct(ident.value, instance_fields, *unique))
                             }
-                            _ => unreachable!(),
-                        } //
+                            _ => unreachable!(), // Polymorphics functions are stored in the var environment
+                        } 
                     }
                     _ => {
                         let msg = format!(

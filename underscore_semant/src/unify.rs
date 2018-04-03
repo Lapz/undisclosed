@@ -99,6 +99,8 @@ impl Infer {
             } else {
                 Err(())
             },
+
+            (&Type::Nil, &Type::Nil) => Ok(()),
             (t1, t2) => {
                 let msg = format!("Cannot unify  {:?} vs {:?}", t1, t2);
                 reporter.error(msg, span);

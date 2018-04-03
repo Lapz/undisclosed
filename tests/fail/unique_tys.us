@@ -15,5 +15,5 @@ fn main() -> List {
         body:nil
     } ;
 
-    list;
+    return list;
 }

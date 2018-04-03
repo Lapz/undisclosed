@@ -880,7 +880,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(Spanned {
             span: open_span.to(close_span),
-            value: Statement::Expr(expr),
+            value: Statement::Return(expr),
         })
     }
 

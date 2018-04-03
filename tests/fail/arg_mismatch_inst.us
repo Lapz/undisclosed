@@ -1,0 +1,9 @@
+
+fn id<T>(v:T) -> T {
+    return v;
+}
+
+fn main()  {
+  
+    id::<i32>(10,20);
+}
