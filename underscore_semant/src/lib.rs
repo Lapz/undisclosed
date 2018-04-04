@@ -13,6 +13,7 @@ pub use env::Env as TypeEnv;
 use env::Env;
 use syntax::ast::Program;
 use util::emitter::Reporter;
+use resolver::Resolver;
 
 pub(crate) type InferResult<T> = Result<T, ()>;
 
@@ -41,6 +42,10 @@ impl Infer {
         for function in &program.functions {
             self.trans_function(function, env, reporter)?
         }
+
+        let mut resolver = Resolver::new();
+
+        resolver.resolve_ast(program, reporter, env)?;
 
         Ok(())
     }
