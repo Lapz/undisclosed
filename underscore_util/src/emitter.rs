@@ -143,7 +143,7 @@ fn print_highlight(input:&str,span:&Span,level:&Level,detail:i32) {
             };
             let carets = repeat_string("^", end - span.start.column as usize + 1);
 
-            let carets = match level {
+            let carets = match *level {
                 Level::Warn => Yellow.bold().paint(carets),
                 Level::Error => Red.bold().paint(carets),
             };
@@ -152,7 +152,7 @@ fn print_highlight(input:&str,span:&Span,level:&Level,detail:i32) {
             println!("     {}{}{}", prefix, whitespace, carets);
         } else if line_idx == span.end.line as usize {
             let carets = repeat_string("^", span.end.column as usize);
-            let carets = match level {
+            let carets = match *level {
                 Level::Warn => Yellow.bold().paint(carets),
                 Level::Error => Red.bold().paint(carets),
             };
@@ -161,7 +161,7 @@ fn print_highlight(input:&str,span:&Span,level:&Level,detail:i32) {
             && !line.is_empty()
         {
             let carets = repeat_string("^", line.len());
-            let carets = match level {
+            let carets = match *level {
                 Level::Warn => Yellow.bold().paint(carets),
                 Level::Error => Red.bold().paint(carets),
             };
