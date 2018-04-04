@@ -6,11 +6,21 @@ use std::cell::RefCell;
 use std::fmt::{self, Display};
 use std::iter::repeat;
 use std::rc::Rc;
+
+
 #[derive(Debug)]
-pub struct Diagnostic {
-    msg: String,
+pub enum Diagnostic {
+    Single {
+         msg: String,
     level: Level,
     span: Span,
+    },
+    Multi {
+        msg: String,
+        level: Level,
+        site1: Span,
+        site2:Span,
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -39,15 +49,24 @@ impl Reporter {
     }
 
     pub fn global_error(&self, msg: &str) {
-        self.diagnostics.borrow_mut().push(Diagnostic {
+        self.diagnostics.borrow_mut().push(Diagnostic::Single {
             msg: msg.into(),
             span: EMPTYSPAN,
             level: Level::Error,
         })
     }
 
+    pub fn mlt_error<T:Into<String>>(&self,msg:T,site1:Span,site2:Span) {
+        self.diagnostics.borrow_mut().push(Diagnostic::Multi {
+            msg: msg.into(),
+            site1,
+            site2,
+            level: Level::Error,
+        })
+    }
+
     pub fn error<T: Into<String>>(&self, msg: T, span: Span) {
-        self.diagnostics.borrow_mut().push(Diagnostic {
+        self.diagnostics.borrow_mut().push(Diagnostic::Single {
             msg: msg.into(),
             span,
             level: Level::Error,
@@ -55,7 +74,7 @@ impl Reporter {
     }
 
     pub fn warn(&self, msg: &str, span: Span) {
-        self.diagnostics.borrow_mut().push(Diagnostic {
+        self.diagnostics.borrow_mut().push(Diagnostic::Single {
             msg: msg.into(),
             span,
             level: Level::Warn,
@@ -72,15 +91,42 @@ impl Reporter {
     }
 }
 
+
+
+
 pub fn print(input: &str, d: &Diagnostic) {
+    
+
+    if let Diagnostic::Single{
+        ref msg,
+        ref span,
+        ref level 
+    } = *d  {
+        println!("{}: {}", level, Fixed(252).bold().paint(msg.clone()));
+        print_highlight(input, span, level,4)
+    }else if let Diagnostic::Multi {
+        ref msg,
+        ref site1,
+        ref site2,
+        ref level 
+    } = *d {
+         println!("{}: {}", level, Fixed(252).bold().paint(msg.clone()));
+
+         print_highlight(input, site1, level,8);
+         print_highlight(input, site2, level,8);
+    }
+
+    
+}
+
+
+fn print_highlight(input:&str,span:&Span,level:&Level,detail:i32) {
     let prefix = Blue.paint("| ");
 
-    println!("{}: {}", d.level, Fixed(252).bold().paint(d.msg.clone()));
+    let span = span;
 
-    let span = d.span;
-
-    let start_line = if span.start.line >= 4 {
-        span.start.line - 4
+    let start_line = if span.start.line >= detail {
+        span.start.line - detail
     } else {
         0
     };
@@ -97,7 +143,7 @@ pub fn print(input: &str, d: &Diagnostic) {
             };
             let carets = repeat_string("^", end - span.start.column as usize + 1);
 
-            let carets = match d.level {
+            let carets = match *level {
                 Level::Warn => Yellow.bold().paint(carets),
                 Level::Error => Red.bold().paint(carets),
             };
@@ -106,7 +152,7 @@ pub fn print(input: &str, d: &Diagnostic) {
             println!("     {}{}{}", prefix, whitespace, carets);
         } else if line_idx == span.end.line as usize {
             let carets = repeat_string("^", span.end.column as usize);
-            let carets = match d.level {
+            let carets = match *level {
                 Level::Warn => Yellow.bold().paint(carets),
                 Level::Error => Red.bold().paint(carets),
             };
@@ -115,14 +161,14 @@ pub fn print(input: &str, d: &Diagnostic) {
             && !line.is_empty()
         {
             let carets = repeat_string("^", line.len());
-            let carets = match d.level {
+            let carets = match *level {
                 Level::Warn => Yellow.bold().paint(carets),
                 Level::Error => Red.bold().paint(carets),
             };
             println!("     {}{}", prefix, carets);
         }
 
-        if line_idx >= span.end.line as usize + 3 {
+        if line_idx >= span.end.line as usize + detail as usize {
             break;
         }
     }
