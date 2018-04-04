@@ -7,6 +7,7 @@ mod subst;
 mod trans;
 mod types;
 mod unify;
+mod resolver;
 
 pub use env::Env as TypeEnv;
 use env::Env;

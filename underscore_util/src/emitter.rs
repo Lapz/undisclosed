@@ -46,6 +46,10 @@ impl Reporter {
         })
     }
 
+    pub fn mlt_error<T:Into<String>>(&self,msg:T,site1:Span,site2:Span) {
+        unimplemented!()
+    }
+
     pub fn error<T: Into<String>>(&self, msg: T, span: Span) {
         self.diagnostics.borrow_mut().push(Diagnostic {
             msg: msg.into(),
