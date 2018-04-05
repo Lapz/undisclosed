@@ -156,22 +156,22 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::<span class="ident">Hash</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>,<span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
 <span class="doccomment">/// Maps any T to a string</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FactoryMap</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span><span class="op">+</span><span class="ident">Default</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FactoryMap</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Default</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">next</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">mappings</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">String</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="doccomment">/// A Scoped Map that takes any K and V</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">+</span><span class="ident">Default</span>, <span class="ident">V</span>: <span class="ident">Clone</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Default</span>, <span class="ident">V</span>: <span class="ident">Clone</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">strings</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FactoryMap</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;&gt;</span>,
     <span class="kw">pub</span> <span class="ident">table</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;&gt;</span>,
     <span class="ident">scopes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">+</span><span class="ident">Default</span>, <span class="ident">V</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Default</span>, <span class="ident">V</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Table</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="doccomment">/// A new Table Instance</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">strings</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">FactoryMap</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">Table</span> {
@@ -236,7 +236,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span><span class="op">+</span><span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">FactoryMap</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">FactoryMap</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">FactoryMap</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">default</span>()
     }

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Diagnostic",""],["Level",""]],"fn":[["print",""]],"struct":[["Reporter",""]]});
+initSidebarItems({"enum":[["Level",""]],"fn":[["print",""]],"struct":[["Diagnostic",""],["Reporter",""]]});

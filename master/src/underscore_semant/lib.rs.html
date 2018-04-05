@@ -112,17 +112,17 @@
 
 <span class="kw">mod</span> <span class="ident">cast_check</span>;
 <span class="kw">mod</span> <span class="ident">env</span>;
+<span class="kw">mod</span> <span class="ident">resolver</span>;
 <span class="kw">mod</span> <span class="ident">subst</span>;
 <span class="kw">mod</span> <span class="ident">trans</span>;
 <span class="kw">mod</span> <span class="ident">types</span>;
 <span class="kw">mod</span> <span class="ident">unify</span>;
-<span class="kw">mod</span> <span class="ident">resolver</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">env</span>::<span class="ident">Env</span> <span class="kw">as</span> <span class="ident">TypeEnv</span>;
 <span class="kw">use</span> <span class="ident">env</span>::<span class="ident">Env</span>;
+<span class="kw">use</span> <span class="ident">resolver</span>::<span class="ident">Resolver</span>;
 <span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">Program</span>;
 <span class="kw">use</span> <span class="ident">util</span>::<span class="ident">emitter</span>::<span class="ident">Reporter</span>;
-<span class="kw">use</span> <span class="ident">resolver</span>::<span class="ident">Resolver</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">InferResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, ()<span class="op">&gt;</span>;
 

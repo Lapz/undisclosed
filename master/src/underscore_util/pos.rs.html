@@ -180,7 +180,7 @@
 }
 
 <span class="doccomment">/// A span between two locations in a source file</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>,<span class="ident">PartialEq</span>,<span class="ident">Hash</span>,<span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Span</span> {
     <span class="kw">pub</span> <span class="ident">start</span>: <span class="ident">Position</span>,
     <span class="kw">pub</span> <span class="ident">end</span>: <span class="ident">Position</span>,
@@ -200,7 +200,7 @@
 };
 
 <span class="doccomment">/// Represents a postion within a specifc source file</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>,<span class="ident">PartialEq</span>,<span class="ident">Hash</span>,<span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Position</span> {
     <span class="doccomment">/// A 0 offset line the source code</span>
     <span class="kw">pub</span> <span class="ident">line</span>: <span class="ident">i32</span>,

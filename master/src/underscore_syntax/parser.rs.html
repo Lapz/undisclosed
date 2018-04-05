@@ -1361,9 +1361,6 @@
 <span id="1305">1305</span>
 <span id="1306">1306</span>
 <span id="1307">1307</span>
-<span id="1308">1308</span>
-<span id="1309">1309</span>
-<span id="1310">1310</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">Program</span>;
 <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">TyAlias</span>;
@@ -2562,7 +2559,7 @@
 
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_ident</span>(<span class="string">&quot;Expected an Identifer&quot;</span>)<span class="question-mark">?</span>;
 
-           <span class="prelude-val">Ok</span>(<span class="ident">Spanned</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">Spanned</span> {
                 <span class="ident">span</span>: <span class="ident">ident</span>.<span class="ident">get_span</span>().<span class="ident">to</span>(<span class="ident">value</span>.<span class="ident">get_span</span>()),
                 <span class="ident">value</span>: <span class="ident">Expression</span>::<span class="ident">Var</span>(<span class="ident">Spanned</span> {
                     <span class="ident">span</span>: <span class="ident">ident</span>.<span class="ident">get_span</span>().<span class="ident">to</span>(<span class="ident">value</span>.<span class="ident">get_span</span>()),
@@ -2667,10 +2664,7 @@
             <span class="ident">span</span>: <span class="ident">callee</span>.<span class="ident">get_span</span>().<span class="ident">to</span>(<span class="ident">close_span</span>),
             <span class="ident">value</span>: <span class="ident">Expression</span>::<span class="ident">Call</span>(<span class="ident">Spanned</span> {
                 <span class="ident">span</span>: <span class="ident">callee</span>.<span class="ident">get_span</span>(),
-                <span class="ident">value</span>: <span class="ident">Call</span>::<span class="ident">Simple</span> {
-                    <span class="ident">callee</span>,
-                    <span class="ident">args</span>,
-                },
+                <span class="ident">value</span>: <span class="ident">Call</span>::<span class="ident">Simple</span> { <span class="ident">callee</span>, <span class="ident">args</span> },
             }),
         })
     }
