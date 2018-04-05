@@ -7,20 +7,11 @@ use std::fmt::{self, Display};
 use std::iter::repeat;
 use std::rc::Rc;
 
-
 #[derive(Debug)]
-pub enum Diagnostic {
-    Single {
-         msg: String,
+pub struct Diagnostic {
+    msg: String,
     level: Level,
     span: Span,
-    },
-    Multi {
-        msg: String,
-        level: Level,
-        site1: Span,
-        site2:Span,
-    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -49,24 +40,15 @@ impl Reporter {
     }
 
     pub fn global_error(&self, msg: &str) {
-        self.diagnostics.borrow_mut().push(Diagnostic::Single {
+        self.diagnostics.borrow_mut().push(Diagnostic {
             msg: msg.into(),
             span: EMPTYSPAN,
             level: Level::Error,
         })
     }
 
-    pub fn mlt_error<T:Into<String>>(&self,msg:T,site1:Span,site2:Span) {
-        self.diagnostics.borrow_mut().push(Diagnostic::Multi {
-            msg: msg.into(),
-            site1,
-            site2,
-            level: Level::Error,
-        })
-    }
-
     pub fn error<T: Into<String>>(&self, msg: T, span: Span) {
-        self.diagnostics.borrow_mut().push(Diagnostic::Single {
+        self.diagnostics.borrow_mut().push(Diagnostic {
             msg: msg.into(),
             span,
             level: Level::Error,
@@ -74,7 +56,7 @@ impl Reporter {
     }
 
     pub fn warn(&self, msg: &str, span: Span) {
-        self.diagnostics.borrow_mut().push(Diagnostic::Single {
+        self.diagnostics.borrow_mut().push(Diagnostic {
             msg: msg.into(),
             span,
             level: Level::Warn,
@@ -82,45 +64,26 @@ impl Reporter {
     }
 
     pub fn emit(&self, input: &str) {
-
-        for diagnostic in self.diagnostics
-            .borrow().iter() {
-                print(input, diagnostic)
-            }
-        
+        for diagnostic in self.diagnostics.borrow().iter() {
+            print(input, diagnostic)
+        }
     }
 }
-
-
-
 
 pub fn print(input: &str, d: &Diagnostic) {
-    
-
-    if let Diagnostic::Single{
-        ref msg,
-        ref span,
-        ref level 
-    } = *d  {
-        println!("{}: {}", level, Fixed(252).bold().paint(msg.clone()));
-        print_highlight(input, span, level,4)
-    }else if let Diagnostic::Multi {
-        ref msg,
-        ref site1,
-        ref site2,
-        ref level 
-    } = *d {
-         println!("{}: {}", level, Fixed(252).bold().paint(msg.clone()));
-
-         print_highlight(input, site1, level,8);
-         print_highlight(input, site2, level,8);
+    match *d {
+        Diagnostic {
+            ref msg,
+            ref span,
+            ref level,
+        } => {
+            println!("{}: {}", level, Fixed(252).bold().paint(msg.clone()));
+            print_highlight(input, span, level, 4)
+        }
     }
-
-    
 }
 
-
-fn print_highlight(input:&str,span:&Span,level:&Level,detail:i32) {
+fn print_highlight(input: &str, span: &Span, level: &Level, detail: i32) {
     let prefix = Blue.paint("| ");
 
     let span = span;

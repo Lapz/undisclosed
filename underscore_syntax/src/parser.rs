@@ -1195,7 +1195,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
             let value = self.consume_get_ident("Expected an Identifer")?;
 
-           Ok(Spanned {
+            Ok(Spanned {
                 span: ident.get_span().to(value.get_span()),
                 value: Expression::Var(Spanned {
                     span: ident.get_span().to(value.get_span()),
@@ -1300,10 +1300,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             span: callee.get_span().to(close_span),
             value: Expression::Call(Spanned {
                 span: callee.get_span(),
-                value: Call::Simple {
-                    callee,
-                    args,
-                },
+                value: Call::Simple { callee, args },
             }),
         })
     }

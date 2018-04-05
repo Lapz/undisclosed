@@ -1,11 +1,11 @@
-use cast_check::*;
-use types::{Field, TyCon, Type, TypeVar, Unique};
 use super::{Infer, InferResult};
+use cast_check::*;
 use env::{Entry, Env};
 use std::collections::HashMap;
 use std::mem;
 use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, Struct,
                   StructLit, Ty as astType, TyAlias, UnaryOp, Var};
+use types::{Field, TyCon, Type, TypeVar, Unique};
 use util::emitter::Reporter;
 use util::pos::Spanned;
 
@@ -830,7 +830,7 @@ impl Infer {
                                 Ok(Type::Struct(ident.value, instance_fields, *unique))
                             }
                             _ => unreachable!(), // Polymorphics functions are stored in the var environment
-                        } 
+                        }
                     }
                     _ => {
                         let msg = format!(

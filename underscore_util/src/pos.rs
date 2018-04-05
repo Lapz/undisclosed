@@ -10,7 +10,7 @@ pub struct Spanned<T> {
 }
 
 /// A span between two locations in a source file
-#[derive(Debug, Clone, Copy,PartialEq,Hash,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
 pub struct Span {
     pub start: Position,
     pub end: Position,
@@ -30,7 +30,7 @@ pub const EMPTYSPAN: Span = Span {
 };
 
 /// Represents a postion within a specifc source file
-#[derive(Debug, Clone, Copy,PartialEq,Hash,Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
 pub struct Position {
     /// A 0 offset line the source code
     pub line: i32,
