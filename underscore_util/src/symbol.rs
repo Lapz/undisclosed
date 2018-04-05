@@ -6,22 +6,22 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
 
-#[derive(Debug, Clone,Default)]
+#[derive(Debug, Clone, Default)]
 /// Maps any T to a string
-pub struct FactoryMap<T: Copy + Eq + Hash+Default> {
+pub struct FactoryMap<T: Copy + Eq + Hash + Default> {
     pub next: RefCell<u32>,
     pub mappings: RefCell<HashMap<T, String>>,
 }
 
 #[derive(Debug, Clone)]
 /// A Scoped Map that takes any K and V
-pub struct Table<K: Clone + Hash + Eq + Copy+Default, V: Clone> {
+pub struct Table<K: Clone + Hash + Eq + Copy + Default, V: Clone> {
     pub strings: Rc<FactoryMap<K>>,
     pub table: HashMap<K, Vec<V>>,
     scopes: Vec<Option<K>>,
 }
 
-impl<K: Clone + Hash + Eq + Copy+Default, V: Clone> Table<K, V> {
+impl<K: Clone + Hash + Eq + Copy + Default, V: Clone> Table<K, V> {
     /// A new Table Instance
     pub fn new(strings: Rc<FactoryMap<K>>) -> Self {
         Table {
@@ -86,7 +86,7 @@ impl<K: Clone + Hash + Eq + Copy+Default, V: Clone> Table<K, V> {
     }
 }
 
-impl<T: Copy + Eq + Hash+Default> FactoryMap<T> {
+impl<T: Copy + Eq + Hash + Default> FactoryMap<T> {
     pub fn new() -> FactoryMap<T> {
         Self::default()
     }

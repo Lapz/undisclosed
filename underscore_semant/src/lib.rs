@@ -3,17 +3,17 @@ extern crate underscore_util as util;
 
 mod cast_check;
 mod env;
+mod resolver;
 mod subst;
 mod trans;
 mod types;
 mod unify;
-mod resolver;
 
 pub use env::Env as TypeEnv;
 use env::Env;
+use resolver::Resolver;
 use syntax::ast::Program;
 use util::emitter::Reporter;
-use resolver::Resolver;
 
 pub(crate) type InferResult<T> = Result<T, ()>;
 

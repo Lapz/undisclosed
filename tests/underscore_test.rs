@@ -86,9 +86,6 @@ fn main() {
 
         underscorec.args(&["run", "--", entry.path().to_str().unwrap()]);
 
-        
-        
-        
         let mut expected = Vec::new();
 
         let pattern = "//expect:";
@@ -100,15 +97,15 @@ fn main() {
                 expected.push(expects);
             }
         }
-        
+
         let output = underscorec.output().expect("failed to execute process");
 
         let output = String::from_utf8_lossy(&output.stdout);
         for expects in expected {
             if !output.contains(&expects) {
-                println!("a", );
-                panic!("Expected: {}",expects)
-            }else {
+                println!("a",);
+                panic!("Expected: {}", expects)
+            } else {
                 println!("a")
             }
         }
@@ -119,6 +116,5 @@ fn main() {
                 .expect("failed to execute process")
                 .success() != true
         );
-
     }
 }

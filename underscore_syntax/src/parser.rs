@@ -22,10 +22,10 @@ pub type ParserResult<T> = Result<T, ()>;
 /// Macro that is used to generate the code that parse a binary op
 macro_rules! binary {
     ($_self:ident, $e:ident, $lhs:expr, $func:ident) => {
-        while $_self.recognise($e) {
-            let op = $_self.get_binary_op()?;
+        while $self.recognise($e) {
+            let op = $self.get_binary_op()?;
 
-            let rhs = Box::new($_self.$func()?);
+            let rhs = Box::new($self.$func()?);
 
             $lhs = Spanned {
                 span: $lhs.get_span().to(rhs.get_span()),
@@ -39,10 +39,10 @@ macro_rules! binary {
     };
 
     ($_self:ident, $expr:expr, $lhs:expr, $func:ident) => {
-        while $_self.matched($expr) {
-            let op = $_self.get_binary_op()?;
+        while $self.matched($expr) {
+            let op = $self.get_binary_op()?;
 
-            let rhs = Box::new($_self.$func()?);
+            let rhs = Box::new($self.$func()?);
 
             $lhs = Spanned {
                 span: $lhs.get_span().to(rhs.get_span()),
@@ -1195,7 +1195,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
             let value = self.consume_get_ident("Expected an Identifer")?;
 
-           Ok(Spanned {
+            Ok(Spanned {
                 span: ident.get_span().to(value.get_span()),
                 value: Expression::Var(Spanned {
                     span: ident.get_span().to(value.get_span()),
@@ -1300,10 +1300,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             span: callee.get_span().to(close_span),
             value: Expression::Call(Spanned {
                 span: callee.get_span(),
-                value: Call::Simple {
-                    callee,
-                    args,
-                },
+                value: Call::Simple { callee, args },
             }),
         })
     }
