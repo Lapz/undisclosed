@@ -517,6 +517,9 @@
 <span id="461">461</span>
 <span id="462">462</span>
 <span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">Number</span>, <span class="ident">Sign</span>, <span class="ident">Size</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
@@ -906,6 +909,9 @@
         }
 
         <span class="prelude-val">Some</span>(<span class="ident">spans</span>(<span class="ident">TokenType</span>::<span class="ident">EOF</span>, <span class="self">self</span>.<span class="ident">end</span>, <span class="self">self</span>.<span class="ident">end</span>))
+
+
+        
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Token</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span> {

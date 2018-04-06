@@ -966,6 +966,43 @@
 <span id="910">910</span>
 <span id="911">911</span>
 <span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Infer</span>, <span class="ident">InferResult</span>};
 <span class="kw">use</span> <span class="ident">cast_check</span>::<span class="kw-2">*</span>;
@@ -1017,7 +1054,7 @@
                         _ <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;&quot;</span>),
                     }
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined Type &#39;`{}`&#39;&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined Type `{}`&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
                     <span class="prelude-val">Err</span>(())
                 }
@@ -1028,7 +1065,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ty</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_type</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">ty</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined Type &#39;`{}`&#39;&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined Type `{}`&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 };
@@ -1635,7 +1672,7 @@
                 <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_type</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">ty</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;`{}`&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined struct `{}` &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 };
@@ -1684,12 +1721,12 @@
 
                             <span class="kw">if</span> <span class="ident">def_fields</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">fields</span>.<span class="ident">len</span>() {
                                 <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span>
-                                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Struct `{}` is missing fields&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                                    <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;struct `{}` is missing fields&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                                 <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">lit</span>.<span class="ident">span</span>);
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">def_fields</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">fields</span>.<span class="ident">len</span>() {
                                 <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(
-                                    <span class="string">&quot;Struct `{}` has too many fields&quot;</span>,
+                                    <span class="string">&quot;struct `{}` has too many fields&quot;</span>,
                                     <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>)
                                 );
                                 <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">lit</span>.<span class="ident">span</span>);
@@ -1719,7 +1756,7 @@
                 <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_type</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">ty</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;`{}`&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined struct `{}` &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 };
@@ -1780,14 +1817,14 @@
 
                                 <span class="kw">if</span> <span class="ident">type_fields</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">fields</span>.<span class="ident">len</span>() {
                                     <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(
-                                        <span class="string">&quot;Struct `{}` is missing fields&quot;</span>,
+                                        <span class="string">&quot;struct `{}` is missing fields&quot;</span>,
                                         <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>)
                                     );
                                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">lit</span>.<span class="ident">span</span>);
                                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">type_fields</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">fields</span>.<span class="ident">len</span>() {
                                     <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(
-                                        <span class="string">&quot;Struct `{}` has too many fields&quot;</span>,
+                                        <span class="string">&quot;struct `{}` has too many fields&quot;</span>,
                                         <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>)
                                     );
                                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">lit</span>.<span class="ident">span</span>);
@@ -1826,13 +1863,50 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">var</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_var</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">var</span>)
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;`{}`&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable `{}` &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">var</span>.<span class="ident">span</span>);
                     <span class="prelude-val">Err</span>(())
                 }
             }
 
-            <span class="ident">Var</span>::<span class="ident">Field</span> { .. } <span class="op">=&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
+            <span class="ident">Var</span>::<span class="ident">Field</span> { <span class="kw-2">ref</span> <span class="ident">ident</span>,<span class="kw-2">ref</span> <span class="ident">value</span> } <span class="op">=&gt;</span> {
+                <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_var</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
+                    <span class="ident">ident</span>
+                } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable `{}` &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">var</span>.<span class="ident">span</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(())
+                };
+
+
+                <span class="kw">match</span> <span class="ident">record</span> {
+                    <span class="ident">Type</span>::<span class="ident">Struct</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>,<span class="kw-2">ref</span> <span class="ident">fields</span>,_) <span class="op">=&gt;</span> {
+                       <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
+                           <span class="kw">if</span> <span class="ident">field</span>.<span class="ident">name</span> <span class="op">==</span> <span class="ident">value</span>.<span class="ident">value</span> {
+                               <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">field</span>.<span class="ident">ty</span>.<span class="ident">clone</span>())
+                           }
+                       }
+
+                       <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;struct `{}` doesn&#39;t have a field named `{}`&quot;</span>,<span class="ident">env</span>.<span class="ident">name</span>(<span class="kw-2">*</span><span class="ident">ident</span>),<span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">value</span>.<span class="ident">value</span>));
+
+                       <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">var</span>.<span class="ident">span</span>);
+
+                       <span class="prelude-val">Err</span>(())
+
+                       
+                    },
+
+                    _ <span class="op">=&gt;</span> {
+                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Type `{}` does not have a field named `{}` &quot;</span>,<span class="ident">record</span>.<span class="ident">print</span>(<span class="ident">env</span>),<span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">value</span>.<span class="ident">value</span>));
+                        <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">var</span>.<span class="ident">span</span>);
+                        <span class="prelude-val">Err</span>(())
+
+                    }
+                }
+
+                
+
+            },
 
             <span class="ident">Var</span>::<span class="ident">SubScript</span> {
                 <span class="kw-2">ref</span> <span class="ident">expr</span>,
@@ -1841,7 +1915,7 @@
                 <span class="kw">let</span> <span class="ident">target_ty</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">var</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_var</span>(<span class="ident">target</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">var</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;`{}`&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">target</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable `{}` &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">target</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">var</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 };
