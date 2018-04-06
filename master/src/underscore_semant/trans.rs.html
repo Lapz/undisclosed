@@ -952,6 +952,20 @@
 <span id="896">896</span>
 <span id="897">897</span>
 <span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Infer</span>, <span class="ident">InferResult</span>};
 <span class="kw">use</span> <span class="ident">cast_check</span>::<span class="kw-2">*</span>;
@@ -1003,7 +1017,7 @@
                         _ <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;&quot;</span>),
                     }
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined Type &#39;{}&#39;&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined Type &#39;`{}`&#39;&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
                     <span class="prelude-val">Err</span>(())
                 }
@@ -1014,7 +1028,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ty</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_type</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">ty</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined Type &#39;{}&#39;&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined Type &#39;`{}`&#39;&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 };
@@ -1413,7 +1427,7 @@
                 <span class="kw">match</span> <span class="ident">cast_check</span>(<span class="kw-2">&amp;</span><span class="ident">expr_ty</span>, <span class="kw-2">&amp;</span><span class="ident">ty</span>) {
                     <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">ty</span>),
                     <span class="prelude-val">Err</span>(_) <span class="op">=&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Cannot cast {:?} to type {:?}&quot;</span>, <span class="ident">expr_ty</span>, <span class="ident">ty</span>);
+                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Cannot cast `{}` to type `{}`&quot;</span>, <span class="ident">expr_ty</span>.<span class="ident">print</span>(<span class="ident">env</span>), <span class="ident">ty</span>.<span class="ident">print</span>(<span class="ident">env</span>));
                         <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">expr</span>.<span class="ident">span</span>);
                         <span class="prelude-val">Err</span>(())
                     }
@@ -1443,7 +1457,7 @@
                     <span class="ident">UnaryOp</span>::<span class="ident">Bang</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Bool</span>, <span class="macro">vec</span><span class="macro">!</span>[])),
                     <span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=&gt;</span> {
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">expr_ty</span>.<span class="ident">is_int</span>() {
-                            <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Expected one of type i8,u8,i32,u32,i64,u64&quot;</span>;
+                            <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Cannot use `-` operator on type `{}`&quot;</span>,<span class="ident">expr_ty</span>.<span class="ident">print</span>(<span class="ident">env</span>));
 
                             <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">expr</span>.<span class="ident">span</span>);
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(());
@@ -1471,7 +1485,7 @@
                 <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">func</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_var</span>(<span class="ident">callee</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">func</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined function {}&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">callee</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined function `{}`&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">callee</span>.<span class="ident">value</span>));
 
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">callee</span>.<span class="ident">span</span>);
 
@@ -1518,7 +1532,7 @@
                         _ <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(), <span class="comment">// Structs are not stored in the var environment so this path cannot be reached</span>
                     },
                     _ <span class="op">=&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} is not callable&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">callee</span>.<span class="ident">value</span>));
+                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;`{}` is not callable&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">callee</span>.<span class="ident">value</span>));
 
                         <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">callee</span>.<span class="ident">span</span>);
 
@@ -1535,7 +1549,7 @@
                 <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">func</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_var</span>(<span class="ident">callee</span>.<span class="ident">value</span>) {
                     <span class="ident">func</span>.<span class="ident">clone</span>()
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined function {}&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">callee</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined function `{}`&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">callee</span>.<span class="ident">value</span>));
 
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">callee</span>.<span class="ident">span</span>);
 
@@ -1596,7 +1610,7 @@
                     }
 
                     _ <span class="op">=&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} is not callable&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">callee</span>.<span class="ident">value</span>));
+                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;`{}` is not callable&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">callee</span>.<span class="ident">value</span>));
 
                         <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">callee</span>.<span class="ident">span</span>);
 
@@ -1621,7 +1635,7 @@
                 <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_type</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">ty</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;{}&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;`{}`&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 };
@@ -1705,7 +1719,7 @@
                 <span class="kw">let</span> <span class="ident">record</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_type</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">ty</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;{}&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;`{}`&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">ident</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 };
@@ -1812,7 +1826,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">var</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_var</span>(<span class="ident">ident</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">var</span>)
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;{}&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;`{}`&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">ident</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">var</span>.<span class="ident">span</span>);
                     <span class="prelude-val">Err</span>(())
                 }
@@ -1824,29 +1838,43 @@
                 <span class="kw-2">ref</span> <span class="ident">expr</span>,
                 <span class="kw-2">ref</span> <span class="ident">target</span>,
             } <span class="op">=&gt;</span> {
-                <span class="kw">let</span> <span class="ident">target_ty</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">var</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_type</span>(<span class="ident">target</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
+                <span class="kw">let</span> <span class="ident">target_ty</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">var</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">look_var</span>(<span class="ident">target</span>.<span class="ident">value</span>).<span class="ident">cloned</span>() {
                     <span class="ident">var</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;{}&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">target</span>.<span class="ident">value</span>));
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Undefined variable &#39;`{}`&#39; &quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">target</span>.<span class="ident">value</span>));
                     <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">var</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 };
 
-                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">trans_expr</span>(<span class="ident">expr</span>, <span class="ident">env</span>, <span class="ident">reporter</span>)<span class="question-mark">?</span>.<span class="ident">is_int</span>() {
-                    <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="string">&quot;Expected one of type i8,u8,i32,u32,i64,u64&quot;</span>, <span class="ident">var</span>.<span class="ident">span</span>);
+
+                 <span class="kw">if</span> <span class="op">!</span><span class="ident">target_ty</span>.<span class="ident">is_int</span>() {
+
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; Cannot index type `{}` &quot;</span>, <span class="ident">target_ty</span>.<span class="ident">print</span>(<span class="ident">env</span>));
+                    <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">target</span>.<span class="ident">span</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(());
+                    
+                }
+
+                <span class="kw">let</span> <span class="ident">expr_ty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">trans_expr</span>(<span class="ident">expr</span>, <span class="ident">env</span>, <span class="ident">reporter</span>)<span class="question-mark">?</span>;
+
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">expr_ty</span>.<span class="ident">is_int</span>() {
+
+                    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Index expr cannot be of type `{}`&quot;</span>,<span class="ident">expr_ty</span>.<span class="ident">print</span>(<span class="ident">env</span>));
+                    <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">var</span>.<span class="ident">span</span>);
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 }
 
                 <span class="kw">match</span> <span class="ident">target_ty</span> {
-                    <span class="ident">Entry</span>::<span class="ident">Ty</span>(<span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">String</span>, _)) <span class="op">=&gt;</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Int</span>(<span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>), <span class="macro">vec</span><span class="macro">!</span>[]))
+                    <span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">String</span>, _) <span class="op">=&gt;</span> {
+                         <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Int</span>(<span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>), <span class="macro">vec</span><span class="macro">!</span>[]))
                     }
                     _ <span class="op">=&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;&#39;{}&#39; is not an indexable&quot;</span>, <span class="ident">env</span>.<span class="ident">name</span>(<span class="ident">target</span>.<span class="ident">value</span>));
-                        <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">target</span>.<span class="ident">span</span>);
+                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; Cannot index type `{}` &quot;</span>, <span class="ident">target_ty</span>.<span class="ident">print</span>(<span class="ident">env</span>));
+                    <span class="ident">reporter</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="ident">target</span>.<span class="ident">span</span>);
                         <span class="prelude-val">Err</span>(())
                     }
                 }
+        
             }
         }
     }
