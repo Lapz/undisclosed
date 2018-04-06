@@ -12,5 +12,5 @@ fn main() -> List<str> {
         body:10
     };
 
-    list as i32;
+    list as i32; // Expect : Cannot cast `List<i32,i32>` to type `i32`
 }

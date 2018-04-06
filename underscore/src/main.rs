@@ -103,13 +103,6 @@ fn run(path: String, dump_file: Option<String>) {
             ::std::process::exit(65)
         }
     }
-
-    // let mut env = TypeEnv::new(reporter.clone());
-
-    // match env.ti(&ast) {
-    //     Ok(()) => (),
-    //     Err(_) => ::std::process::exit(65),
-    // };
 }
 
 #[derive(StructOpt, Debug)]

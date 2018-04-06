@@ -1,4 +1,4 @@
 fn main<T>(a:i32) -> u8 {
-    a;
+    return a; // Expect : Cannot unify `u8` vs `i32`
 }
 

@@ -17,5 +17,5 @@ fn main<T>(a:str,b:T) -> List<i32> {
     List{
         val:10,
         head:nil
-    };
+    };  // Expect : Undefined struct `a`
 }

@@ -11,5 +11,5 @@ fn main() -> List {
         body:nil
     };
 
-    list;
+    list;  // Expect : `char`is not a struct
 }

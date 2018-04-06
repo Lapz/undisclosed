@@ -21,7 +21,7 @@ impl Infer {
             ) => {
                 if unique1 != unique2 {
                     let msg = format!(
-                        "Struct `{}` != Struct `{}`",
+                        "struct `{}` != struct `{}`",
                         env.name(*name1),
                         env.name(*name2)
                     );

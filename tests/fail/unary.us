@@ -1,3 +1,5 @@
 fn main() -> bool {
     -"A";
 }
+
+ // Expect : Cannot use `-` operator on type `str`

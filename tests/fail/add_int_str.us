@@ -1,4 +1,3 @@
 fn main() {
-    10 + "12";
-    
+    10 + "12"; // Expect : Cannot unify `i32` vs `str`
 }
