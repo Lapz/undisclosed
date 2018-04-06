@@ -5,5 +5,5 @@ fn id<T>(v:T) -> T {
 
 fn main()  {
   
-    id();
+    id(); // Expect : Expected `1` args found `0`
 }

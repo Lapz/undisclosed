@@ -162,6 +162,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let mut err_occured = false;
 
+
         while self.peek(|token| token != &TokenType::EOF) {
             if self.recognise(TokenType::FUNCTION) {
                 match self.parse_function() {
@@ -245,10 +246,13 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     fn recognise(&mut self, token: TokenType<'a>) -> bool {
+        
         if self.peek(|peeked| peeked == &token) {
-            return true;
+            true
+        } else {
+            false
         }
-        false
+        
     }
 
     fn matched(&mut self, tokens: Vec<TokenType<'a>>) -> bool {
@@ -308,10 +312,13 @@ impl<'a, 'b> Parser<'a, 'b> {
 
                 self.error(msg, *span);
 
+               
+
                 Err(())
             }
             None => {
                 self.reporter.global_error("Unexpected EOF");
+                
                 Err(())
             }
         }
@@ -493,8 +500,12 @@ impl<'a, 'b> Parser<'a, 'b> {
             None
         };
 
+    
+
+
         let body = self.parse_statement()?;
 
+        
         Ok(Spanned {
             span: fn_span.to(body.get_span()),
             value: Function {
@@ -716,6 +727,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
 impl<'a, 'b> Parser<'a, 'b> {
     fn parse_block(&mut self) -> ParserResult<Spanned<Statement>> {
+      
         let open_span = self.consume_get_span(&TokenType::LBRACE, "Expected a '{' ")?;
 
         let mut statements = vec![];
@@ -723,6 +735,9 @@ impl<'a, 'b> Parser<'a, 'b> {
         while !self.recognise(TokenType::RBRACE) {
             statements.push(self.parse_statement()?);
         }
+        
+
+        
 
         let close_span =
             self.consume_get_span(&TokenType::RBRACE, "Expected a \'}\' after block.")?;

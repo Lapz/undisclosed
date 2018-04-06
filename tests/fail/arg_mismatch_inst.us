@@ -5,5 +5,5 @@ fn id<T>(v:T) -> T {
 
 fn main()  {
   
-    id::<i32>(10,20);
+    id::<i32>(10,20); // Expect : Expected `1` args found `2`
 }

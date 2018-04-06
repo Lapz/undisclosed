@@ -16,5 +16,6 @@ fn main() -> List {
         hea:10
     };
 
-    list;
+    list;  // Expect : `ad` is not a member of `List`
+           // Expect : struct `List` has too many fields`
 }

@@ -48,7 +48,7 @@ impl Infer {
                         _ => panic!(""),
                     }
                 } else {
-                    let msg = format!("Undefined Type '`{}`'", env.name(ident.value));
+                    let msg = format!("Undefined Type `{}`", env.name(ident.value));
                     reporter.error(msg, ident.span);
                     Err(())
                 }
@@ -59,7 +59,7 @@ impl Infer {
                 let mut ty = if let Some(ty) = env.look_type(ident.value).cloned() {
                     ty
                 } else {
-                    let msg = format!("Undefined Type '`{}`'", env.name(ident.value));
+                    let msg = format!("Undefined Type `{}`", env.name(ident.value));
                     reporter.error(msg, ident.span);
                     return Err(());
                 };
@@ -666,7 +666,7 @@ impl Infer {
                 let record = if let Some(ty) = env.look_type(ident.value).cloned() {
                     ty
                 } else {
-                    let msg = format!("Undefined variable '`{}`' ", env.name(ident.value));
+                    let msg = format!("Undefined struct `{}` ", env.name(ident.value));
                     reporter.error(msg, ident.span);
                     return Err(());
                 };
@@ -715,12 +715,12 @@ impl Infer {
 
                             if def_fields.len() > fields.len() {
                                 let msg =
-                                    format!("Struct `{}` is missing fields", env.name(ident.value));
+                                    format!("struct `{}` is missing fields", env.name(ident.value));
                                 reporter.error(msg, lit.span);
                                 return Err(());
                             } else if def_fields.len() < fields.len() {
                                 let msg = format!(
-                                    "Struct `{}` has too many fields",
+                                    "struct `{}` has too many fields",
                                     env.name(ident.value)
                                 );
                                 reporter.error(msg, lit.span);
@@ -750,7 +750,7 @@ impl Infer {
                 let record = if let Some(ty) = env.look_type(ident.value).cloned() {
                     ty
                 } else {
-                    let msg = format!("Undefined variable '`{}`' ", env.name(ident.value));
+                    let msg = format!("Undefined struct `{}` ", env.name(ident.value));
                     reporter.error(msg, ident.span);
                     return Err(());
                 };
@@ -811,14 +811,14 @@ impl Infer {
 
                                 if type_fields.len() > fields.len() {
                                     let msg = format!(
-                                        "Struct `{}` is missing fields",
+                                        "struct `{}` is missing fields",
                                         env.name(ident.value)
                                     );
                                     reporter.error(msg, lit.span);
                                     return Err(());
                                 } else if type_fields.len() < fields.len() {
                                     let msg = format!(
-                                        "Struct `{}` has too many fields",
+                                        "struct `{}` has too many fields",
                                         env.name(ident.value)
                                     );
                                     reporter.error(msg, lit.span);
@@ -857,13 +857,50 @@ impl Infer {
                 if let Some(var) = env.look_var(ident.value).cloned() {
                     Ok(var)
                 } else {
-                    let msg = format!("Undefined variable '`{}`' ", env.name(ident.value));
+                    let msg = format!("Undefined variable `{}` ", env.name(ident.value));
                     reporter.error(msg, var.span);
                     Err(())
                 }
             }
 
-            Var::Field { .. } => unimplemented!(),
+            Var::Field { ref ident,ref value } => {
+                let record = if let Some(ident) = env.look_var(ident.value).cloned() {
+                    ident
+                } else {
+                    let msg = format!("Undefined variable `{}` ", env.name(ident.value));
+                    reporter.error(msg, var.span);
+                    return Err(())
+                };
+
+
+                match record {
+                    Type::Struct(ref ident,ref fields,_) => {
+                       for field in fields {
+                           if field.name == value.value {
+                               return Ok(field.ty.clone())
+                           }
+                       }
+
+                       let msg = format!("struct `{}` doesn't have a field named `{}`",env.name(*ident),env.name(value.value));
+
+                       reporter.error(msg, var.span);
+
+                       Err(())
+
+                       
+                    },
+
+                    _ => {
+                        let msg = format!("Type `{}` does not have a field named `{}` ",record.print(env),env.name(value.value));
+                        reporter.error(msg, var.span);
+                        Err(())
+
+                    }
+                }
+
+                
+
+            },
 
             Var::SubScript {
                 ref expr,
@@ -872,7 +909,7 @@ impl Infer {
                 let target_ty = if let Some(var) = env.look_var(target.value).cloned() {
                     var
                 } else {
-                    let msg = format!("Undefined variable '`{}`' ", env.name(target.value));
+                    let msg = format!("Undefined variable `{}` ", env.name(target.value));
                     reporter.error(msg, var.span);
                     return Err(());
                 };

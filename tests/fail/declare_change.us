@@ -1,4 +1,4 @@
 fn main<T>(a:T,b:i32) -> u8 {
     let a = 10;
-    a = "a";
+    a = "a"; // Expect : Cannot unify `i32` vs `str`
 }

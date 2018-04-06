@@ -11,5 +11,5 @@ fn main() -> List<i32> {
         body:10
     };
 
-    list;
+    list;  // Expect : `a` is not polymorphic and cannot be instantiated
 }

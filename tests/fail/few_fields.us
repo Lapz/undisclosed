@@ -9,5 +9,5 @@ fn main() -> List {
         head:10
     };
 
-    list;
+    list; // Expect : struct `List` is missing fields
 }

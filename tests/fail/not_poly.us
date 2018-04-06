@@ -15,5 +15,5 @@ fn main() -> List2<i32> {
         body:nil
     };
 
-    list;
+    list;  // Expect : Type `List2` is not polymorphic
 }

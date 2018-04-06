@@ -12,5 +12,5 @@ fn main() -> List<str> {
         body:10
     };
 
-    list;
+    list; // Expect : Cannot unify `List<str,str>` vs `nil`
 }

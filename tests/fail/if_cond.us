@@ -1,9 +1,9 @@
 fn main() {
-    if "a" {
+    if "a" { // Expect : Cannot unify `bool` vs `str`
 
     }
 
     if 10 {
         
-    }
+    } // Expect :
 }
