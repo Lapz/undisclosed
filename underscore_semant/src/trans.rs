@@ -48,7 +48,7 @@ impl Infer {
                         _ => panic!(""),
                     }
                 } else {
-                    let msg = format!("Undefined Type '{}'", env.name(ident.value));
+                    let msg = format!("Undefined Type '`{}`'", env.name(ident.value));
                     reporter.error(msg, ident.span);
                     Err(())
                 }
@@ -59,7 +59,7 @@ impl Infer {
                 let mut ty = if let Some(ty) = env.look_type(ident.value).cloned() {
                     ty
                 } else {
-                    let msg = format!("Undefined Type '{}'", env.name(ident.value));
+                    let msg = format!("Undefined Type '`{}`'", env.name(ident.value));
                     reporter.error(msg, ident.span);
                     return Err(());
                 };
@@ -458,7 +458,7 @@ impl Infer {
                 match cast_check(&expr_ty, &ty) {
                     Ok(()) => Ok(ty),
                     Err(_) => {
-                        let msg = format!("Cannot cast {:?} to type {:?}", expr_ty, ty);
+                        let msg = format!("Cannot cast `{}` to type `{}`", expr_ty.print(env), ty.print(env));
                         reporter.error(msg, expr.span);
                         Err(())
                     }
@@ -488,7 +488,7 @@ impl Infer {
                     UnaryOp::Bang => Ok(Type::App(TyCon::Bool, vec![])),
                     UnaryOp::Minus => {
                         if !expr_ty.is_int() {
-                            let msg = "Expected one of type i8,u8,i32,u32,i64,u64";
+                            let msg = format!("Cannot use `-` operator on type `{}`",expr_ty.print(env));
 
                             reporter.error(msg, expr.span);
                             return Err(());
@@ -516,7 +516,7 @@ impl Infer {
                 let func = if let Some(func) = env.look_var(callee.value).cloned() {
                     func
                 } else {
-                    let msg = format!("Undefined function {}", env.name(callee.value));
+                    let msg = format!("Undefined function `{}`", env.name(callee.value));
 
                     reporter.error(msg, callee.span);
 
@@ -563,7 +563,7 @@ impl Infer {
                         _ => unreachable!(), // Structs are not stored in the var environment so this path cannot be reached
                     },
                     _ => {
-                        let msg = format!("{} is not callable", env.name(callee.value));
+                        let msg = format!("`{}` is not callable", env.name(callee.value));
 
                         reporter.error(msg, callee.span);
 
@@ -580,7 +580,7 @@ impl Infer {
                 let func = if let Some(func) = env.look_var(callee.value) {
                     func.clone()
                 } else {
-                    let msg = format!("Undefined function {}", env.name(callee.value));
+                    let msg = format!("Undefined function `{}`", env.name(callee.value));
 
                     reporter.error(msg, callee.span);
 
@@ -641,7 +641,7 @@ impl Infer {
                     }
 
                     _ => {
-                        let msg = format!("{} is not callable", env.name(callee.value));
+                        let msg = format!("`{}` is not callable", env.name(callee.value));
 
                         reporter.error(msg, callee.span);
 
@@ -666,7 +666,7 @@ impl Infer {
                 let record = if let Some(ty) = env.look_type(ident.value).cloned() {
                     ty
                 } else {
-                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
+                    let msg = format!("Undefined variable '`{}`' ", env.name(ident.value));
                     reporter.error(msg, ident.span);
                     return Err(());
                 };
@@ -750,7 +750,7 @@ impl Infer {
                 let record = if let Some(ty) = env.look_type(ident.value).cloned() {
                     ty
                 } else {
-                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
+                    let msg = format!("Undefined variable '`{}`' ", env.name(ident.value));
                     reporter.error(msg, ident.span);
                     return Err(());
                 };
@@ -857,7 +857,7 @@ impl Infer {
                 if let Some(var) = env.look_var(ident.value).cloned() {
                     Ok(var)
                 } else {
-                    let msg = format!("Undefined variable '{}' ", env.name(ident.value));
+                    let msg = format!("Undefined variable '`{}`' ", env.name(ident.value));
                     reporter.error(msg, var.span);
                     Err(())
                 }
@@ -869,29 +869,43 @@ impl Infer {
                 ref expr,
                 ref target,
             } => {
-                let target_ty = if let Some(var) = env.look_type(target.value).cloned() {
+                let target_ty = if let Some(var) = env.look_var(target.value).cloned() {
                     var
                 } else {
-                    let msg = format!("Undefined variable '{}' ", env.name(target.value));
+                    let msg = format!("Undefined variable '`{}`' ", env.name(target.value));
                     reporter.error(msg, var.span);
                     return Err(());
                 };
 
-                if !self.trans_expr(expr, env, reporter)?.is_int() {
-                    reporter.error("Expected one of type i8,u8,i32,u32,i64,u64", var.span);
+
+                 if !target_ty.is_int() {
+
+                    let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
+                    reporter.error(msg, target.span);
+                    return Err(());
+                    
+                }
+
+                let expr_ty = self.trans_expr(expr, env, reporter)?;
+
+                if !expr_ty.is_int() {
+
+                    let msg = format!("Index expr cannot be of type `{}`",expr_ty.print(env));
+                    reporter.error(msg, var.span);
                     return Err(());
                 }
 
                 match target_ty {
-                    Entry::Ty(Type::App(TyCon::String, _)) => {
-                        Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]))
+                    Type::App(TyCon::String, _) => {
+                         Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]))
                     }
                     _ => {
-                        let msg = format!("'{}' is not an indexable", env.name(target.value));
-                        reporter.error(msg, target.span);
+                        let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
+                    reporter.error(msg, target.span);
                         Err(())
                     }
                 }
+        
             }
         }
     }

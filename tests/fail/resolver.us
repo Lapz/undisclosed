@@ -29,4 +29,4 @@ fn main() -> List {
 
 
 
-//expect: error: `main ` is defined twice
+//expect: error: `main` is defined twice
