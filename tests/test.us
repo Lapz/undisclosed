@@ -9,20 +9,11 @@ struct List2 {
     body:nil
 }
 
-fn main() -> List {
+fn main() -> fn(i32,i32) -> i32 {
     let list = List {
         head:10,
         body:nil
     } ;
 
-    return list;
-}
-
-fn main() -> List {
-    let list = List {
-        head:10,
-        body:nil
-    } ;
-
-    return list;
+    return 10;
 }

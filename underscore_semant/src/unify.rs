@@ -5,7 +5,6 @@ use super::{Infer, InferResult};
 use types::{TyCon, Type};
 use util::emitter::Reporter;
 use util::pos::Span;
-
 impl Infer {
     pub fn unify(
         &self,
@@ -38,12 +37,12 @@ impl Infer {
                 Ok(())
             }
 
-            (&Type::Struct(_, _, _), &Type::App(TyCon::Struct(_), _)) => Ok(()),
+            (&Type::App(TyCon::Void, _),&Type::Struct(_, _, _)) => Ok(()),
             (&Type::Struct(_, _, _), &Type::App(TyCon::Void, _)) => Ok(()),
 
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
                 if tycon1 != tycon2 {
-                    let msg = format!("Cannot unify {:?} vs {:?}", tycon1, tycon2);
+                    let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(env), rhs.print(env));
                     reporter.error(msg, span);
                     return Err(());
                 }
@@ -102,7 +101,9 @@ impl Infer {
 
             (&Type::Nil, &Type::Nil) => Ok(()),
             (t1, t2) => {
-                let msg = format!("Cannot unify  {:?} vs {:?}", t1, t2);
+
+                
+                let msg = format!("Cannot unify `{}` vs `{}`", t1.print(env), t2.print(env));
                 reporter.error(msg, span);
                 Err(())
             }

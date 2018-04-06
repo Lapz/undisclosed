@@ -40,7 +40,8 @@ struct List<T> {
 
 # TODO
 * ~~Add support for recursive types~~
-* Add proper printing of types
+* ~~Add proper printing of types~~
+* Add field access
 * Add codegen 
 # References
 
