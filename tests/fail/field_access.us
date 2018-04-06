@@ -10,5 +10,5 @@ fn main() -> i32{
         body:nil
     };
 
-    return list.ass;
+    return list.ass; // Expect : struct `List` doesn't have a field named `ass`
 }
