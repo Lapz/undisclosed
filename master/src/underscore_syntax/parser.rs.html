@@ -1376,6 +1376,70 @@
 <span id="1320">1320</span>
 <span id="1321">1321</span>
 <span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">Program</span>;
 <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">TyAlias</span>;
@@ -1541,7 +1605,6 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err_occured</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">peek</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="ident">token</span> <span class="op">!=</span> <span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">EOF</span>) {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">recognise</span>(<span class="ident">TokenType</span>::<span class="ident">FUNCTION</span>) {
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">parse_function</span>() {
@@ -1581,7 +1644,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">synchronize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+    <span class="kw">fn</span> <span class="ident">synchronize</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">advance</span>();
 
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">peek</span>(<span class="op">|</span><span class="ident">token</span><span class="op">|</span> <span class="ident">token</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">EOF</span>) {
@@ -1595,7 +1658,7 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Ident</span> {
+    <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Ident</span> {
         <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">strings</span>.<span class="ident">mappings</span>.<span class="ident">borrow</span>().<span class="ident">iter</span>() {
             <span class="kw">if</span> <span class="ident">value</span> <span class="op">==</span> <span class="ident">name</span> {
                 <span class="kw">return</span> <span class="kw-2">*</span><span class="ident">key</span>;
@@ -1625,13 +1688,11 @@
     }
 
     <span class="kw">fn</span> <span class="ident">recognise</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">token</span>: <span class="ident">TokenType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>(<span class="op">|</span><span class="ident">peeked</span><span class="op">|</span> <span class="ident">peeked</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">token</span>) {
             <span class="bool-val">true</span>
         } <span class="kw">else</span> {
             <span class="bool-val">false</span>
         }
-        
     }
 
     <span class="kw">fn</span> <span class="ident">matched</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">tokens</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TokenType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
@@ -1650,7 +1711,7 @@
         <span class="self">self</span>.<span class="ident">tokens</span>.<span class="ident">next</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">token_to_check</span>: <span class="kw-2">&amp;</span><span class="ident">TokenType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">token_to_check</span>: <span class="kw-2">&amp;</span><span class="ident">TokenType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">advance</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">Spanned</span> {
                 <span class="kw-2">ref</span> <span class="ident">span</span>,
@@ -1673,6 +1734,7 @@
         }
     }
 
+    <span class="doccomment">/// Advance the stream of tokens and return the span of the token</span>
     <span class="kw">fn</span> <span class="ident">consume_get_span</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">token_to_check</span>: <span class="kw-2">&amp;</span><span class="ident">TokenType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
@@ -1691,19 +1753,18 @@
 
                 <span class="self">self</span>.<span class="ident">error</span>(<span class="ident">msg</span>, <span class="kw-2">*</span><span class="ident">span</span>);
 
-               
-
                 <span class="prelude-val">Err</span>(())
             }
             <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
                 <span class="self">self</span>.<span class="ident">reporter</span>.<span class="ident">global_error</span>(<span class="string">&quot;Unexpected EOF&quot;</span>);
-                
+
                 <span class="prelude-val">Err</span>(())
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">consume_get_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;&gt;</span> {
+    <span class="doccomment">/// Advance the stream of tokens and return `Ident`</span>
+    <span class="kw">fn</span> <span class="ident">consume_get_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">advance</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">Spanned</span> {
                 <span class="ident">value</span>:
@@ -1732,6 +1793,7 @@
         }
     }
 
+    <span class="doccomment">/// Advance the stream of tokens and the return the `Ident` and `Span`</span>
     <span class="kw">fn</span> <span class="ident">consume_get_ident_and_span</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span>(<span class="ident">Span</span>, <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">advance</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">Spanned</span> {
@@ -1789,6 +1851,11 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Parse a type alias</span>
+    <span class="doccomment">/// i.e.</span>
+    <span class="doccomment">/// type Foo&lt;T&gt; = i32;</span>
+    <span class="doccomment">/// type Foo = i32;</span>
+    <span class="doccomment">/// type Foo = Bar;</span>
     <span class="kw">fn</span> <span class="ident">parse_ty_alias</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">TyAlias</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">TYPE</span>, <span class="string">&quot;Expected &#39;type&#39; &quot;</span>)<span class="question-mark">?</span>;
 
@@ -1805,6 +1872,15 @@
             <span class="ident">value</span>: <span class="ident">TyAlias</span> { <span class="ident">ident</span>, <span class="ident">ty</span> },
         })
     }
+
+    <span class="doccomment">/// Parse a struct</span>
+    <span class="doccomment">/// i.e.</span>
+    <span class="doccomment">/// struct Foo&lt;T&gt; {</span>
+    <span class="doccomment">///     bar:i32</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// struct Foo {</span>
+    <span class="doccomment">///     bar:i32</span>
+    <span class="doccomment">/// }</span>
 
     <span class="kw">fn</span> <span class="ident">parse_struct</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Struct</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">struct_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">STRUCT</span>, <span class="string">&quot;Expected &#39;struct&#39; &quot;</span>)<span class="question-mark">?</span>;
@@ -1823,6 +1899,10 @@
         })
     }
 
+    <span class="doccomment">/// Parse a struct field</span>
+    <span class="doccomment">/// i.e.</span>
+    <span class="doccomment">/// bar:i32,</span>
+    <span class="doccomment">/// bar:i32</span>
     <span class="kw">fn</span> <span class="ident">parse_struct_fields</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Field</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">LBRACE</span>, <span class="string">&quot;Expected a &#39;{&#39; after struct name&quot;</span>)<span class="question-mark">?</span>;
@@ -1859,7 +1939,12 @@
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;&gt;</span> {
+    <span class="doccomment">/// Parse a function</span>
+    <span class="doccomment">/// i.e.</span>
+    <span class="doccomment">/// (extern)? fn `Ident` (Vec&lt;FunctionParams&gt;) -&gt; `Ty` {</span>
+    <span class="doccomment">///        statements*</span>
+    <span class="doccomment">/// },</span>
+    <span class="kw">fn</span> <span class="ident">parse_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">linkage</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">recognise</span>(<span class="ident">TokenType</span>::<span class="ident">EXTERNAL</span>) {
             <span class="ident">Linkage</span>::<span class="ident">External</span>
         } <span class="kw">else</span> {
@@ -1879,12 +1964,8 @@
             <span class="prelude-val">None</span>
         };
 
-    
-
-
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_statement</span>()<span class="question-mark">?</span>;
 
-        
         <span class="prelude-val">Ok</span>(<span class="ident">Spanned</span> {
             <span class="ident">span</span>: <span class="ident">fn_span</span>.<span class="ident">to</span>(<span class="ident">body</span>.<span class="ident">get_span</span>()),
             <span class="ident">value</span>: <span class="ident">Function</span> {
@@ -1898,6 +1979,9 @@
         })
     }
 
+    <span class="doccomment">/// Parse an item name</span>
+    <span class="doccomment">/// i.e.</span>
+    <span class="doccomment">/// `Ident &lt;Vec&lt;Ident&gt;&gt;`</span>
     <span class="kw">fn</span> <span class="ident">parse_item_name</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">ItemName</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> (<span class="ident">open_span</span>, <span class="ident">name</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_ident_and_span</span>(<span class="string">&quot;Expected an identifier&quot;</span>)<span class="question-mark">?</span>;
 
@@ -1909,6 +1993,10 @@
         })
     }
 
+    <span class="doccomment">/// Parse generic params</span>
+    <span class="doccomment">/// i.e.</span>
+    <span class="doccomment">/// &lt;T,T&gt;</span>
+    <span class="doccomment">/// &lt;K,V&gt;</span>
     <span class="kw">fn</span> <span class="ident">parse_generic_params</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">recognise</span>(<span class="ident">TokenType</span>::<span class="ident">LESSTHAN</span>) {
             <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">LESSTHAN</span>, <span class="string">&quot;Expected a &#39;&lt;&#39; &quot;</span>)<span class="question-mark">?</span>;
@@ -1935,6 +2023,10 @@
         }
     }
 
+    <span class="doccomment">/// Parse fn params</span>
+    <span class="doccomment">/// i.e.</span>
+    <span class="doccomment">/// (Ident:Ty)*?</span>
+    <span class="doccomment">/// (a:bar,b:foo)</span>
     <span class="kw">fn</span> <span class="ident">parse_fn_params</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">FunctionParams</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">LPAREN</span>, <span class="string">&quot;Expected a &#39;(&#39; after function name&quot;</span>)<span class="question-mark">?</span>;
@@ -1971,6 +2063,11 @@
         })
     }
 
+    <span class="doccomment">/// Parse types</span>
+    <span class="doccomment">/// i.e.</span>
+    <span class="doccomment">/// i8,i32,i64 ... u64</span>
+    <span class="doccomment">/// List</span>
+    <span class="doccomment">/// List&lt;i32&gt;</span>
     <span class="kw">fn</span> <span class="ident">parse_type</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">recognise</span>(<span class="ident">TokenType</span>::<span class="ident">I8</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">Spanned</span> {
@@ -2081,6 +2178,15 @@
         }
     }
 
+    <span class="doccomment">/// statement → block_statement</span>
+    <span class="doccomment">///             break</span>
+    <span class="doccomment">///             continue</span>
+    <span class="doccomment">///             for_statement</span>
+    <span class="doccomment">///             let_statement</span>
+    <span class="doccomment">///             if_statement</span>
+    <span class="doccomment">///             return</span>
+    <span class="doccomment">///             while_statement</span>
+    <span class="doccomment">///             expression_statement</span>
     <span class="kw">fn</span> <span class="ident">parse_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">recognise</span>(<span class="ident">TokenType</span>::<span class="ident">LBRACE</span>) {
             <span class="self">self</span>.<span class="ident">parse_block</span>()
@@ -2105,8 +2211,8 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+    <span class="doccomment">///  block_statement → &quot;{&quot; statement* &quot;}&quot; ;</span>
     <span class="kw">fn</span> <span class="ident">parse_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
-      
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">LBRACE</span>, <span class="string">&quot;Expected a &#39;{&#39; &quot;</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">statements</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
@@ -2114,9 +2220,6 @@
         <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">recognise</span>(<span class="ident">TokenType</span>::<span class="ident">RBRACE</span>) {
             <span class="ident">statements</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">parse_statement</span>()<span class="question-mark">?</span>);
         }
-        
-
-        
 
         <span class="kw">let</span> <span class="ident">close_span</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">RBRACE</span>, <span class="string">&quot;Expected a \&#39;}\&#39; after block.&quot;</span>)<span class="question-mark">?</span>;
@@ -2126,6 +2229,7 @@
         })
     }
 
+    <span class="doccomment">/// break → &quot;break&quot; &quot;;&quot;</span>
     <span class="kw">fn</span> <span class="ident">parse_break_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">BREAK</span>, <span class="string">&quot;Expected a &#39;break&#39; &quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Spanned</span> {
@@ -2134,6 +2238,7 @@
         })
     }
 
+    <span class="doccomment">/// continue → &quot;continue&quot; &quot;;&quot;</span>
     <span class="kw">fn</span> <span class="ident">parse_continue_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">CONTINUE</span>, <span class="string">&quot;Expected &#39;continue&#39; &quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Spanned</span> {
@@ -2142,6 +2247,7 @@
         })
     }
 
+    <span class="doccomment">/// expression_statement -&gt; expression &quot;;&quot;&quot;</span>
     <span class="kw">fn</span> <span class="ident">parse_expression_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_expression</span>()<span class="question-mark">?</span>;
 
@@ -2151,6 +2257,7 @@
         })
     }
 
+    <span class="doccomment">/// for_statement → &quot;for&quot; &quot;(&quot; (let_statement| expression_statement)? &quot;;&quot; expression_statement? &quot;;&quot; expression_statement?  &quot;)&quot; statement</span>
     <span class="kw">fn</span> <span class="ident">parse_for_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">FOR</span>, <span class="string">&quot;Expected &#39;for&#39; &quot;</span>)<span class="question-mark">?</span>;
 
@@ -2195,6 +2302,7 @@
         })
     }
 
+    <span class="doccomment">/// if_statement → &quot;if&quot; expression_statement &quot;else&quot; statement ;</span>
     <span class="kw">fn</span> <span class="ident">parse_if_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">IF</span>, <span class="string">&quot;Expected &#39;if&#39; &quot;</span>)<span class="question-mark">?</span>;
 
@@ -2224,6 +2332,7 @@
         })
     }
 
+    <span class="doccomment">/// let_statement → &quot;let&quot; IDENT (&quot;:&quot; type )? &quot;=&quot; expression_statement ;</span>
     <span class="kw">fn</span> <span class="ident">parse_let_declaration</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">LET</span>, <span class="string">&quot;Expected &#39;let&#39; &quot;</span>)<span class="question-mark">?</span>;
 
@@ -2264,7 +2373,7 @@
             <span class="ident">value</span>: <span class="ident">Statement</span>::<span class="ident">Let</span> { <span class="ident">ident</span>, <span class="ident">ty</span>, <span class="ident">expr</span> },
         })
     }
-
+    <span class="doccomment">/// return_statement → &quot;return&quot; expression_statement? &quot;;&quot;</span>
     <span class="kw">fn</span> <span class="ident">parse_return_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">RETURN</span>, <span class="string">&quot;Expected &#39;return&#39; &quot;</span>)<span class="question-mark">?</span>;
 
@@ -2277,7 +2386,7 @@
             <span class="ident">value</span>: <span class="ident">Statement</span>::<span class="ident">Return</span>(<span class="ident">expr</span>),
         })
     }
-
+    <span class="doccomment">/// while_statement → &quot;while&quot; expression_statement  &quot;{&quot; statement &quot;}&quot; ;</span>
     <span class="kw">fn</span> <span class="ident">parse_while_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">open_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">consume_get_span</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">WHILE</span>, <span class="string">&quot;Expected &#39;while&#39; &quot;</span>)<span class="question-mark">?</span>;
 
@@ -2298,10 +2407,14 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+
+    <span class="doccomment">/// expression → assignment ;</span>
     <span class="kw">fn</span> <span class="ident">parse_expression</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="self">self</span>.<span class="ident">parse_assignment</span>()
     }
 
+    <span class="doccomment">/// assignment → IDENT &quot;=&quot; assignment</span>
+    <span class="doccomment">///            | or;   </span>
     <span class="kw">fn</span> <span class="ident">parse_assignment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_or</span>()<span class="question-mark">?</span>;
 
@@ -2334,6 +2447,8 @@
         <span class="prelude-val">Ok</span>(<span class="ident">expr</span>)
     }
 
+
+    <span class="doccomment">/// or → and (&quot;or&quot; and)* ;</span>
     <span class="kw">fn</span> <span class="ident">parse_or</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_and</span>()<span class="question-mark">?</span>;
 
@@ -2344,6 +2459,8 @@
         <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
     }
 
+
+    <span class="doccomment">/// or → equality ( &quot;as&quot;  type |(&quot;and&quot; equality))* ;</span>
     <span class="kw">fn</span> <span class="ident">parse_and</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_equality</span>()<span class="question-mark">?</span>;
 
@@ -2368,6 +2485,7 @@
         }
     }
 
+    <span class="doccomment">/// equality → comparison ( ( &quot;!=&quot; | &quot;==&quot; ) comparison )* ;</span>
     <span class="kw">fn</span> <span class="ident">parse_equality</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_comparison</span>()<span class="question-mark">?</span>;
 
@@ -2380,7 +2498,7 @@
 
         <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
     }
-
+    <span class="doccomment">/// comparison → addition ( ( &quot;&gt;&quot; | &quot;&gt;=&quot; | &quot;&lt;&quot; | &quot;&lt;=&quot; ) addition )* ;</span>
     <span class="kw">fn</span> <span class="ident">parse_comparison</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_addition</span>()<span class="question-mark">?</span>;
 
@@ -2399,6 +2517,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
     }
 
+    <span class="doccomment">/// addition → multiplication ( ( &quot;-&quot; | &quot;+&quot; ) multiplication )* ;</span>
     <span class="kw">fn</span> <span class="ident">parse_addition</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_multiplication</span>()<span class="question-mark">?</span>;
 
@@ -2412,6 +2531,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
     }
 
+    <span class="doccomment">/// multiplication → unary ( ( &quot;/&quot; | &quot;*&quot; ) unary )* ;</span>
     <span class="kw">fn</span> <span class="ident">parse_multiplication</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_unary</span>()<span class="question-mark">?</span>;
 
@@ -2424,7 +2544,7 @@
 
         <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
     }
-
+   <span class="doccomment">/// unary → ( &quot;!&quot; | &quot;-&quot; ) unary | primary ;</span>
     <span class="kw">fn</span> <span class="ident">parse_unary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">matched</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">TokenType</span>::<span class="ident">BANG</span>, <span class="ident">TokenType</span>::<span class="ident">MINUS</span>]) {
             <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_unary_op</span>()<span class="question-mark">?</span>;
@@ -2443,6 +2563,9 @@
         <span class="self">self</span>.<span class="ident">parse_primary</span>()
     }
 
+    <span class="doccomment">/// primary → &quot;true&quot; | &quot;false&quot; | &quot;nil&quot;</span>
+    <span class="doccomment">///         | number | string | Ident</span>
+    <span class="doccomment">///         | CHAR   | struct_lit</span>
     <span class="kw">fn</span> <span class="ident">parse_primary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">advance</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">Spanned</span> {
@@ -2504,6 +2627,9 @@
         }
     }
 
+   <span class="doccomment">/// Ident → &quot;(&quot; call &quot;)&quot; | &quot;::&quot; &quot;&lt;&quot; type* &quot;&gt;&quot; struct_lit</span>
+   <span class="doccomment">///       |  &quot;.&quot; IDENT | &quot;[&quot; expression &quot;]&quot;</span>
+   <span class="doccomment">///       | struct_lit   </span>
     <span class="kw">fn</span> <span class="ident">parse_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">recognise</span>(<span class="ident">TokenType</span>::<span class="ident">LPAREN</span>) {
             <span class="self">self</span>.<span class="ident">parse_call</span>(<span class="ident">ident</span>)
@@ -2624,6 +2750,7 @@
         }
     }
 
+    <span class="doccomment">/// struct_lit → &quot;{&quot;  (IDENT:expression)* &quot;}&quot;</span>
     <span class="kw">fn</span> <span class="ident">parse_struct_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">parsing_cond</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Spanned</span> {
@@ -2671,6 +2798,7 @@
         })
     }
 
+    <span class="doccomment">/// call →  &quot;(&quot; expression ( &quot;,&quot; expression )* &quot;)&quot; ;</span>
     <span class="kw">fn</span> <span class="ident">parse_call</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">callee</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">ParserResult</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span> {
         <span class="self">self</span>.<span class="ident">consume</span>(<span class="kw-2">&amp;</span><span class="ident">TokenType</span>::<span class="ident">LPAREN</span>, <span class="string">&quot;Expected &#39;(&#39; &quot;</span>)<span class="question-mark">?</span>;
 
