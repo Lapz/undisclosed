@@ -458,7 +458,11 @@ impl Infer {
                 match cast_check(&expr_ty, &ty) {
                     Ok(()) => Ok(ty),
                     Err(_) => {
-                        let msg = format!("Cannot cast `{}` to type `{}`", expr_ty.print(env), ty.print(env));
+                        let msg = format!(
+                            "Cannot cast `{}` to type `{}`",
+                            expr_ty.print(env),
+                            ty.print(env)
+                        );
                         reporter.error(msg, expr.span);
                         Err(())
                     }
@@ -488,7 +492,8 @@ impl Infer {
                     UnaryOp::Bang => Ok(Type::App(TyCon::Bool, vec![])),
                     UnaryOp::Minus => {
                         if !expr_ty.is_int() {
-                            let msg = format!("Cannot use `-` operator on type `{}`",expr_ty.print(env));
+                            let msg =
+                                format!("Cannot use `-` operator on type `{}`", expr_ty.print(env));
 
                             reporter.error(msg, expr.span);
                             return Err(());
@@ -863,44 +868,48 @@ impl Infer {
                 }
             }
 
-            Var::Field { ref ident,ref value } => {
+            Var::Field {
+                ref ident,
+                ref value,
+            } => {
                 let record = if let Some(ident) = env.look_var(ident.value).cloned() {
                     ident
                 } else {
                     let msg = format!("Undefined variable `{}` ", env.name(ident.value));
                     reporter.error(msg, var.span);
-                    return Err(())
+                    return Err(());
                 };
 
-
                 match record {
-                    Type::Struct(ref ident,ref fields,_) => {
-                       for field in fields {
-                           if field.name == value.value {
-                               return Ok(field.ty.clone())
-                           }
-                       }
+                    Type::Struct(ref ident, ref fields, _) => {
+                        for field in fields {
+                            if field.name == value.value {
+                                return Ok(field.ty.clone());
+                            }
+                        }
 
-                       let msg = format!("struct `{}` doesn't have a field named `{}`",env.name(*ident),env.name(value.value));
+                        let msg = format!(
+                            "struct `{}` doesn't have a field named `{}`",
+                            env.name(*ident),
+                            env.name(value.value)
+                        );
 
-                       reporter.error(msg, var.span);
+                        reporter.error(msg, var.span);
 
-                       Err(())
-
-                       
-                    },
+                        Err(())
+                    }
 
                     _ => {
-                        let msg = format!("Type `{}` does not have a field named `{}` ",record.print(env),env.name(value.value));
+                        let msg = format!(
+                            "Type `{}` does not have a field named `{}` ",
+                            record.print(env),
+                            env.name(value.value)
+                        );
                         reporter.error(msg, var.span);
                         Err(())
-
                     }
                 }
-
-                
-
-            },
+            }
 
             Var::SubScript {
                 ref expr,
@@ -914,35 +923,30 @@ impl Infer {
                     return Err(());
                 };
 
-
-                 if !target_ty.is_int() {
-
+                if !target_ty.is_int() {
                     let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
                     reporter.error(msg, target.span);
                     return Err(());
-                    
                 }
 
                 let expr_ty = self.trans_expr(expr, env, reporter)?;
 
                 if !expr_ty.is_int() {
-
-                    let msg = format!("Index expr cannot be of type `{}`",expr_ty.print(env));
+                    let msg = format!("Index expr cannot be of type `{}`", expr_ty.print(env));
                     reporter.error(msg, var.span);
                     return Err(());
                 }
 
                 match target_ty {
                     Type::App(TyCon::String, _) => {
-                         Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]))
+                        Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]))
                     }
                     _ => {
                         let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
-                    reporter.error(msg, target.span);
+                        reporter.error(msg, target.span);
                         Err(())
                     }
                 }
-        
             }
         }
     }

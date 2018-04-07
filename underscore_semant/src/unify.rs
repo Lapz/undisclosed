@@ -37,7 +37,7 @@ impl Infer {
                 Ok(())
             }
 
-            (&Type::App(TyCon::Void, _),&Type::Struct(_, _, _)) => Ok(()),
+            (&Type::App(TyCon::Void, _), &Type::Struct(_, _, _)) => Ok(()),
             (&Type::Struct(_, _, _), &Type::App(TyCon::Void, _)) => Ok(()),
 
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
@@ -101,8 +101,6 @@ impl Infer {
 
             (&Type::Nil, &Type::Nil) => Ok(()),
             (t1, t2) => {
-
-                
                 let msg = format!("Cannot unify `{}` vs `{}`", t1.print(env), t2.print(env));
                 reporter.error(msg, span);
                 Err(())

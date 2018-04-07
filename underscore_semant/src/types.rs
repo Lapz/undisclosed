@@ -1,6 +1,6 @@
-use syntax::ast::{Ident, Sign, Size};
-use std::fmt::{Display,self};
 use env::Env;
+use std::fmt::{self, Display};
+use syntax::ast::{Ident, Sign, Size};
 
 static mut UNIQUE_COUNT: u32 = 0;
 
@@ -64,82 +64,68 @@ impl Type {
 }
 
 impl Type {
-    pub fn print(&self,env:&Env ) -> String {
-         match *self {
-            Type::Struct(ref name,ref fields,_) => {
+    pub fn print(&self, env: &Env) -> String {
+        match *self {
+            Type::Struct(ref name, ref fields, _) => {
                 let mut fmt_string = String::new();
-                fmt_string.push_str(&format!("{}<",env.name(*name)));
+                fmt_string.push_str(&format!("{}<", env.name(*name)));
 
-            
-                for (i,field) in fields.iter().enumerate() {
-
-                    if i + 1  == fields.len() {
-                        fmt_string.push_str(&format!("{}",field.ty.print(env)));
-                    }else {
-                        fmt_string.push_str(&format!("{},",field.ty.print(env)));
+                for (i, field) in fields.iter().enumerate() {
+                    if i + 1 == fields.len() {
+                        fmt_string.push_str(&format!("{}", field.ty.print(env)));
+                    } else {
+                        fmt_string.push_str(&format!("{},", field.ty.print(env)));
                     }
-                   
                 }
 
                 fmt_string.push('>');
 
                 fmt_string
+            }
+            Type::Nil => "nil".into(),
+            Type::App(ref tycon, ref types) => {
+                let mut fmt_string = String::new();
 
-            },
-              Type::Nil => "nil".into(),
-              Type::App(ref tycon,ref types) => {
-                  let mut fmt_string = String::new();
+                if let TyCon::Arrow = *tycon {
+                    fmt_string.push_str("fn(");
 
-                  if let TyCon::Arrow = *tycon {
+                    for i in 0..types.len() - 1 {
+                        if i + 1 == types.len() - 1 {
+                            fmt_string.push_str(&format!("{}", types[i].print(env)));
+                        } else {
+                            fmt_string.push_str(&format!("{},", types[i].print(env)));
+                        }
+                    }
 
-                      fmt_string.push_str("fn(");
+                    fmt_string.push_str(") -> ");
 
-                      for i in 0..types.len()  - 1 {
-                          if i + 1 == types.len()  - 1 {
-                              fmt_string.push_str(&format!("{}",types[i].print(env)));
-                          }else {
-                              fmt_string.push_str(&format!("{},",types[i].print(env)));
-                          }
-                          
-                      }
+                    fmt_string.push_str(&format!("{}", types.last().unwrap().print(env)));
 
-                      fmt_string.push_str(") -> ");
+                    return fmt_string;
+                }
 
-                      fmt_string.push_str(&format!("{}",types.last().unwrap().print(env)));
+                fmt_string.push_str(&format!("{}", tycon));
 
-                      return fmt_string
+                for (i, ty) in types.iter().enumerate() {
+                    if i + 1 == types.len() {
+                        fmt_string.push_str(&ty.print(env))
+                    } else {
+                        fmt_string.push_str(&format!("{},", ty.print(env)))
+                    }
+                }
 
-
-
-
-                  }
-
-                  fmt_string.push_str(&format!("{}",tycon));
-
-                  for (i,ty) in types.iter().enumerate()  {
-                      if i + 1  == types.len() {
-                          fmt_string.push_str(&ty.print(env))
-                      } else {
-
-                          fmt_string.push_str(&format!("{},",ty.print(env)))
-
-                      }
-
-
-                  }
-
-                  fmt_string
-              },
-              Type::Var(ref v) => format!("{}",v.0 as u8 as char),
-              Type::Poly(ref vars,ref ret) =>{
+                fmt_string
+            }
+            Type::Var(ref v) => format!("{}", v.0 as u8 as char),
+            Type::Poly(ref vars, ref ret) => {
                 let mut fmt_string = String::new();
                 fmt_string.push_str("poly<");
 
-                for (i,var) in vars.iter().enumerate() {
-                    if i + 1  == vars.len() {
+                for (i, var) in vars.iter().enumerate() {
+                    if i + 1 == vars.len() {
                         fmt_string.push(var.0 as u8 as char);
-                    }else {
-                        fmt_string.push_str(&format!("{},",var.0 as u8 as char));
+                    } else {
+                        fmt_string.push_str(&format!("{},", var.0 as u8 as char));
                     }
                 }
 
@@ -148,22 +134,21 @@ impl Type {
                 fmt_string.push_str(&ret.print(env));
 
                 fmt_string
-              },
-             
+            }
         }
     }
 }
 
 impl Display for TyCon {
-    fn fmt(&self,f:&mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            TyCon::Int(ref sign, ref size) => write!(f, "{}{}",sign,size),
-            TyCon::String => write!(f,"str"),
-            TyCon::Char => write!(f,"ch"),
-            TyCon::Void => write!(f,"nil"),
+            TyCon::Int(ref sign, ref size) => write!(f, "{}{}", sign, size),
+            TyCon::String => write!(f, "str"),
+            TyCon::Char => write!(f, "ch"),
+            TyCon::Void => write!(f, "nil"),
             TyCon::Arrow => write!(f, "->"),
-            TyCon::Bool => write!(f,"bool"),
-            TyCon::Fun(_,ref ret) => write!(f,"fn () -> {:?}",ret),
+            TyCon::Bool => write!(f, "bool"),
+            TyCon::Fun(_, ref ret) => write!(f, "fn () -> {:?}", ret),
         }
     }
 }

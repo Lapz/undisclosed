@@ -1,4 +1,3 @@
-
 use super::InferResult;
 use env::Env;
 use std::collections::HashSet;

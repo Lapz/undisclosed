@@ -386,9 +386,6 @@ impl<'a> Lexer<'a> {
         }
 
         Some(spans(TokenType::EOF, self.end, self.end))
-
-
-        
     }
 
     pub fn lex(&mut self) -> Vec<Spanned<Token<'a>>> {
