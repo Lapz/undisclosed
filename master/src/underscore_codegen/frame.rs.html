@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="rustdoc">
-    <meta name="description" content="API documentation for the Rust `parser` mod in crate `underscore_syntax`.">
-    <meta name="keywords" content="rust, rustlang, rust-lang, parser">
+    <meta name="description" content="Source to the Rust file `underscore_codegen/src/frame.rs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang">
 
-    <title>underscore_syntax::parser - Rust</title>
+    <title>frame.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
     <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
@@ -20,7 +20,7 @@
     
     
 </head>
-<body class="rustdoc mod">
+<body class="rustdoc source">
     <!--[if lte IE 8]>
     <div class="warning">
         This old browser is unsupported and will most likely display funky
@@ -33,7 +33,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         
-        <p class='location'>Module parser</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class='location'><a href='../index.html'>underscore_syntax</a></p><script>window.sidebarCurrent = {name: 'parser', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div>
+        
     </nav>
 
     <div class="theme-picker">
@@ -54,29 +54,53 @@
         </form>
     </nav>
 
-    <section id='main' class="content">
-<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>underscore_syntax</a>::<wbr><a class="mod" href=''>parser</a></span><span class='out-of-band'><span id='render-detail'>
-                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
-                       [<span class='inner'>&#x2212;</span>]
-                   </a>
-               </span><a class='srclink' href='../../src/underscore_syntax/parser.rs.html#1-1383' title='goto source code'>[src]</a></span></h1>
-<h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Parser.html"
-                                  title='struct underscore_syntax::parser::Parser'>Parser</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class="type" href="type.ParserResult.html"
-                                  title='type underscore_syntax::parser::ParserResult'>ParserResult</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr></table></section>
+    <section id='main' class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<span id="2"> 2</span>
+<span id="3"> 3</span>
+<span id="4"> 4</span>
+<span id="5"> 5</span>
+<span id="6"> 6</span>
+<span id="7"> 7</span>
+<span id="8"> 8</span>
+<span id="9"> 9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+</pre><pre class="rust ">
+<span class="kw">use</span> <span class="ident">temp</span>::<span class="kw-2">*</span>;
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Frame</span> {
+    <span class="doccomment">/// Allocate a new frame</span>
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">Label</span>, <span class="ident">formals</span>: <span class="kw-2">&amp;</span>[<span class="ident">bool</span>]) <span class="op">-&gt;</span> <span class="self">Self</span>;
+
+    <span class="comment">// fn name(&amp;self) -&gt; Label;</span>
+
+    <span class="kw">fn</span> <span class="ident">formals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>,) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Access</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">alloc_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">escape</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">Access</span>;
+}
+
+<span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">FRAME_COUNT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Access</span> {
+    <span class="doccomment">/// Data that will be held in a register</span>
+    <span class="ident">Reg</span>(<span class="ident">Temp</span>), 
+    <span class="doccomment">/// A memory location at offset X from the frame pointer</span>
+    <span class="ident">Frame</span>(<span class="ident">u32</span>), 
+}
+</pre>
+</section>
     <section id='search' class="content hidden"></section>
 
     <section class="footer"></section>
@@ -135,7 +159,7 @@
 
     <script>
         window.rootPath = "../../";
-        window.currentCrate = "underscore_syntax";
+        window.currentCrate = "underscore_codegen";
     </script>
     <script src="../../main.js"></script>
     <script defer src="../../search-index.js"></script>
