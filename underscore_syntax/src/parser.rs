@@ -964,6 +964,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 }
 
 impl<'a, 'b> Parser<'a, 'b> {
+
     /// expression → assignment ;
     fn parse_expression(&mut self) -> ParserResult<Spanned<Expression>> {
         self.parse_assignment()
@@ -1003,6 +1004,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         Ok(expr)
     }
 
+
     /// or → and ("or" and)* ;
     fn parse_or(&mut self) -> ParserResult<Spanned<Expression>> {
         let mut lhs = self.parse_and()?;
@@ -1013,6 +1015,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(lhs)
     }
+
 
     /// or → equality ( "as"  type |("and" equality))* ;
     fn parse_and(&mut self) -> ParserResult<Spanned<Expression>> {
@@ -1098,7 +1101,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(lhs)
     }
-    /// unary → ( "!" | "-" ) unary | primary ;
+   /// unary → ( "!" | "-" ) unary | primary ;
     fn parse_unary(&mut self) -> ParserResult<Spanned<Expression>> {
         if self.matched(vec![TokenType::BANG, TokenType::MINUS]) {
             let op = self.get_unary_op()?;
@@ -1181,9 +1184,9 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-    /// Ident → "(" call ")" | "::" "<" type* ">" struct_lit
-    ///       |  "." IDENT | "[" expression "]"
-    ///       | struct_lit   
+   /// Ident → "(" call ")" | "::" "<" type* ">" struct_lit
+   ///       |  "." IDENT | "[" expression "]"
+   ///       | struct_lit   
     fn parse_ident(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)

@@ -135,13 +135,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "underscore_codegen"
-version = "0.1.0"
-dependencies = [
- "underscore_syntax 0.1.0",
-]
-
-[[package]]
 name = "underscore_semant"
 version = "0.1.0"
 dependencies = [
