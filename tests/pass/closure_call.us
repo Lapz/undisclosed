@@ -1,0 +1,18 @@
+fn main() {
+
+}
+
+fn foo() -> fn(i32) -> i32 {
+    let v = 10;
+    let a = |x:i32| {
+        while true {
+                
+        }
+
+        v = v+10;
+
+        return 10;
+    };
+
+    return a;
+}

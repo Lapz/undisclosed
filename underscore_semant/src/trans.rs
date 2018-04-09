@@ -227,7 +227,7 @@ impl Infer {
             param_tys.push(self.trans_ty(&param.value.ty, env, reporter)?);
         }
 
-        param_tys.push(returns.clone());
+        param_tys.push(returns.clone()); // Return is the last value
 
         env.add_var(
             function.value.name.value.name.value,
@@ -469,6 +469,32 @@ impl Infer {
                 }
             }
             Expression::Call(ref call) => self.trans_call(call, env, reporter),
+            Expression::Closure(ref closure) => {
+
+                let mut param_tys = Vec::with_capacity(closure.value.params.value.len());
+                
+                for param in &closure.value.params.value {
+                    param_tys.push(self.trans_ty(&param.value.ty, env, reporter)?)
+                }
+
+                env.add_var(
+                    closure.value.name.value.name.value,
+                    Type::App(TyCon::Arrow,param_tys.clone())
+                 );
+
+                env.begin_scope();
+
+                for (param,ident) in param_tys.clone().into_iter().zip(&closure.value.params.value) {
+                    env.add_var(ident.value.name.value, param)
+                }
+
+                param_tys.push(self.trans_statement(&closure.value.body, env, reporter)?); // Add the return type of the body
+
+               
+                env.end_scope();
+
+                Ok(Type::Poly(Vec::with_capacity(0),Box::new(Type::App(TyCon::Arrow,param_tys))))
+            },
             Expression::Grouping { ref expr } => self.trans_expr(expr, env, reporter),
             Expression::Literal(ref literal) => match *literal {
                 Literal::Char(_) => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![])),
@@ -567,7 +593,8 @@ impl Infer {
 
                         _ => unreachable!(), // Structs are not stored in the var environment so this path cannot be reached
                     },
-                    _ => {
+                ref e  => {
+                    println!("{:?}",e);
                         let msg = format!("`{}` is not callable", env.name(callee.value));
 
                         reporter.error(msg, callee.span);
