@@ -274,6 +274,7 @@ impl<'a> Lexer<'a> {
                 '(' => Some(span(TokenType::LPAREN, start)),
                 ')' => Some(span(TokenType::RPAREN, start)),
                 ',' => Some(span(TokenType::COMMA, start)),
+                '|' => Some(span(TokenType::BAR,start)),
                 ':' => {
                     if self.peek(|ch| ch == ':') {
                         self.advance();

@@ -121,6 +121,8 @@ pub enum Expression {
 
     Call(Spanned<Call>),
 
+    Closure(Box<Spanned<Function>>),
+
     Grouping {
         expr: Box<Spanned<Expression>>,
     },

@@ -18,7 +18,7 @@ fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file, opts.file);
+        run(file, opts.file, opts.env);
     } else {
         repl()
     }
@@ -50,7 +50,7 @@ fn repl() {
     }
 }
 
-fn run(path: String, dump_file: Option<String>) {
+fn run(path: String, dump_file: Option<String>, env: bool) {
     use std::fs::File;
     use std::io::Read;
 
@@ -80,7 +80,8 @@ fn run(path: String, dump_file: Option<String>) {
     let ast = match parser.parse() {
         Ok(mut ast) => {
             if dump_file.is_some() {
-                let mut file = File::create(dump_file.unwrap()).expect("Couldn't create file");
+                let mut file =
+                    File::create(dump_file.clone().unwrap()).expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
             }
@@ -113,4 +114,6 @@ pub struct Cli {
     /// Dump the ast to a give file
     #[structopt(short = "d", long = "dump")]
     pub file: Option<String>,
+    #[structopt(short = "e", long = "debug")]
+    pub env: bool,
 }
