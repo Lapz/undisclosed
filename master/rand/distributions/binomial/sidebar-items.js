@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Binomial","The binomial distribution `Binomial(n, p)`."]]});

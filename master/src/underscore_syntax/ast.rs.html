@@ -315,6 +315,8 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
 <span class="kw">use</span> <span class="ident">util</span>::<span class="ident">pos</span>::{<span class="ident">Span</span>, <span class="ident">Spanned</span>};
@@ -438,6 +440,8 @@
     },
 
     <span class="ident">Call</span>(<span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span>),
+
+    <span class="ident">Closure</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Function</span><span class="op">&gt;&gt;</span>),
 
     <span class="ident">Grouping</span> {
         <span class="ident">expr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span>,

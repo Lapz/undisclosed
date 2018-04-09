@@ -517,6 +517,7 @@
 <span id="461">461</span>
 <span id="462">462</span>
 <span id="463">463</span>
+<span id="464">464</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">ast</span>::{<span class="ident">Number</span>, <span class="ident">Sign</span>, <span class="ident">Size</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
@@ -794,6 +795,7 @@
                 <span class="string">&#39;(&#39;</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">LPAREN</span>, <span class="ident">start</span>)),
                 <span class="string">&#39;)&#39;</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">RPAREN</span>, <span class="ident">start</span>)),
                 <span class="string">&#39;,&#39;</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">COMMA</span>, <span class="ident">start</span>)),
+                <span class="string">&#39;|&#39;</span> <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">span</span>(<span class="ident">TokenType</span>::<span class="ident">BAR</span>,<span class="ident">start</span>)),
                 <span class="string">&#39;:&#39;</span> <span class="op">=&gt;</span> {
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>(<span class="op">|</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;:&#39;</span>) {
                         <span class="self">self</span>.<span class="ident">advance</span>();
