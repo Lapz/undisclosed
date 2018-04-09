@@ -2,6 +2,7 @@ extern crate underscore_syntax as syntax;
 extern crate underscore_util as util;
 mod frame;
 mod temp;
+mod x86;
 
 #[cfg(test)]
 mod tests {

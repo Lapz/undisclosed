@@ -3,6 +3,7 @@ extern crate underscore_util as util;
 
 mod cast_check;
 mod env;
+mod escape;
 mod resolver;
 mod subst;
 mod trans;
@@ -11,6 +12,7 @@ mod unify;
 
 pub use env::Env as TypeEnv;
 use env::Env;
+use escape::FindEscape;
 use resolver::Resolver;
 use syntax::ast::Program;
 use util::emitter::Reporter;
@@ -27,10 +29,14 @@ impl Infer {
 
     pub fn infer(
         &self,
-        program: &Program,
+        program: &mut Program,
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<()> {
+        let mut escaper = FindEscape::new();
+
+        escaper.find_escape(program, &mut env.escapes)?;
+
         for alias in &program.type_alias {
             self.trans_alias(alias, env, reporter)?
         }

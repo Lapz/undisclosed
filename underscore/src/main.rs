@@ -77,7 +77,7 @@ fn run(path: String, dump_file: Option<String>, env: bool) {
 
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
-    let ast = match parser.parse() {
+    let mut ast = match parser.parse() {
         Ok(mut ast) => {
             if dump_file.is_some() {
                 let mut file =
@@ -97,10 +97,30 @@ fn run(path: String, dump_file: Option<String>, env: bool) {
 
     let mut type_env = TypeEnv::new(&Rc::clone(&strings));
 
-    match infer.infer(&ast, &mut type_env, &mut reporter) {
-        Ok(_) => (),
+    match infer.infer(&mut ast, &mut type_env, &mut reporter) {
+        Ok(_) => {
+            
+            if dump_file.is_some() {
+                let mut file = File::create(format!("after_{}",dump_file.unwrap())).expect("Couldn't create file");
+                file.write(ast.fmt().as_bytes())
+                    .expect("Couldn't write to the file");
+                file.write(format!("{:#?}",env).as_bytes()).expect("Couldn't write to the file");
+
+                
+            }
+
+            ()
+        },
         Err(_) => {
             reporter.emit(&input);
+            if dump_file.is_some() {
+                let mut file = File::create(format!("after_{}",dump_file.unwrap())).expect("Couldn't create file");
+                file.write(ast.fmt().as_bytes())
+                    .expect("Couldn't write to the file");
+                file.write(format!("{:#?}",env).as_bytes()).expect("Couldn't write to the file");
+
+                
+            }
             ::std::process::exit(65)
         }
     }

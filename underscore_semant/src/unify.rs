@@ -100,7 +100,7 @@ impl Infer {
             },
 
             (&Type::Nil, &Type::Nil) => Ok(()),
-            (&Type::Nil,&Type::App(TyCon::Void,_)) => Ok(()),
+            (&Type::Nil, &Type::App(TyCon::Void, _)) => Ok(()),
             (t1, t2) => {
                 let msg = format!("Cannot unify `{}` vs `{}`", t1.print(env), t2.print(env));
                 reporter.error(msg, span);

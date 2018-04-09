@@ -1,10 +1,5 @@
 use std::fmt::{self, Display};
-use util::{
-    pos::{Span, Spanned},
-    symbol::Symbol
-};
-
-
+use util::{pos::{Span, Spanned}, symbol::Symbol};
 
 #[derive(Debug)]
 pub struct Program {
@@ -18,7 +13,6 @@ impl Program {
         format!("{:#?}", self)
     }
 }
-
 
 #[derive(Debug)]
 pub struct ItemName {
@@ -97,6 +91,7 @@ pub enum Statement {
         otherwise: Option<Box<Spanned<Statement>>>,
     },
     Let {
+        escapes: bool,
         ident: Spanned<Symbol>,
         ty: Option<Spanned<Ty>>,
         expr: Option<Spanned<Expression>>,

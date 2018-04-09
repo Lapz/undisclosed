@@ -1,8 +1,7 @@
 // use syntax::ast::Ident;
-use std::fmt::{Debug, Display,self};
-use util::symbol::{Symbols,Symbol};
+use std::fmt::{self, Debug, Display};
+use util::symbol::{Symbol, Symbols};
 // use std::io::{self, Write};
-
 
 /// A Label represents an address in assembly language.
 pub type Label = Symbol;
@@ -12,14 +11,18 @@ pub type Label = Symbol;
 pub struct Temp(pub u32);
 
 static mut TEMP_COUNT: u32 = 0;
+static mut LABEL_COUNT: u32 = 0;
 
+pub fn new_label(symbols: &mut Symbols<()>) -> Symbol {
+    unsafe { symbols.symbol(&format!("L{}", LABEL_COUNT)) }
+}
 
 impl Temp {
     /// Makes a new temp with a given Ident.
     /// Warning: avoid repeated calls with the same name.
     pub fn new() -> Self {
-        let value = unsafe {TEMP_COUNT };
-        unsafe {TEMP_COUNT += 1 };
+        let value = unsafe { TEMP_COUNT };
+        unsafe { TEMP_COUNT += 1 };
         Temp(value)
     }
 }
@@ -35,4 +38,3 @@ impl Display for Temp {
         write!(f, "r{}", self.0)
     }
 }
-

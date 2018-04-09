@@ -2,7 +2,7 @@ use super::InferResult;
 use env::Env;
 use std::collections::HashSet;
 use syntax::ast::{Function, Program, Struct, TyAlias};
-use util::{emitter::Reporter, pos::Spanned,symbol::Symbol};
+use util::{emitter::Reporter, pos::Spanned, symbol::Symbol};
 
 #[derive(Debug, Default)]
 pub struct Resolver {

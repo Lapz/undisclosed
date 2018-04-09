@@ -3,14 +3,13 @@ use ast::TyAlias;
 use ast::{Call, Expression, Literal, Op, Statement, UnaryOp, Var};
 use ast::{Field, Struct, StructLit, StructLitField};
 use ast::{Function, FunctionParams, ItemName, Linkage, Ty};
+use rand::{self, Rng};
 use std::iter::Peekable;
 use std::vec::IntoIter;
 use tokens::{Token, TokenType};
 use util::emitter::Reporter;
 use util::pos::{Span, Spanned};
-use util::symbol::{Symbols,Symbol};
-use rand::{self,Rng};
-
+use util::symbol::{Symbol, Symbols};
 
 pub struct Parser<'a, 'b> {
     reporter: Reporter,
@@ -217,18 +216,17 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-    fn ident(&mut self,name:&str) -> Symbol {
-       self.symbols.symbol(name)
+    fn ident(&mut self, name: &str) -> Symbol {
+        self.symbols.symbol(name)
     }
 
     fn random_ident(&mut self) -> Symbol {
-    let mut rng = rand::thread_rng();
-    let letter: char = rng.gen_range(b'A', b'Z') as char;
-    let number: u32 = rng.gen_range(0, 999999);
-    let s = format!("{}{:06}", letter, number);
+        let mut rng = rand::thread_rng();
+        let letter: char = rng.gen_range(b'A', b'Z') as char;
+        let number: u32 = rng.gen_range(0, 999999);
+        let s = format!("{}{:06}", letter, number);
 
-     self.symbols.symbol(&s)
-       
+        self.symbols.symbol(&s)
     }
 
     fn peek<F>(&mut self, mut check: F) -> bool
@@ -599,7 +597,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         })
     }
 
-    fn parse_params(&mut self) ->  ParserResult<Vec<Spanned<FunctionParams>>> {
+    fn parse_params(&mut self) -> ParserResult<Vec<Spanned<FunctionParams>>> {
         let mut params = Vec::new();
 
         if !self.recognise(TokenType::RPAREN) && !self.recognise(TokenType::BAR) {
@@ -776,17 +774,15 @@ impl<'a, 'b> Parser<'a, 'b> {
 impl<'a, 'b> Parser<'a, 'b> {
     ///  block_statement → "{" statement* "}" ;
     fn parse_block(&mut self) -> ParserResult<Spanned<Statement>> {
+        let (statements, span) = self.parse_block_()?;
 
-        let (statements,span) = self.parse_block_()?;
-
-        
         Ok(Spanned {
             span: span,
             value: Statement::Block(statements),
         })
     }
 
-    fn parse_block_(&mut self) -> ParserResult<(Vec<Spanned<Statement>>,Span)> {
+    fn parse_block_(&mut self) -> ParserResult<(Vec<Spanned<Statement>>, Span)> {
         let open_span = self.consume_get_span(&TokenType::LBRACE, "Expected a '{' ")?;
 
         let mut statements = vec![];
@@ -798,7 +794,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         let close_span =
             self.consume_get_span(&TokenType::RBRACE, "Expected a \'}\' after block.")?;
 
-            Ok((statements,open_span.to(close_span)))
+        Ok((statements, open_span.to(close_span)))
     }
 
     /// break → "break" ";"
@@ -923,6 +919,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             return Ok(Spanned {
                 span: open_span.to(ident.get_span()),
                 value: Statement::Let {
+                    escapes: false,
                     ident,
                     ty,
                     expr: None,
@@ -942,24 +939,28 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(Spanned {
             span: open_span.to(close_span),
-            value: Statement::Let { ident, ty, expr },
+            value: Statement::Let {
+                escapes: false,
+                ident,
+                ty,
+                expr,
+            },
         })
     }
     /// return_statement → "return" expression_statement? ";"
     fn parse_return_statement(&mut self) -> ParserResult<Spanned<Statement>> {
         let open_span = self.consume_get_span(&TokenType::RETURN, "Expected 'return' ")?;
 
-
         if self.recognise(TokenType::SEMICOLON) {
-            let span = self.consume_get_span(&TokenType::SEMICOLON,"")?;
+            let span = self.consume_get_span(&TokenType::SEMICOLON, "")?;
 
-            return Ok(Spanned{
+            return Ok(Spanned {
                 span,
-                value:Statement::Return(Spanned{
+                value: Statement::Return(Spanned {
                     span,
-                    value:Expression::Literal(Literal::Nil)
-                })
-            })
+                    value: Expression::Literal(Literal::Nil),
+                }),
+            });
         }
 
         let expr = self.parse_expression()?;
@@ -992,7 +993,6 @@ impl<'a, 'b> Parser<'a, 'b> {
 }
 
 impl<'a, 'b> Parser<'a, 'b> {
-
     /// expression → assignment ;
     fn parse_expression(&mut self) -> ParserResult<Spanned<Expression>> {
         self.parse_assignment()
@@ -1032,7 +1032,6 @@ impl<'a, 'b> Parser<'a, 'b> {
         Ok(expr)
     }
 
-
     /// or → and ("or" and)* ;
     fn parse_or(&mut self) -> ParserResult<Spanned<Expression>> {
         let mut lhs = self.parse_and()?;
@@ -1043,7 +1042,6 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(lhs)
     }
-
 
     /// or → equality ( "as"  type |("and" equality))* ;
     fn parse_and(&mut self) -> ParserResult<Spanned<Expression>> {
@@ -1129,7 +1127,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(lhs)
     }
-   /// unary → ( "!" | "-" ) unary | primary ;
+    /// unary → ( "!" | "-" ) unary | primary ;
     fn parse_unary(&mut self) -> ParserResult<Spanned<Expression>> {
         if self.matched(vec![TokenType::BANG, TokenType::MINUS]) {
             let op = self.get_unary_op()?;
@@ -1190,15 +1188,15 @@ impl<'a, 'b> Parser<'a, 'b> {
                         span: span.to(close_span),
                         value: Expression::Grouping { expr },
                     })
-                },
+                }
 
                 TokenType::BAR => {
-                   let closure = self.parse_closure(*span)?;
+                    let closure = self.parse_closure(*span)?;
 
-                   Ok(Spanned{
-                       span:closure.get_span(),
-                       value:Expression::Closure(Box::new(closure))
-                   })
+                    Ok(Spanned {
+                        span: closure.get_span(),
+                        value: Expression::Closure(Box::new(closure)),
+                    })
                 }
 
                 TokenType::IDENTIFIER(ident) => {
@@ -1221,14 +1219,13 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-   /// Symbol → "(" call ")" | "::" "<" type* ">" struct_lit
-   ///       |  "." IDENT | "[" expression "]"
-   ///       | struct_lit   
+    /// Symbol → "(" call ")" | "::" "<" type* ">" struct_lit
+    ///       |  "." IDENT | "[" expression "]"
+    ///       | struct_lit   
     fn parse_ident(&mut self, ident: Spanned<Symbol>) -> ParserResult<Spanned<Expression>> {
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
-        }
-         else if self.recognise(TokenType::COLONCOLON) {
+        } else if self.recognise(TokenType::COLONCOLON) {
             self.advance();
 
             let ident_span = ident.get_span();
@@ -1422,42 +1419,35 @@ impl<'a, 'b> Parser<'a, 'b> {
         })
     }
 
-    fn parse_closure(&mut self,open_span:Span) -> ParserResult<Spanned<Function>> {
+    fn parse_closure(&mut self, open_span: Span) -> ParserResult<Spanned<Function>> {
         let params = self.parse_params()?;
 
         let params_span = self.consume_get_span(&TokenType::BAR, "Expected `|` ")?;
 
-        let body  = self.parse_block()?;
+        let body = self.parse_block()?;
 
-        Ok(Spanned{
-            span:open_span.to(body.get_span()),
+        Ok(Spanned {
+            span: open_span.to(body.get_span()),
             value: Function {
-                  span:open_span.to(body.get_span()),
-                  name: Spanned {
-                      span:open_span.to(body.get_span()),
-                      value:ItemName {
-                          name:Spanned {
-                              span:open_span.to(body.get_span()),
-                              value:self.random_ident()
-                          },
-                          type_params:vec![]
-                      }
-                  },
-                 params:Spanned{
-                     span:open_span.to(params_span),
-                     value:params
-                 },
-                 body,
-                 linkage:Linkage::Normal,
-                 returns:None
-            }
+                span: open_span.to(body.get_span()),
+                name: Spanned {
+                    span: open_span.to(body.get_span()),
+                    value: ItemName {
+                        name: Spanned {
+                            span: open_span.to(body.get_span()),
+                            value: self.random_ident(),
+                        },
+                        type_params: vec![],
+                    },
+                },
+                params: Spanned {
+                    span: open_span.to(params_span),
+                    value: params,
+                },
+                body,
+                linkage: Linkage::Normal,
+                returns: None,
+            },
         })
-
-
-
-
-
-
-
     }
 }

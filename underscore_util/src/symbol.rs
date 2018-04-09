@@ -6,7 +6,6 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
 
-
 #[derive(Hash, Debug, Copy, Clone, PartialEq, Eq, Default)]
 pub struct Symbol(pub u32);
 
@@ -25,7 +24,7 @@ pub struct Symbols<V: Clone> {
     scopes: Vec<Option<Symbol>>,
 }
 
-impl<V:Clone> Symbols<V> {
+impl<V: Clone> Symbols<V> {
     /// A new Symbols Instance
     pub fn new(strings: Rc<SymbolMap<Symbol>>) -> Self {
         Symbols {

@@ -10,9 +10,13 @@ fn id<T>(v:T) ->T {
 
 
 fn main() {
-    let v = 10;
-    let a = || {
-    };
+    let v = 6;
+    {
+        let v = 7; 
+        {
+            let v = 8;
+        }
+    }
 
     return;
 }

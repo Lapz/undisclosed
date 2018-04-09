@@ -2,7 +2,7 @@ use types::{TyCon, Type};
 
 use std::rc::Rc;
 use syntax::ast::{Sign, Size};
-use util::symbol::{SymbolMap, Symbols,Symbol};
+use util::symbol::{Symbol, SymbolMap, Symbols};
 
 #[derive(Debug, Clone)]
 pub enum Entry {
@@ -14,8 +14,8 @@ pub enum Entry {
 pub struct Env {
     types: Symbols<Entry>,
     vars: Symbols<Type>,
+    pub escapes: Symbols<(u32, bool)>,
 }
-
 
 impl Env {
     pub fn new(strings: &Rc<SymbolMap<Symbol>>) -> Self {
@@ -66,6 +66,7 @@ impl Env {
         Env {
             types: Symbols::new(Rc::clone(strings)),
             vars: Symbols::new(Rc::clone(strings)),
+            escapes: Symbols::new(Rc::clone(strings)),
         }
     }
 
