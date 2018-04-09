@@ -12,7 +12,7 @@ use underscore_semant::{Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
-use underscore_util::symbol::{FactoryMap, Table};
+use underscore_util::symbol::{SymbolMap, Symbols};
 
 fn main() {
     let opts = Cli::from_args();
@@ -37,9 +37,9 @@ fn repl() {
 
         let tokens = Lexer::new(&input, reporter.clone()).lex();
 
-        let strings = Rc::new(FactoryMap::new());
+        let strings = Rc::new(SymbolMap::new());
 
-        let mut table = Table::new(Rc::clone(&strings));
+        let mut table = Symbols::new(Rc::clone(&strings));
 
         let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
@@ -71,9 +71,9 @@ fn run(path: String, dump_file: Option<String>, env: bool) {
 
     let tokens = Lexer::new(&input, reporter.clone()).lex();
 
-    let strings = Rc::new(FactoryMap::new());
+    let strings = Rc::new(SymbolMap::new());
 
-    let mut table = Table::new(Rc::clone(&strings));
+    let mut table = Symbols::new(Rc::clone(&strings));
 
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 

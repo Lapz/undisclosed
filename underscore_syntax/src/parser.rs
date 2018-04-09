@@ -2,20 +2,21 @@ use ast::Program;
 use ast::TyAlias;
 use ast::{Call, Expression, Literal, Op, Statement, UnaryOp, Var};
 use ast::{Field, Struct, StructLit, StructLitField};
-use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
+use ast::{Function, FunctionParams, ItemName, Linkage, Ty};
 use std::iter::Peekable;
 use std::vec::IntoIter;
 use tokens::{Token, TokenType};
 use util::emitter::Reporter;
 use util::pos::{Span, Spanned};
-use util::symbol::Table;
+use util::symbol::{Symbols,Symbol};
 use rand::{self,Rng};
+
 
 pub struct Parser<'a, 'b> {
     reporter: Reporter,
     tokens: Peekable<IntoIter<Spanned<Token<'a>>>>,
     parsing_cond: bool,
-    symbols: &'b Table<Ident, ()>,
+    symbols: &'b mut Symbols<()>,
 }
 
 pub type ParserResult<T> = Result<T, ()>;
@@ -144,7 +145,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     pub fn new(
         tokens: Vec<Spanned<Token<'a>>>,
         reporter: Reporter,
-        symbols: &'b mut Table<Ident, ()>,
+        symbols: &'b mut Symbols<()>,
     ) -> Self {
         Parser {
             tokens: tokens.into_iter().peekable(),
@@ -216,29 +217,17 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-    fn ident(&mut self, name: &str) -> Ident {
-        for (key, value) in self.symbols.strings.mappings.borrow().iter() {
-            if value == name {
-                return *key;
-            }
-        }
-        let symbol = Ident(*self.symbols.strings.next.borrow());
-        self.symbols
-            .strings
-            .mappings
-            .borrow_mut()
-            .insert(symbol, name.to_owned());
-        *self.symbols.strings.next.borrow_mut() += 1;
-        symbol
+    fn ident(&mut self,name:&str) -> Symbol {
+       self.symbols.symbol(name)
     }
 
-    fn random_ident(&mut self) -> Ident {
+    fn random_ident(&mut self) -> Symbol {
     let mut rng = rand::thread_rng();
     let letter: char = rng.gen_range(b'A', b'Z') as char;
     let number: u32 = rng.gen_range(0, 999999);
     let s = format!("{}{:06}", letter, number);
 
-    self.ident(&s)
+     self.symbols.symbol(&s)
        
     }
 
@@ -331,8 +320,8 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-    /// Advance the stream of tokens and return `Ident`
-    fn consume_get_ident(&mut self, msg: &str) -> ParserResult<Spanned<Ident>> {
+    /// Advance the stream of tokens and return `Symbol`
+    fn consume_get_ident(&mut self, msg: &str) -> ParserResult<Spanned<Symbol>> {
         match self.advance() {
             Some(Spanned {
                 value:
@@ -361,8 +350,8 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-    /// Advance the stream of tokens and the return the `Ident` and `Span`
-    fn consume_get_ident_and_span(&mut self, msg: &str) -> ParserResult<(Span, Spanned<Ident>)> {
+    /// Advance the stream of tokens and the return the `Symbol` and `Span`
+    fn consume_get_ident_and_span(&mut self, msg: &str) -> ParserResult<(Span, Spanned<Symbol>)> {
         match self.advance() {
             Some(Spanned {
                 value:
@@ -509,7 +498,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
     /// Parse a function
     /// i.e.
-    /// (extern)? fn `Ident` (Vec<FunctionParams>) -> `Ty` {
+    /// (extern)? fn `Symbol` (Vec<FunctionParams>) -> `Ty` {
     ///        statements*
     /// },
     fn parse_function(&mut self) -> ParserResult<Spanned<Function>> {
@@ -549,7 +538,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
     /// Parse an item name
     /// i.e.
-    /// `Ident <Vec<Ident>>`
+    /// `Symbol <Vec<Symbol>>`
     fn parse_item_name(&mut self) -> ParserResult<Spanned<ItemName>> {
         let (open_span, name) = self.consume_get_ident_and_span("Expected an identifier")?;
 
@@ -565,13 +554,13 @@ impl<'a, 'b> Parser<'a, 'b> {
     /// i.e.
     /// <T,T>
     /// <K,V>
-    fn parse_generic_params(&mut self) -> ParserResult<(Vec<Spanned<Ident>>, Option<Span>)> {
+    fn parse_generic_params(&mut self) -> ParserResult<(Vec<Spanned<Symbol>>, Option<Span>)> {
         if self.recognise(TokenType::LESSTHAN) {
             let open_span = self.consume_get_span(&TokenType::LESSTHAN, "Expected a '<' ")?;
             let mut generic_param = Vec::new();
 
             loop {
-                generic_param.push(self.consume_get_ident("Expected an Identifier")?);
+                generic_param.push(self.consume_get_ident("Expected an Symbolifier")?);
 
                 if self.recognise(TokenType::COMMA) {
                     self.advance();
@@ -593,7 +582,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
     /// Parse fn params
     /// i.e.
-    /// (Ident:Ty)*?
+    /// (Symbol:Ty)*?
     /// (a:bar,b:foo)
     fn parse_fn_params(&mut self) -> ParserResult<Spanned<Vec<Spanned<FunctionParams>>>> {
         let open_span =
@@ -1160,7 +1149,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     /// primary → "true" | "false" | "nil"
-    ///         | number | string | Ident
+    ///         | number | string | Symbol
     ///         | CHAR   | struct_lit
     fn parse_primary(&mut self) -> ParserResult<Spanned<Expression>> {
         match self.advance() {
@@ -1232,10 +1221,10 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-   /// Ident → "(" call ")" | "::" "<" type* ">" struct_lit
+   /// Symbol → "(" call ")" | "::" "<" type* ">" struct_lit
    ///       |  "." IDENT | "[" expression "]"
    ///       | struct_lit   
-    fn parse_ident(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
+    fn parse_ident(&mut self, ident: Spanned<Symbol>) -> ParserResult<Spanned<Expression>> {
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
         }
@@ -1319,7 +1308,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         } else if self.recognise(TokenType::DOT) {
             self.consume(&TokenType::DOT, "Expected '.' ")?;
 
-            let value = self.consume_get_ident("Expected an Identifer")?;
+            let value = self.consume_get_ident("Expected an Symbolifer")?;
 
             Ok(Spanned {
                 span: ident.get_span().to(value.get_span()),
@@ -1357,7 +1346,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     /// struct_lit → "{"  (IDENT:expression)* "}"
-    fn parse_struct_lit(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
+    fn parse_struct_lit(&mut self, ident: Spanned<Symbol>) -> ParserResult<Spanned<Expression>> {
         if self.parsing_cond {
             return Ok(Spanned {
                 span: ident.get_span(),
@@ -1405,7 +1394,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     /// call →  "(" expression ( "," expression )* ")" ;
-    fn parse_call(&mut self, callee: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
+    fn parse_call(&mut self, callee: Spanned<Symbol>) -> ParserResult<Spanned<Expression>> {
         self.consume(&TokenType::LPAREN, "Expected '(' ")?;
 
         let mut args = vec![];

@@ -1,5 +1,11 @@
 use std::fmt::{self, Display};
-use util::pos::{Span, Spanned};
+use util::{
+    pos::{Span, Spanned},
+    symbol::Symbol
+};
+
+
+
 #[derive(Debug)]
 pub struct Program {
     pub structs: Vec<Spanned<Struct>>,
@@ -13,12 +19,11 @@ impl Program {
     }
 }
 
-#[derive(Hash, Debug, Copy, Clone, PartialEq, Eq, Default)]
-pub struct Ident(pub u32);
+
 #[derive(Debug)]
 pub struct ItemName {
-    pub name: Spanned<Ident>,
-    pub type_params: Vec<Spanned<Ident>>,
+    pub name: Spanned<Symbol>,
+    pub type_params: Vec<Spanned<Symbol>>,
 }
 #[derive(Debug)]
 pub struct Struct {
@@ -29,7 +34,7 @@ pub struct Struct {
 
 #[derive(Debug)]
 pub struct Field {
-    pub name: Spanned<Ident>,
+    pub name: Spanned<Symbol>,
     pub ty: Spanned<Ty>,
 }
 
@@ -44,7 +49,7 @@ pub struct Function {
 }
 #[derive(Debug)]
 pub struct FunctionParams {
-    pub name: Spanned<Ident>,
+    pub name: Spanned<Symbol>,
     pub ty: Spanned<Ty>,
 }
 #[derive(Debug)]
@@ -55,8 +60,8 @@ pub enum Linkage {
 #[derive(Debug)]
 pub enum Ty {
     Func(Vec<Spanned<Ty>>, Option<Box<Spanned<Ty>>>),
-    Poly(Spanned<Ident>, Vec<Spanned<Ty>>),
-    Simple(Spanned<Ident>),
+    Poly(Spanned<Symbol>, Vec<Spanned<Ty>>),
+    Simple(Spanned<Symbol>),
     Nil,
     I8,
     I32,
@@ -92,7 +97,7 @@ pub enum Statement {
         otherwise: Option<Box<Spanned<Statement>>>,
     },
     Let {
-        ident: Spanned<Ident>,
+        ident: Spanned<Symbol>,
         ty: Option<Spanned<Ty>>,
         expr: Option<Spanned<Expression>>,
     },
@@ -141,7 +146,7 @@ pub enum Expression {
 
 #[derive(Debug)]
 pub struct StructLitField {
-    pub ident: Spanned<Ident>,
+    pub ident: Spanned<Symbol>,
     pub expr: Spanned<Expression>,
 }
 #[derive(Debug)]
@@ -156,23 +161,23 @@ pub enum Literal {
 #[derive(Debug)]
 pub enum Var {
     Field {
-        ident: Spanned<Ident>,
-        value: Spanned<Ident>,
+        ident: Spanned<Symbol>,
+        value: Spanned<Symbol>,
     },
-    Simple(Spanned<Ident>),
+    Simple(Spanned<Symbol>),
     SubScript {
         expr: Box<Spanned<Expression>>,
-        target: Spanned<Ident>,
+        target: Spanned<Symbol>,
     },
 }
 #[derive(Debug)]
 pub enum Call {
     Simple {
-        callee: Spanned<Ident>,
+        callee: Spanned<Symbol>,
         args: Vec<Spanned<Expression>>,
     },
     Instantiation {
-        callee: Spanned<Ident>,
+        callee: Spanned<Symbol>,
         tys: Spanned<Vec<Spanned<Ty>>>,
         args: Vec<Spanned<Expression>>,
     },
@@ -180,12 +185,12 @@ pub enum Call {
 #[derive(Debug)]
 pub enum StructLit {
     Simple {
-        ident: Spanned<Ident>,
+        ident: Spanned<Symbol>,
         fields: Vec<Spanned<StructLitField>>,
     },
 
     Instantiation {
-        ident: Spanned<Ident>,
+        ident: Spanned<Symbol>,
         tys: Spanned<Vec<Spanned<Ty>>>,
         fields: Vec<Spanned<StructLitField>>,
     },
