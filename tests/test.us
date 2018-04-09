@@ -4,11 +4,15 @@ struct List {
 }
 
 
-fn main() -> i32{
-    let list = List {
-        head:10,
-        body:nil
+fn id<T>(v:T) ->T {
+    return v;
+}
+
+
+fn main() {
+    let v = 10;
+    let a = || {
     };
 
-    return list.ass;
+    return;
 }
