@@ -21,6 +21,15 @@ pub enum VarEntry {
     },
 }
 
+impl VarEntry {
+    pub fn get_ty(self) -> Type {
+        match self {
+            VarEntry::Var(_,ty) => ty,
+            VarEntry::Fun {ty,..} =>ty,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Env {
     types: Symbols<Entry>,
