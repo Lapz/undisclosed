@@ -1,14 +1,14 @@
 use frame::Frame;
 use temp::{Label, Temp};
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct x86 {
     name: Label,
     formals: Vec<Access>,
 }
 
 impl Frame for x86 {
-    type access = Access;
+    type Access = Access;
 
     fn name(&self) -> Label {
         self.name
@@ -35,7 +35,7 @@ impl Frame for x86 {
     }
 
     fn alloc_local(&self, escapes: bool) -> Access {
-        if true {
+        if escapes {
             Access::Frame(0)
         } else {
             Access::Reg(Temp::new())

@@ -3,6 +3,7 @@ extern crate underscore_util as util;
 mod frame;
 mod temp;
 mod x86;
+mod translate;
 
 #[cfg(test)]
 mod tests {

@@ -18,7 +18,7 @@ fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file, opts.file, opts.env);
+        run(file, opts.file);
     } else {
         repl()
     }
@@ -50,7 +50,7 @@ fn repl() {
     }
 }
 
-fn run(path: String, dump_file: Option<String>, env: bool) {
+fn run(path: String, dump_file: Option<String>) {
     use std::fs::File;
     use std::io::Read;
 
@@ -104,7 +104,7 @@ fn run(path: String, dump_file: Option<String>, env: bool) {
                 let mut file = File::create(format!("after_{}",dump_file.unwrap())).expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
-                file.write(format!("{:#?}",env).as_bytes()).expect("Couldn't write to the file");
+                file.write(format!("{:#?}",type_env).as_bytes()).expect("Couldn't write to the file");
 
                 
             }
@@ -117,7 +117,7 @@ fn run(path: String, dump_file: Option<String>, env: bool) {
                 let mut file = File::create(format!("after_{}",dump_file.unwrap())).expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
-                file.write(format!("{:#?}",env).as_bytes()).expect("Couldn't write to the file");
+                file.write(format!("{:#?}",type_env).as_bytes()).expect("Couldn't write to the file");
 
                 
             }
