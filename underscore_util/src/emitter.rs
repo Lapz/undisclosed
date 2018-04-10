@@ -1,7 +1,7 @@
 //! Error reporting that reports all compiler errors.
 use ansi_term::Colour::{Blue, Fixed, Red, Yellow};
-use pos::EMPTYSPAN;
 use pos::Span;
+use pos::EMPTYSPAN;
 use std::cell::RefCell;
 use std::fmt::{self, Display};
 use std::iter::repeat;

@@ -1,9 +1,10 @@
 use types::{TyCon, Type};
 
+use codegen::{temp,
+              translate::{Level, TranslateAccess}};
 use std::rc::Rc;
 use syntax::ast::{Sign, Size};
 use util::symbol::{Symbol, SymbolMap, Symbols};
-
 #[derive(Debug, Clone)]
 pub enum Entry {
     TyCon(TyCon),
@@ -11,9 +12,19 @@ pub enum Entry {
 }
 
 #[derive(Debug, Clone)]
+pub enum VarEntry {
+    Var(Option<TranslateAccess>, Type),
+    Fun {
+        level: Level,
+        label: temp::Label,
+        ty: Type,
+    },
+}
+
+#[derive(Debug, Clone)]
 pub struct Env {
     types: Symbols<Entry>,
-    vars: Symbols<Type>,
+    vars: Symbols<VarEntry>,
     pub escapes: Symbols<(u32, bool)>,
 }
 
@@ -88,7 +99,7 @@ impl Env {
         self.types.replace(ident, data)
     }
 
-    pub fn look_var(&self, ident: Symbol) -> Option<&Type> {
+    pub fn look_var(&self, ident: Symbol) -> Option<&VarEntry> {
         self.vars.look(ident)
     }
 
@@ -96,7 +107,7 @@ impl Env {
         self.types.enter(ident, data)
     }
 
-    pub fn add_var(&mut self, ident: Symbol, data: Type) {
+    pub fn add_var(&mut self, ident: Symbol, data: VarEntry) {
         self.vars.enter(ident, data)
     }
 

@@ -1,6 +1,7 @@
 use super::InferResult;
 use syntax::ast::{Call, Expression, Function, Program, Statement, StructLit, Var};
-use util::{pos::Spanned, symbol::{Symbol, Symbols}};
+use util::{pos::Spanned,
+           symbol::{Symbol, Symbols}};
 
 pub struct FindEscape {
     depth: u32,

@@ -1,7 +1,7 @@
 use frame::Frame;
 use temp::{Label, Temp};
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct x86 {
     name: Label,
     formals: Vec<Access>,

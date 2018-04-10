@@ -99,27 +99,26 @@ fn run(path: String, dump_file: Option<String>) {
 
     match infer.infer(&mut ast, &mut type_env, &mut reporter) {
         Ok(_) => {
-            
             if dump_file.is_some() {
-                let mut file = File::create(format!("after_{}",dump_file.unwrap())).expect("Couldn't create file");
+                let mut file = File::create(format!("after_{}", dump_file.unwrap()))
+                    .expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
-                file.write(format!("{:#?}",type_env).as_bytes()).expect("Couldn't write to the file");
-
-                
+                file.write(format!("{:#?}", type_env).as_bytes())
+                    .expect("Couldn't write to the file");
             }
 
             ()
-        },
+        }
         Err(_) => {
             reporter.emit(&input);
             if dump_file.is_some() {
-                let mut file = File::create(format!("after_{}",dump_file.unwrap())).expect("Couldn't create file");
+                let mut file = File::create(format!("after_{}", dump_file.unwrap()))
+                    .expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
-                file.write(format!("{:#?}",type_env).as_bytes()).expect("Couldn't write to the file");
-
-                
+                file.write(format!("{:#?}", type_env).as_bytes())
+                    .expect("Couldn't write to the file");
             }
             ::std::process::exit(65)
         }

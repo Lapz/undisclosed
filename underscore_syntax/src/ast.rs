@@ -1,5 +1,6 @@
 use std::fmt::{self, Display};
-use util::{pos::{Span, Spanned}, symbol::Symbol};
+use util::{pos::{Span, Spanned},
+           symbol::Symbol};
 
 #[derive(Debug)]
 pub struct Program {

@@ -6,4 +6,5 @@ authors = ["rowlandsonpratt <striderman34@gmail.com>"]
 [dependencies]
 underscore_util = {path ="../underscore_util"}
 underscore_syntax = {path ="../underscore_syntax"}
+underscore_codegen = {path="../underscore_codegen"}
 # lazy_static = "1.0"
