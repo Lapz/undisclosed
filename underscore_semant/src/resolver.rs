@@ -1,12 +1,12 @@
 use super::InferResult;
 use env::Env;
 use std::collections::HashSet;
-use syntax::ast::{Function, Ident, Program, Struct, TyAlias};
-use util::{emitter::Reporter, pos::Spanned};
+use syntax::ast::{Function, Program, Struct, TyAlias};
+use util::{emitter::Reporter, pos::Spanned, symbol::Symbol};
 
 #[derive(Debug, Default)]
 pub struct Resolver {
-    values: HashSet<Ident>,
+    values: HashSet<Symbol>,
 }
 
 impl Resolver {

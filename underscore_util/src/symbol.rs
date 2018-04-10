@@ -1,30 +1,33 @@
-//! This module provides a Table which keeps a track of the mappings between a
-//! `T` and a `String`
+//! This module provides a Symbols which keeps a track of the mappings between a
+//! `Symbol` and a `String`
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
 
+#[derive(Hash, Debug, Copy, Clone, PartialEq, Eq, Default)]
+pub struct Symbol(pub u32);
+
 #[derive(Debug, Clone, Default)]
 /// Maps any T to a string
-pub struct FactoryMap<T: Copy + Eq + Hash + Default> {
+pub struct SymbolMap<T: Copy + Eq + Hash + Default> {
     pub next: RefCell<u32>,
     pub mappings: RefCell<HashMap<T, String>>,
 }
 
 #[derive(Debug, Clone)]
 /// A Scoped Map that takes any K and V
-pub struct Table<K: Clone + Hash + Eq + Copy + Default, V: Clone> {
-    pub strings: Rc<FactoryMap<K>>,
-    pub table: HashMap<K, Vec<V>>,
-    scopes: Vec<Option<K>>,
+pub struct Symbols<V: Clone> {
+    pub strings: Rc<SymbolMap<Symbol>>,
+    pub table: HashMap<Symbol, Vec<V>>,
+    scopes: Vec<Option<Symbol>>,
 }
 
-impl<K: Clone + Hash + Eq + Copy + Default, V: Clone> Table<K, V> {
-    /// A new Table Instance
-    pub fn new(strings: Rc<FactoryMap<K>>) -> Self {
-        Table {
+impl<V: Clone> Symbols<V> {
+    /// A new Symbols Instance
+    pub fn new(strings: Rc<SymbolMap<Symbol>>) -> Self {
+        Symbols {
             strings,
             table: HashMap::new(),
             scopes: vec![],
@@ -44,7 +47,7 @@ impl<K: Clone + Hash + Eq + Copy + Default, V: Clone> Table<K, V> {
     }
 
     /// Enters a peice of data into the current scope
-    pub fn enter(&mut self, symbol: K, data: V) {
+    pub fn enter(&mut self, symbol: Symbol, data: V) {
         let mapping = self.table.entry(symbol).or_insert_with(Vec::new);
         mapping.push(data);
 
@@ -53,41 +56,41 @@ impl<K: Clone + Hash + Eq + Copy + Default, V: Clone> Table<K, V> {
 
     /// Looks in the table for the `Symbol` and if found returns the top element in
     /// the stack of Vec<T>
-    pub fn look(&self, symbol: K) -> Option<&V> {
+    pub fn look(&self, symbol: Symbol) -> Option<&V> {
         self.table.get(&symbol).and_then(|vec| vec.last())
     }
 
     /// Finds the name given to a `Symbol`
-    pub fn name(&self, symbol: K) -> String {
+    pub fn name(&self, symbol: Symbol) -> String {
         self.strings.mappings.borrow()[&symbol].to_owned()
     }
 
     // /// Checks if the given name allready exists within the table
     // /// a new `Symbol` is returned else the previous `Symbol`
-    // pub fn symbol(&mut self, name: &str) -> K {
-    //     for (key, value) in self.strings.mappings.borrow().iter() {
-    //         if value == name {
-    //             return *key;
-    //         }
-    //     }
-    //     let symbol = K(*self.strings.next.borrow());
-    //     self.strings
-    //         .mappings
-    //         .borrow_mut()
-    //         .insert(symbol, name.to_owned());
-    //     *self.strings.next.borrow_mut() += 1;
-    //     symbol
-    // }
+    pub fn symbol(&mut self, name: &str) -> Symbol {
+        for (key, value) in self.strings.mappings.borrow().iter() {
+            if value == name {
+                return *key;
+            }
+        }
+        let symbol = Symbol(*self.strings.next.borrow());
+        self.strings
+            .mappings
+            .borrow_mut()
+            .insert(symbol, name.to_owned());
+        *self.strings.next.borrow_mut() += 1;
+        symbol
+    }
     /// Inserts the `Symbol` into the table
-    pub fn replace(&mut self, symbol: K, data: V) {
+    pub fn replace(&mut self, symbol: Symbol, data: V) {
         let bindings = self.table.entry(symbol).or_insert_with(Vec::new);
         bindings.pop().expect("Call enter() before replace()");
         bindings.push(data);
     }
 }
 
-impl<T: Copy + Eq + Hash + Default> FactoryMap<T> {
-    pub fn new() -> FactoryMap<T> {
+impl<T: Copy + Eq + Hash + Default> SymbolMap<T> {
+    pub fn new() -> SymbolMap<T> {
         Self::default()
     }
 }

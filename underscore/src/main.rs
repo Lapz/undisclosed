@@ -12,13 +12,13 @@ use underscore_semant::{Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
-use underscore_util::symbol::{FactoryMap, Table};
+use underscore_util::symbol::{SymbolMap, Symbols};
 
 fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file, opts.file, opts.env);
+        run(file, opts.file);
     } else {
         repl()
     }
@@ -37,9 +37,9 @@ fn repl() {
 
         let tokens = Lexer::new(&input, reporter.clone()).lex();
 
-        let strings = Rc::new(FactoryMap::new());
+        let strings = Rc::new(SymbolMap::new());
 
-        let mut table = Table::new(Rc::clone(&strings));
+        let mut table = Symbols::new(Rc::clone(&strings));
 
         let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
@@ -50,7 +50,7 @@ fn repl() {
     }
 }
 
-fn run(path: String, dump_file: Option<String>, env: bool) {
+fn run(path: String, dump_file: Option<String>) {
     use std::fs::File;
     use std::io::Read;
 
@@ -71,13 +71,13 @@ fn run(path: String, dump_file: Option<String>, env: bool) {
 
     let tokens = Lexer::new(&input, reporter.clone()).lex();
 
-    let strings = Rc::new(FactoryMap::new());
+    let strings = Rc::new(SymbolMap::new());
 
-    let mut table = Table::new(Rc::clone(&strings));
+    let mut table = Symbols::new(Rc::clone(&strings));
 
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
-    let ast = match parser.parse() {
+    let mut ast = match parser.parse() {
         Ok(mut ast) => {
             if dump_file.is_some() {
                 let mut file =
@@ -97,10 +97,29 @@ fn run(path: String, dump_file: Option<String>, env: bool) {
 
     let mut type_env = TypeEnv::new(&Rc::clone(&strings));
 
-    match infer.infer(&ast, &mut type_env, &mut reporter) {
-        Ok(_) => (),
+    match infer.infer(&mut ast, &mut type_env, &mut reporter) {
+        Ok(_) => {
+            if dump_file.is_some() {
+                let mut file = File::create(format!("after_{}", dump_file.unwrap()))
+                    .expect("Couldn't create file");
+                file.write(ast.fmt().as_bytes())
+                    .expect("Couldn't write to the file");
+                file.write(format!("{:#?}", type_env).as_bytes())
+                    .expect("Couldn't write to the file");
+            }
+
+            ()
+        }
         Err(_) => {
             reporter.emit(&input);
+            if dump_file.is_some() {
+                let mut file = File::create(format!("after_{}", dump_file.unwrap()))
+                    .expect("Couldn't create file");
+                file.write(ast.fmt().as_bytes())
+                    .expect("Couldn't write to the file");
+                file.write(format!("{:#?}", type_env).as_bytes())
+                    .expect("Couldn't write to the file");
+            }
             ::std::process::exit(65)
         }
     }

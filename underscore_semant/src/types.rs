@@ -1,7 +1,7 @@
 use env::Env;
 use std::fmt::{self, Display};
-use syntax::ast::{Ident, Sign, Size};
-
+use syntax::ast::{Sign, Size};
+use util::symbol::Symbol;
 static mut UNIQUE_COUNT: u32 = 0;
 
 static mut TYPEVAR_COUNT: u32 = 0;
@@ -18,12 +18,12 @@ pub enum Type {
     App(TyCon, Vec<Type>),
     Var(TypeVar),
     Poly(Vec<TypeVar>, Box<Type>),
-    Struct(Ident, Vec<Field>, Unique), // Name, Fields, Unique
+    Struct(Symbol, Vec<Field>, Unique), // Name, Fields, Unique
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
-    pub name: Ident,
+    pub name: Symbol,
     pub ty: Type,
 }
 
