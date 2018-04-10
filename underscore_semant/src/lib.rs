@@ -11,8 +11,7 @@ mod trans;
 mod types;
 mod unify;
 
-use codegen::{frame::Frame,
-              temp,
+use codegen::{temp,
               translate::{Level, Translator},
               x86::x86};
 pub use env::Env as TypeEnv;

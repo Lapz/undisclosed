@@ -1,7 +1,5 @@
 // use syntax::ast::Ident;
-use std::borrow::Borrow;
 use std::fmt::{self, Debug, Display};
-use std::rc::Rc;
 use util::symbol::{Symbol, Symbols};
 // use std::io::{self, Write};
 

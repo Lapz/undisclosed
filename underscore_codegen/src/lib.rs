@@ -1,3 +1,5 @@
+#![allow(non_camel_case_types)]
+
 extern crate underscore_syntax as syntax;
 extern crate underscore_util as util;
 pub mod frame;

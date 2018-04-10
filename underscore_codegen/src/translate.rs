@@ -1,14 +1,16 @@
 use frame::Frame;
-use std::marker::PhantomData;
-use temp::Label;
-use x86::{x86, Access};
 use std::cell::RefCell;
 use std::rc::Rc;
+use temp::Label;
+use x86::{x86, Access};
 
 #[derive(Clone, Debug)]
 pub enum Level {
     Top,
-    Level { parent: Rc<RefCell<Level>>, frame: x86 },
+    Level {
+        parent: Rc<RefCell<Level>>,
+        frame: x86,
+    },
 }
 
 pub type TranslateAccess = (Level, Option<Access>);
@@ -29,13 +31,7 @@ impl Translator {
     pub fn formals(level: Level) -> Vec<TranslateAccess> {
         match level {
             Level::Top => vec![],
-            Level::Level { ref frame, .. } => {
-
-                
-
-                
-                unimplemented!()
-            }
+            Level::Level { ref frame, .. } => unimplemented!(),
         }
     }
 
