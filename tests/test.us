@@ -3,20 +3,8 @@ struct List {
     body:nil
 }
 
-
-fn id<T>(v:T) ->T {
-    return v;
-}
-
-
 fn main() {
-    let v = 6;
-    {
-        let v = 7; 
-        {
-            let v = 8;
-        }
-    }
-
-    return;
+    let x = 10;
+x = 10;
+    !x;
 }

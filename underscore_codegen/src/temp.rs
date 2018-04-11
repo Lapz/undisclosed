@@ -29,12 +29,12 @@ impl Temp {
 
 impl Debug for Temp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "r{}", self.0)
+        write!(f, "t{}", self.0)
     }
 }
 
 impl Display for Temp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "r{}", self.0)
+        write!(f, "t{}", self.0)
     }
 }

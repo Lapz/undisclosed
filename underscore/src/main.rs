@@ -4,6 +4,7 @@ extern crate structopt_derive;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
+extern crate underscore_codegen;
 
 use std::io::{self, Write};
 use std::rc::Rc;
@@ -13,6 +14,7 @@ use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
+use underscore_codegen::gen::CodeGen;
 
 fn main() {
     let opts = Cli::from_args();
@@ -100,7 +102,7 @@ fn run(path: String, dump_file: Option<String>) {
     match infer.infer(&mut ast, &mut type_env, &mut reporter) {
         Ok(_) => {
             if dump_file.is_some() {
-                let mut file = File::create(format!("after_{}", dump_file.unwrap()))
+                let mut file = File::create(format!("after_{}", dump_file.clone().unwrap()))
                     .expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
@@ -113,7 +115,7 @@ fn run(path: String, dump_file: Option<String>) {
         Err(_) => {
             reporter.emit(&input);
             if dump_file.is_some() {
-                let mut file = File::create(format!("after_{}", dump_file.unwrap()))
+                let mut file = File::create(format!("after_{}", dump_file.clone().unwrap()))
                     .expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
@@ -122,7 +124,22 @@ fn run(path: String, dump_file: Option<String>) {
             }
             ::std::process::exit(65)
         }
+    };
+
+    
+    let mut symbols = Symbols::new(Rc::clone(&strings));
+
+    let mut codegen = CodeGen::new(&mut symbols);
+
+    codegen.gen_program(&ast);
+
+    if dump_file.is_some() {
+        codegen.dump_to_file(dump_file.unwrap());
+               
     }
+
+    
+
 }
 
 #[derive(StructOpt, Debug)]
