@@ -6,6 +6,7 @@ pub mod frame;
 pub mod temp;
 pub mod translate;
 pub mod x86;
+pub mod ir;
 
 #[cfg(test)]
 mod tests {

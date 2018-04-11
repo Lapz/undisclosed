@@ -1,5 +1,6 @@
 use frame::Frame;
 use temp::{Label, Temp};
+use ir::Instruction;
 
 #[derive(Debug, Clone)]
 pub struct x86 {
@@ -9,6 +10,10 @@ pub struct x86 {
 
 impl Frame for x86 {
     type Access = Access;
+
+    type FP = Temp;
+
+    const WORD_SIZE:u32 = 32;
 
     fn name(&self) -> Label {
         self.name
@@ -39,6 +44,15 @@ impl Frame for x86 {
             Access::Frame(0)
         } else {
             Access::Reg(Temp::new())
+        }
+    }
+
+    fn exp(&self,access:&Access, ir:&mut Instruction) -> Instruction {
+        match *access {
+            Access::Frame(_) => {
+unimplemented!()
+            },
+            Access::Reg(_) => unimplemented!()
         }
     }
 }

@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use temp::Label;
 use x86::{x86, Access};
+use ir::*;
 
 #[derive(Clone, Debug)]
 pub enum Level {
@@ -40,5 +41,9 @@ impl Translator {
             Level::Top => (Level::Top, None),
             Level::Level { ref frame, .. } => (level.clone(), Some(frame.alloc_local(escape))),
         }
+    }
+
+    pub fn simple_var(access:TranslateAccess) -> Instruction {
+        unimplemented!()
     }
 }
