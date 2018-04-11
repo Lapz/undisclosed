@@ -1,6 +1,6 @@
 use frame::Frame;
 use temp::{Label, Temp};
-use ir::Instruction;
+use ir::{Instruction,Value};
 
 #[derive(Debug, Clone)]
 pub struct x86 {
@@ -50,9 +50,13 @@ impl Frame for x86 {
     fn exp(&self,access:&Access, ir:&mut Instruction) -> Instruction {
         match *access {
             Access::Frame(_) => {
+
+                // Instruction::
 unimplemented!()
             },
-            Access::Reg(_) => unimplemented!()
+            Access::Reg(ref temp) => {
+                Instruction::Value(Value::Temp(*temp))
+            }
         }
     }
 }
