@@ -346,13 +346,13 @@ Program {
                                 span: Span {
                                     start: Position {
                                         line: 8,
-                                        column: 9,
-                                        absolute: 83
+                                        column: 10,
+                                        absolute: 84
                                     },
                                     end: Position {
                                         line: 8,
-                                        column: 9,
-                                        absolute: 83
+                                        column: 10,
+                                        absolute: 84
                                     }
                                 },
                                 value: Expr(
@@ -365,7 +365,7 @@ Program {
                                             },
                                             end: Position {
                                                 line: 16,
-                                                column: 11,
+                                                column: 12,
                                                 absolute: 76
                                             }
                                         },
@@ -412,8 +412,8 @@ Program {
                                                     },
                                                     end: Position {
                                                         line: 8,
-                                                        column: 9,
-                                                        absolute: 83
+                                                        column: 10,
+                                                        absolute: 84
                                                     }
                                                 },
                                                 value: Literal(
@@ -423,7 +423,7 @@ Program {
                                                             ty: Some(
                                                                 (
                                                                     Unsigned,
-                                                                    Bit8
+                                                                    Bit32
                                                                 )
                                                             )
                                                         }

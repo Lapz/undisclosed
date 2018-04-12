@@ -5,5 +5,5 @@ struct List {
 
 fn main() {
     let x:u8 = 10;
-x = 10u8;
+x = 10u32;
 }

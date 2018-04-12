@@ -114,7 +114,7 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool) {
         Err(_) => {
             reporter.emit(&input);
             if dump_file.is_some() {
-                let mut file = File::create(format!("{}.uir", path)).expect("Couldn't create file");
+                let mut file = File::create(format!("{}.ast", path)).expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
                 file.write(format!("{:#?}", type_env).as_bytes())
