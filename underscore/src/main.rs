@@ -1,26 +1,26 @@
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
+extern crate underscore_codegen;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
-extern crate underscore_codegen;
 
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
+use underscore_codegen::gen::CodeGen;
 use underscore_semant::{Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
-use underscore_codegen::gen::CodeGen;
 
 fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file, opts.file);
+        run(file, opts.file, opts.emit_ir);
     } else {
         repl()
     }
@@ -52,11 +52,11 @@ fn repl() {
     }
 }
 
-fn run(path: String, dump_file: Option<String>) {
+fn run(path: String, dump_file: Option<String>, emit_ir: bool) {
     use std::fs::File;
     use std::io::Read;
 
-    let mut file = File::open(path).expect("File not found");
+    let mut file = File::open(path.clone()).expect("File not found");
 
     let mut contents = String::new();
 
@@ -102,8 +102,7 @@ fn run(path: String, dump_file: Option<String>) {
     match infer.infer(&mut ast, &mut type_env, &mut reporter) {
         Ok(_) => {
             if dump_file.is_some() {
-                let mut file = File::create(format!("after_{}", dump_file.clone().unwrap()))
-                    .expect("Couldn't create file");
+                let mut file = File::create(format!("{}.ast", path)).expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
                 file.write(format!("{:#?}", type_env).as_bytes())
@@ -115,8 +114,7 @@ fn run(path: String, dump_file: Option<String>) {
         Err(_) => {
             reporter.emit(&input);
             if dump_file.is_some() {
-                let mut file = File::create(format!("after_{}", dump_file.clone().unwrap()))
-                    .expect("Couldn't create file");
+                let mut file = File::create(format!("{}.uir", path)).expect("Couldn't create file");
                 file.write(ast.fmt().as_bytes())
                     .expect("Couldn't write to the file");
                 file.write(format!("{:#?}", type_env).as_bytes())
@@ -126,20 +124,15 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
-    
     let mut symbols = Symbols::new(Rc::clone(&strings));
 
     let mut codegen = CodeGen::new(&mut symbols);
 
     codegen.gen_program(&ast);
 
-    if dump_file.is_some() {
-        codegen.dump_to_file(dump_file.unwrap());
-               
+    if emit_ir {
+        codegen.dump_to_file(format!("{}ir", path));
     }
-
-    
-
 }
 
 #[derive(StructOpt, Debug)]
@@ -150,6 +143,6 @@ pub struct Cli {
     /// Dump the ast to a give file
     #[structopt(short = "d", long = "dump")]
     pub file: Option<String>,
-    #[structopt(short = "e", long = "debug")]
-    pub env: bool,
+    #[structopt(short = "ir", long = "emit-ir")]
+    pub emit_ir: bool,
 }

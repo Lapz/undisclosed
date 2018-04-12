@@ -4,7 +4,6 @@ struct List {
 }
 
 fn main() {
-    let x = 10;
-x = 10;
-    !x;
+    let x:u8 = 10;
+x = 10u8;
 }

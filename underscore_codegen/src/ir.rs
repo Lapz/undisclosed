@@ -1,10 +1,9 @@
 use temp::{Label, Temp};
 use std::fmt::{self,Display};
+use syntax::ast::Size;
 
 #[derive(Debug)]
 pub enum Instruction {
-    /// No operation
-    Nop,
     /// Store a value into a register
     Store(Temp, Value),
     /// Copy the contents of x into y
@@ -25,12 +24,15 @@ pub enum Instruction {
     Value(Value),
     /// A sequence  of instructions
     Block(Value, Vec<Instruction>),
+    /// Call a function with arguments
+    Call(Label,Vec<Instruction>),
+
 }
 
 #[derive(Debug)]
 pub enum Value {
     /// Integer Constant
-    Const(u64),
+    Const(u64,Size),
     /// A named variable
     Name(Label),
     /// A Temporary similar to a register
@@ -38,6 +40,7 @@ pub enum Value {
     //  Contents of a word of memory at address
     Mem(Vec<u8>),
 }
+
 
 
 
@@ -49,11 +52,11 @@ impl Display for Instruction {
             },
             Instruction::Value(ref value) => write!(f,"{}",value),
             Instruction::BinOp(ref op,ref v1,ref v2,ref t) => {
-                write!(f,"\n{} := {} {:?} {}",t,v1,op,v2)
+                write!(f,"\n{} := {} {} {}",t,v1,op,v2)
             },
 
             Instruction::Copy(ref t1,ref t2) => write!(f,"\n{} = {}",t1,t2),
-            Instruction::UnOp(ref op,ref t1,ref t2) => write!(f,"\n{} := {:?} {}",t1,op,t2),
+            Instruction::UnOp(ref op,ref t1,ref t2) => write!(f,"\n{} := {} {}",t1,op,t2),
             ref e_ => unimplemented!("{:?}",e_)
         }
     }
@@ -62,7 +65,7 @@ impl Display for Instruction {
 impl Display for Value {
     fn fmt(&self,f:&mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Value::Const(ref v) => write!(f, "{}",v),
+            Value::Const(ref v,ref size) => write!(f, "{}:{}",v,size),
             Value::Name(ref name)  => write!(f,"{:?}",name),
             Value::Temp(ref temp) => write!(f,"{}",temp),
             Value::Mem(ref bytes) => {
@@ -76,6 +79,28 @@ impl Display for Value {
     }
 }
 
+impl  Display for BinOp  {
+    fn fmt(&self,f:&mut fmt::Formatter) -> fmt::Result {
+        match *self {
+          BinOp::Plus => write!(f, "+"),
+          BinOp::Minus => write!(f, "-"),
+          BinOp::Mul => write!(f, "*"),
+          BinOp::Div => write!(f, "/"),
+          BinOp::And => write!(f, "and"),
+          BinOp::Or => write!(f, "or"),
+        }
+    }
+}
+
+
+impl  Display for UnOp  {
+    fn fmt(&self,f:&mut fmt::Formatter) -> fmt::Result {
+        match *self {
+          UnOp::Bang => write!(f, "!"),
+          UnOp::Minus => write!(f, "-"),
+        }
+    }
+}
 
     
 

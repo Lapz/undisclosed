@@ -2,21 +2,13 @@ use ir::*;
 use util::pos::Spanned;
 use temp::Temp;
 use util::symbol::{Symbol, Symbols};
-use syntax::ast::{Program,Statement,Function,StructLit,Call,Var,Expression,Literal,Number,Op,UnaryOp};
+use syntax::ast::{Program,Statement,Function,StructLit,Call,Var,Expression,Literal,Op,UnaryOp,Size};
 
 #[derive(Debug)]
 pub struct CodeGen<'a> {
     instructions:Vec<Instruction>,
     symbols:&'a mut Symbols<Temp>,
 }
-
-enum CodeGenResult {
-    Val(Value),
-    Instruction(Instruction),
-    None
-}
-
-
 
 
 impl <'a> CodeGen<'a> {
@@ -37,6 +29,9 @@ impl <'a> CodeGen<'a> {
     file.write(format!("{}", instruction).as_bytes())
                     .expect("Couldn't write to the file");
     }
+
+    file.write(format!("\n{:?}", self.instructions).as_bytes())
+                    .expect("Couldn't write to the file");
                
     }
 
@@ -68,8 +63,6 @@ impl <'a> CodeGen<'a> {
 
                     self.symbols.enter(ident.value, id_temp);
                     self.gen_expression(expr,id_temp);
-
-                    
                 }
                 
 
@@ -126,7 +119,10 @@ impl <'a> CodeGen<'a> {
                      Value::Mem(vec![])
                 },
 
-                Literal::Number(ref number) =>Value::Const(number.value)
+                Literal::Number(ref number) => match number.ty {
+                     Some((_, size)) => Value::Const(number.value,size),
+                    None =>  Value::Const(number.value,Size::Bit32)
+                }
                 ,
                 Literal::Str(ref string) => {
                      Value::Mem(string.as_bytes().into())
@@ -134,7 +130,7 @@ impl <'a> CodeGen<'a> {
 
             };
 
-            self.instructions.push(Instruction::Store(temp,value))
+             self.instructions.push(Instruction::Store(temp,value))
             },
 
             Expression::Unary{ref op,ref expr } => {

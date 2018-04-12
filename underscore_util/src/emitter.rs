@@ -54,6 +54,10 @@ impl Reporter {
             level: Level::Error,
         })
     }
+    /// Remove the last entered erro
+    pub fn pop_error(&mut self) {
+        self.diagnostics.borrow_mut().pop();
+    }
 
     pub fn warn(&self, msg: &str, span: Span) {
         self.diagnostics.borrow_mut().push(Diagnostic {

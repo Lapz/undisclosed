@@ -389,11 +389,11 @@ impl Infer {
                             ident.value,
                             VarEntry::Var(
                                 Some(Translator::alloc_local(level, *escapes)),
-                                Type::Nil,
+                               t.clone(),
                             ),
                         );
 
-                        return Ok(Type::Nil);
+                        return Ok(t);
                     }
 
                     env.add_var(
@@ -464,27 +464,34 @@ impl Infer {
                 ref op,
                 ref rhs,
             } => {
+                let span = lhs.span.to(rhs.span);
                 let lhs = self.trans_expr(lhs, level, env, reporter)?;
                 let rhs = self.trans_expr(rhs, level, env, reporter)?;
 
                 match op.value {
                     Op::NEq | Op::Equal => Ok(Type::App(TyCon::Bool, vec![])),
                     Op::LT | Op::LTE | Op::GT | Op::GTE | Op::And | Op::Or => {
-                        self.unify(&lhs, &rhs, reporter, expr.span, env)?;
+                        self.unify(&lhs, &rhs, reporter, span, env)?;
                         Ok(Type::App(TyCon::Bool, vec![]))
                     }
 
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
-                        match self.unify(&lhs, &rhs, reporter, expr.span, env) {
+                        match self.unify(&lhs, &rhs, reporter, span, env) {
                             Ok(()) => (),
                             Err(_) => {
-                                self.unify(
+                                match self.unify(
                                     &lhs,
                                     &Type::App(TyCon::String, vec![]),
                                     reporter,
-                                    expr.span,
+                                    span,
                                     env,
-                                )?;
+                                ) {
+                                    Ok(()) => (),
+                                    Err(_) => {
+                                        reporter.pop_error();
+                                        return Err(())
+                                    }
+                                }
                             }
                         }
 
@@ -556,7 +563,7 @@ impl Infer {
                 Literal::Str(_) => Ok(Type::App(TyCon::String, vec![])),
                 Literal::Number(ref number) => match number.ty {
                     Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size), vec![])),
-                    None => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![])), // Change to use own supply
+                    None => Ok(Type::Var(TypeVar::new())), // Change to use own supply
                 },
                 Literal::Nil => Ok(Type::App(TyCon::Void, vec![])), // Nil is given the type void as only statements return Nil
             },

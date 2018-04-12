@@ -99,6 +99,8 @@ impl Infer {
                 Err(())
             },
 
+            (&Type::Var(_),&Type::App(TyCon::Int(_,_),_)) => Ok(()),
+
             (&Type::Nil, &Type::Nil) => Ok(()),
             (&Type::Nil, &Type::App(TyCon::Void, _)) => Ok(()),
             (t1, t2) => {
