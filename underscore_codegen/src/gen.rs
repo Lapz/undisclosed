@@ -9,15 +9,15 @@ use util::symbol::{Symbol, Symbols};
 pub struct Ctx {
     instructions: Vec<Instruction>,
     symbols: Symbols<Temp>,
-    pub emit_ir:bool,
+    pub emit_ir: bool,
 }
 
 impl Ctx {
-    pub fn new(symbols:Symbols<Temp>) -> Self {
+    pub fn new(symbols: Symbols<Temp>) -> Self {
         Self {
             instructions: vec![],
             symbols,
-            emit_ir:true,
+            emit_ir: true,
         }
     }
 

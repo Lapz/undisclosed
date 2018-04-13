@@ -2,15 +2,17 @@ extern crate underscore_codegen as codegen;
 extern crate underscore_syntax as syntax;
 extern crate underscore_util as util;
 
+mod ast;
 mod cast_check;
 mod env;
 mod escape;
+mod infer;
 mod resolver;
+mod statements;
 mod subst;
 mod trans;
 mod types;
 mod unify;
-
 use codegen::{gen::Ctx,
               temp,
               translate::{Level, Translator},
@@ -54,7 +56,7 @@ impl Infer {
         }
 
         for function in &program.functions {
-            self.trans_function(function, env,ctx,reporter, Level::Top)?
+            self.trans_function(function, env, ctx, reporter, Level::Top)?
         }
 
         let mut resolver = Resolver::new();

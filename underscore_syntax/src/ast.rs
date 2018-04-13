@@ -47,7 +47,7 @@ pub struct FunctionParams {
     pub name: Spanned<Symbol>,
     pub ty: Spanned<Ty>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Linkage {
     Normal,
     External,
@@ -145,7 +145,7 @@ pub struct StructLitField {
     pub ident: Spanned<Symbol>,
     pub expr: Spanned<Expression>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Literal {
     Number(Number),
     True(bool),
@@ -192,7 +192,7 @@ pub enum StructLit {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Op {
     NEq,
     Equal,
@@ -208,7 +208,7 @@ pub enum Op {
     Or,
 }
 
-#[derive(Debug, PartialOrd, Clone, PartialEq, Hash)]
+#[derive(Debug, PartialOrd, Clone, Copy, PartialEq, Hash)]
 pub enum UnaryOp {
     Bang,
     Minus,

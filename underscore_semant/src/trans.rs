@@ -1,5 +1,7 @@
 use super::{Infer, InferResult};
+use ast;
 use cast_check::*;
+use codegen::gen::{CodeGen, Ctx};
 use codegen::{temp,
               translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry};
@@ -10,7 +12,6 @@ use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement
 use types::{Field, TyCon, Type, TypeVar, Unique};
 use util::emitter::Reporter;
 use util::pos::Spanned;
-use codegen::gen::{CodeGen,Ctx};
 
 impl Infer {
     pub fn trans_ty(
@@ -208,6 +209,7 @@ impl Infer {
         &self,
         function: &Spanned<Function>,
         env: &mut Env,
+        ctx: &mut Ctx,
         reporter: &mut Reporter,
         level: Level,
     ) -> InferResult<()> {
@@ -263,7 +265,7 @@ impl Infer {
             env.add_var(ident.value.name.value, VarEntry::Var(None, param))
         }
 
-        let body = self.trans_statement(&function.value.body, &mut new_level, env, reporter)?;
+        let body = self.trans_statement(&function.value.body, &mut new_level, ctx, env, reporter)?;
 
         self.unify(&returns, &body, reporter, function.value.body.span, env)?;
 
@@ -276,6 +278,7 @@ impl Infer {
         &self,
         statement: &Spanned<Statement>,
         level: &mut Level,
+        ctx: &mut Ctx,
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<Type> {
@@ -285,7 +288,7 @@ impl Infer {
                 env.begin_scope();
 
                 for statement in statements {
-                    result = self.trans_statement(statement, level, env, reporter)?;
+                    result = self.trans_statement(statement, level, ctx, env, reporter)?;
                 }
 
                 env.end_scope();
@@ -294,7 +297,7 @@ impl Infer {
             }
             Statement::Break | Statement::Continue => Ok(Type::Nil),
             Statement::Expr(ref expr) => {
-                self.trans_expr(expr, level, env, reporter)?;
+                self.trans_expr(expr, level, ctx, env, reporter)?;
                 Ok(Type::Nil) // Expressions are given the type of Nil to signify that they return nothing
             }
             Statement::For {
@@ -304,17 +307,17 @@ impl Infer {
                 ref body,
             } => {
                 if init.is_none() && cond.is_none() && incr.is_none() {
-                    let body = self.trans_statement(body, level, env, reporter)?;
+                    let body = self.trans_statement(body, level, ctx, env, reporter)?;
 
                     return Ok(body);
                 }
 
                 if let Some(ref init) = *init {
-                    self.trans_statement(init, level, env, reporter)?;
+                    self.trans_statement(init, level, ctx, env, reporter)?;
                 }
 
                 if let Some(ref incr) = *incr {
-                    let ty = self.trans_expr(incr, level, env, reporter)?;
+                    let ty = self.trans_expr(incr, level, ctx, env, reporter)?;
 
                     if !ty.is_int() {
                         // Change
@@ -326,7 +329,7 @@ impl Infer {
                 }
 
                 if let Some(ref cond) = *cond {
-                    let ty = self.trans_expr(cond, level, env, reporter)?;
+                    let ty = self.trans_expr(cond, level, ctx, env, reporter)?;
 
                     self.unify(
                         &Type::App(TyCon::Bool, vec![]),
@@ -337,7 +340,7 @@ impl Infer {
                     )?;
                 }
 
-                self.trans_statement(body, level, env, reporter)?;
+                self.trans_statement(body, level, ctx, env, reporter)?;
 
                 Ok(Type::Nil)
             }
@@ -349,18 +352,18 @@ impl Infer {
             } => {
                 self.unify(
                     &Type::App(TyCon::Bool, vec![]),
-                    &self.trans_expr(cond, level, env, reporter)?,
+                    &self.trans_expr(cond, level, ctx, env, reporter)?,
                     reporter,
                     cond.span,
                     env,
                 )?;
 
-                let then_ty = self.trans_statement(then, level, env, reporter)?;
+                let then_ty = self.trans_statement(then, level, ctx, env, reporter)?;
 
                 if let Some(ref otherwise) = *otherwise {
                     self.unify(
                         &then_ty,
-                        &self.trans_statement(otherwise, level, env, reporter)?,
+                        &self.trans_statement(otherwise, level, ctx, env, reporter)?,
                         reporter,
                         otherwise.span,
                         env,
@@ -379,7 +382,7 @@ impl Infer {
                 ref escapes,
             } => {
                 if let Some(ref expr) = *expr {
-                    let expr_ty = self.trans_expr(expr, level, env, reporter)?;
+                    let expr_ty = self.trans_expr(expr, level, ctx, env, reporter)?;
 
                     if let Some(ref ty) = *ty {
                         let t = self.trans_ty(ty, env, reporter)?;
@@ -423,27 +426,28 @@ impl Infer {
                 }
             }
 
-            Statement::Return(ref expr) => self.trans_expr(expr, level, env, reporter),
+            Statement::Return(ref expr) => self.trans_expr(expr, level, ctx, env, reporter),
             Statement::While { ref cond, ref body } => {
                 self.unify(
                     &Type::App(TyCon::Bool, vec![]),
-                    &self.trans_expr(cond, level, env, reporter)?,
+                    &self.trans_expr(cond, level, ctx, env, reporter)?,
                     reporter,
                     cond.span,
                     env,
                 )?;
 
-                self.trans_statement(body, level, env, reporter)?;
+                self.trans_statement(body, level, ctx, env, reporter)?;
 
                 Ok(Type::Nil)
             }
         }
     }
 
-    fn trans_expr(
+    pub fn trans_expr(
         &self,
         expr: &Spanned<Expression>,
         level: &mut Level,
+        ctx: &mut Ctx,
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<Type> {
@@ -452,8 +456,8 @@ impl Infer {
                 ref name,
                 ref value,
             } => {
-                let name = self.trans_var(name, level, env, reporter)?;
-                let value_ty = self.trans_expr(value, level, env, reporter)?;
+                let name = self.trans_var(name, level, ctx, env, reporter)?;
+                let value_ty = self.trans_expr(value, level, ctx, env, reporter)?;
 
                 self.unify(&name, &value_ty, reporter, expr.span, env)?;
 
@@ -466,8 +470,8 @@ impl Infer {
                 ref rhs,
             } => {
                 let span = lhs.span.to(rhs.span);
-                let lhs = self.trans_expr(lhs, level, env, reporter)?;
-                let rhs = self.trans_expr(rhs, level, env, reporter)?;
+                let lhs = self.trans_expr(lhs, level, ctx, env, reporter)?;
+                let rhs = self.trans_expr(rhs, level, ctx, env, reporter)?;
 
                 match op.value {
                     Op::NEq | Op::Equal => Ok(Type::App(TyCon::Bool, vec![])),
@@ -500,7 +504,7 @@ impl Infer {
             }
 
             Expression::Cast { ref from, ref to } => {
-                let expr_ty = self.trans_expr(from, level, env, reporter)?;
+                let expr_ty = self.trans_expr(from, level, ctx, env, reporter)?;
                 let ty = self.trans_ty(to, env, reporter)?;
 
                 match cast_check(&expr_ty, &ty) {
@@ -516,7 +520,7 @@ impl Infer {
                     }
                 }
             }
-            Expression::Call(ref call) => self.trans_call(call, level, env, reporter),
+            Expression::Call(ref call) => self.trans_call(call, level, ctx, env, reporter),
             Expression::Closure(ref closure) => {
                 let mut param_tys = Vec::with_capacity(closure.value.params.value.len());
 
@@ -545,7 +549,13 @@ impl Infer {
                     env.add_var(ident.value.name.value, VarEntry::Var(None, param))
                 }
 
-                param_tys.push(self.trans_statement(&closure.value.body, level, env, reporter)?); // Add the return type of the body
+                param_tys.push(self.trans_statement(
+                    &closure.value.body,
+                    level,
+                    ctx,
+                    env,
+                    reporter,
+                )?); // Add the return type of the body
 
                 env.end_scope();
 
@@ -554,24 +564,28 @@ impl Infer {
                     Box::new(Type::App(TyCon::Arrow, param_tys)),
                 ))
             }
-            Expression::Grouping { ref expr } => self.trans_expr(expr, level, env, reporter),
-            Expression::Literal(ref literal) => match *literal {
-                Literal::Char(_) => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![])),
-                Literal::False(_) | Literal::True(_) => Ok(Type::App(TyCon::Bool, vec![])),
+            Expression::Grouping { ref expr } => self.trans_expr(expr, level, ctx, env, reporter),
+            Expression::Literal(ref literal) => {
+                match *literal {
+                    Literal::Char(_) => {
+                        Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]))
+                    }
+                    Literal::False(_) | Literal::True(_) => Ok(Type::App(TyCon::Bool, vec![])),
 
-                Literal::Str(_) => Ok(Type::App(TyCon::String, vec![])),
-                Literal::Number(ref number) => match number.ty {
-                    Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size), vec![])),
-                    None => Ok(Type::Var(TypeVar::new())), // Change to use own supply
-                },
-                Literal::Nil => Ok(Type::App(TyCon::Void, vec![])), // Nil is given the type void as only statements return Nil
-            },
+                    Literal::Str(_) => Ok(Type::App(TyCon::String, vec![])),
+                    Literal::Number(ref number) => match number.ty {
+                        Some((sign, size)) => Ok(Type::App(TyCon::Int(sign, size), vec![])),
+                        None => Ok(Type::Var(TypeVar::new())), // Change to use own supply
+                    },
+                    Literal::Nil => Ok(Type::App(TyCon::Void, vec![])), // Nil is given the type void as only statements return Nil
+                }
+            }
             Expression::StructLit(ref struct_lit) => {
-                self.trans_struct_lit(struct_lit, level, env, reporter)
+                self.trans_struct_lit(struct_lit, level, ctx, env, reporter)
             }
 
             Expression::Unary { ref op, ref expr } => {
-                let expr_ty = self.trans_expr(expr, level, env, reporter)?;
+                let expr_ty = self.trans_expr(expr, level, ctx, env, reporter)?;
 
                 match op.value {
                     UnaryOp::Bang => Ok(Type::App(TyCon::Bool, vec![])),
@@ -588,7 +602,7 @@ impl Infer {
                     }
                 }
             }
-            Expression::Var(ref var) => self.trans_var(var, level, env, reporter),
+            Expression::Var(ref var) => self.trans_var(var, level, ctx, env, reporter),
         }
     }
 
@@ -596,6 +610,7 @@ impl Infer {
         &self,
         call: &Spanned<Call>,
         level: &mut Level,
+        ctx: &mut Ctx,
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<Type> {
@@ -613,6 +628,8 @@ impl Infer {
 
                     return Err(());
                 };
+
+                let mut callee_tys = vec![];
 
                 match func.get_ty() {
                     Type::Poly(ref tvars, ref ret) => match **ret {
@@ -632,7 +649,7 @@ impl Infer {
                             let mut arg_tys = Vec::new();
 
                             for (tvar, arg) in tvars.iter().zip(args) {
-                                let ty = self.trans_expr(arg, level, env, reporter)?;
+                                let ty = self.trans_expr(arg, level, ctx, env, reporter)?;
                                 mappings.insert(*tvar, ty.clone());
 
                                 arg_tys.push((ty, arg.span));
@@ -646,6 +663,8 @@ impl Infer {
                                     arg.1,
                                     env,
                                 )?;
+
+                                callee_tys.push(ty)
                             }
 
                             Ok(self.subst(fn_types.last().unwrap(), &mut mappings))
@@ -715,7 +734,7 @@ impl Infer {
                                 for (ty, arg) in fn_types.iter().zip(args) {
                                     self.unify(
                                         &self.subst(
-                                            &self.trans_expr(arg, level, env, reporter)?,
+                                            &self.trans_expr(arg, level, ctx, env, reporter)?,
                                             &mut mappings,
                                         ),
                                         &self.subst(ty, &mut mappings),
@@ -748,6 +767,7 @@ impl Infer {
         &self,
         lit: &Spanned<StructLit>,
         level: &mut Level,
+        ctx: &mut Ctx,
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<Type> {
@@ -770,7 +790,8 @@ impl Infer {
                             let mut mappings = HashMap::new();
 
                             for (tvar, field) in tvars.iter().zip(fields) {
-                                let ty = self.trans_expr(&field.value.expr, level, env, reporter)?;
+                                let ty =
+                                    self.trans_expr(&field.value.expr, level, ctx, env, reporter)?;
                                 mappings.insert(*tvar, ty);
                             }
 
@@ -784,6 +805,7 @@ impl Infer {
                                     let ty = self.trans_expr(
                                         &lit_expr.value.expr,
                                         level,
+                                        ctx,
                                         env,
                                         reporter,
                                     )?;
@@ -885,6 +907,7 @@ impl Infer {
                                         let instance_ty = self.trans_expr(
                                             &expr.value.expr,
                                             level,
+                                            ctx,
                                             env,
                                             reporter,
                                         )?;
@@ -952,6 +975,7 @@ impl Infer {
         &self,
         var: &Spanned<Var>,
         level: &mut Level,
+        ctx: &mut Ctx,
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<Type> {
@@ -1031,7 +1055,7 @@ impl Infer {
                     return Err(());
                 }
 
-                let expr_ty = self.trans_expr(expr, level, env, reporter)?;
+                let expr_ty = self.trans_expr(expr, level, ctx, env, reporter)?;
 
                 if !expr_ty.is_int() {
                     let msg = format!("Index expr cannot be of type `{}`", expr_ty.print(env));
