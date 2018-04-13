@@ -1,12 +1,12 @@
-use temp::{Label};
 use ir::Instruction;
+use temp::Label;
 
 pub trait Frame {
     type Access;
 
     type FP;
 
-    const WORD_SIZE:u32;
+    const WORD_SIZE: u32;
 
     fn new(name: Label, formals: &[bool]) -> Self;
 
@@ -16,5 +16,5 @@ pub trait Frame {
 
     fn alloc_local(&self, escapes: bool) -> Self::Access;
 
-    fn exp(&self,access:&Self::Access,ir:&mut Instruction) -> Instruction;
+    fn exp(&self, access: &Self::Access, ir: &mut Instruction) -> Instruction;
 }

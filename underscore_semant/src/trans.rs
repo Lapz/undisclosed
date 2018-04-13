@@ -10,6 +10,7 @@ use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement
 use types::{Field, TyCon, Type, TypeVar, Unique};
 use util::emitter::Reporter;
 use util::pos::Spanned;
+use codegen::gen::{CodeGen,Ctx};
 
 impl Infer {
     pub fn trans_ty(
@@ -389,7 +390,7 @@ impl Infer {
                             ident.value,
                             VarEntry::Var(
                                 Some(Translator::alloc_local(level, *escapes)),
-                               t.clone(),
+                                t.clone(),
                             ),
                         );
 
@@ -478,21 +479,19 @@ impl Infer {
                     Op::Plus | Op::Slash | Op::Star | Op::Minus => {
                         match self.unify(&lhs, &rhs, reporter, span, env) {
                             Ok(()) => (),
-                            Err(_) => {
-                                match self.unify(
-                                    &lhs,
-                                    &Type::App(TyCon::String, vec![]),
-                                    reporter,
-                                    span,
-                                    env,
-                                ) {
-                                    Ok(()) => (),
-                                    Err(_) => {
-                                        reporter.pop_error();
-                                        return Err(())
-                                    }
+                            Err(_) => match self.unify(
+                                &lhs,
+                                &Type::App(TyCon::String, vec![]),
+                                reporter,
+                                span,
+                                env,
+                            ) {
+                                Ok(()) => (),
+                                Err(_) => {
+                                    reporter.pop_error();
+                                    return Err(());
                                 }
-                            }
+                            },
                         }
 
                         Ok(lhs)

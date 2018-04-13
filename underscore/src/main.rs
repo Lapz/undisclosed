@@ -9,7 +9,7 @@ extern crate underscore_util;
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-use underscore_codegen::gen::CodeGen;
+use underscore_codegen::gen::{CodeGen, Ctx};
 use underscore_semant::{Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
@@ -99,39 +99,43 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool) {
 
     let mut type_env = TypeEnv::new(&Rc::clone(&strings));
 
-    match infer.infer(&mut ast, &mut type_env, &mut reporter) {
-        Ok(_) => {
-            if dump_file.is_some() {
-                let mut file = File::create(format!("{}.ast", path)).expect("Couldn't create file");
-                file.write(ast.fmt().as_bytes())
-                    .expect("Couldn't write to the file");
-                file.write(format!("{:#?}", type_env).as_bytes())
-                    .expect("Couldn't write to the file");
+    let symbols = Symbols::new(Rc::clone(&strings));
+
+    let mut ctx = Ctx::new(symbols);
+
+    {
+        match infer.infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {
+            Ok(_) => {
+                if dump_file.is_some() {
+                    let mut file =
+                        File::create(format!("{}.ast", path)).expect("Couldn't create file");
+                    file.write(ast.fmt().as_bytes())
+                        .expect("Couldn't write to the file");
+                    file.write(format!("{:#?}", type_env).as_bytes())
+                        .expect("Couldn't write to the file");
+                }
+
+                ()
             }
-
-            ()
-        }
-        Err(_) => {
-            reporter.emit(&input);
-            if dump_file.is_some() {
-                let mut file = File::create(format!("{}.ast", path)).expect("Couldn't create file");
-                file.write(ast.fmt().as_bytes())
-                    .expect("Couldn't write to the file");
-                file.write(format!("{:#?}", type_env).as_bytes())
-                    .expect("Couldn't write to the file");
+            Err(_) => {
+                reporter.emit(&input);
+                if dump_file.is_some() {
+                    let mut file =
+                        File::create(format!("{}.ast", path)).expect("Couldn't create file");
+                    file.write(ast.fmt().as_bytes())
+                        .expect("Couldn't write to the file");
+                    file.write(format!("{:#?}", type_env).as_bytes())
+                        .expect("Couldn't write to the file");
+                }
+                ::std::process::exit(65)
             }
-            ::std::process::exit(65)
-        }
-    };
+        };
+    }
 
-    let mut symbols = Symbols::new(Rc::clone(&strings));
+    // codegen.gen_program(&ast);
 
-    let mut codegen = CodeGen::new(&mut symbols);
-
-    codegen.gen_program(&ast);
-
-    if emit_ir {
-        codegen.dump_to_file(format!("{}ir", path));
+    if ctx.emit_ir {
+        ctx.dump_to_file(format!("{}ir", path));
     }
 }
 

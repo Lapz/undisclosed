@@ -4,11 +4,11 @@ extern crate underscore_syntax as syntax;
 extern crate underscore_util as util;
 
 pub mod frame;
+pub mod gen;
+pub mod ir;
 pub mod temp;
 pub mod translate;
 pub mod x86;
-pub mod ir;
-pub mod gen;
 
 #[cfg(test)]
 mod tests {

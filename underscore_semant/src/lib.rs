@@ -11,7 +11,8 @@ mod trans;
 mod types;
 mod unify;
 
-use codegen::{temp,
+use codegen::{gen::Ctx,
+              temp,
               translate::{Level, Translator},
               x86::x86};
 pub use env::Env as TypeEnv;
@@ -30,10 +31,11 @@ impl Infer {
         Self::default()
     }
 
-    pub fn infer(
+    pub fn infer<'a>(
         &self,
         program: &mut Program,
         env: &mut Env,
+        ctx: &'a mut Ctx,
         reporter: &mut Reporter,
     ) -> InferResult<()> {
         let mut escaper = FindEscape::new();
@@ -52,7 +54,7 @@ impl Infer {
         }
 
         for function in &program.functions {
-            self.trans_function(function, env, reporter, Level::Top)?
+            self.trans_function(function, env,ctx,reporter, Level::Top)?
         }
 
         let mut resolver = Resolver::new();

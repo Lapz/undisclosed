@@ -1,9 +1,9 @@
 use frame::Frame;
+use ir::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 use temp::Label;
 use x86::{x86, Access};
-use ir::*;
 
 #[derive(Clone, Debug)]
 pub enum Level {
@@ -43,7 +43,7 @@ impl Translator {
         }
     }
 
-    pub fn simple_var(access:TranslateAccess) -> Instruction {
+    pub fn simple_var(access: TranslateAccess) -> Instruction {
         unimplemented!()
     }
 }
