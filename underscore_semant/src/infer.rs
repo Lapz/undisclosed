@@ -151,6 +151,66 @@ impl Infer {
                     expr,
                     Box::new(self.infer_statement(body, level, ctx, env, reporter)?),
                 ))
+            },
+
+             Statement::Let {
+                ref ident,
+                ref ty,
+                ref expr,
+                ref escapes,
+            } => {
+
+                if let Some(ref expr) = *expr {
+                    let expr_tyexpr = self.infer_expr(expr, level, ctx, env, reporter)?;
+
+                    if let Some(ref ty) = *ty {
+                        let t = self.trans_ty(ty, env, reporter)?;
+
+                        self.unify(&expr_tyexpr.ty, &t, reporter, ty.span, env)?;
+
+                        env.add_var(
+                            ident.value,
+                            VarEntry::Var(
+                                Some(Translator::alloc_local(level, *escapes)),
+                                t.clone(),
+                            ),
+                        );
+
+                        return Ok(ast::Statement::Let{ident:ident.value,ty:t,expr:Some(expr_tyexpr)});
+                    }
+
+                    env.add_var(
+                        ident.value,
+                        VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), expr_tyexpr.ty.clone()),
+                    );
+
+                     Ok(ast::Statement::Let{ident:ident.value,ty:expr_tyexpr.ty.clone(),expr:Some(expr_tyexpr)})
+                } else {
+                    if let Some(ref ty) = *ty {
+                        let ty = self.trans_ty(ty, env, reporter)?;
+
+                        env.add_var(
+                            ident.value,
+                            VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), ty.clone()),
+                        );
+
+                        return Ok(ast::Statement::Let{ident:ident.value,ty,expr:None})
+                    }
+
+                    env.add_var(
+                        ident.value,
+                        VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), Type::Nil),
+                    );
+
+                    Ok(ast::Statement::Let{ident:ident.value,ty:Type::Nil,expr:None})
+                }
+
+
+
+
+
+
+                // unimplemented!()
             }
             _ => unimplemented!(), //            Statement::If {
                                    //                ref cond,

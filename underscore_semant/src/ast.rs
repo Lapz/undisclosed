@@ -62,7 +62,6 @@ pub enum Statement {
         otherwise: Option<Box<Statement>>,
     },
     Let {
-        escapes: bool,
         ident: Symbol,
         ty: Type,
         expr: Option<TypedExpression>,
