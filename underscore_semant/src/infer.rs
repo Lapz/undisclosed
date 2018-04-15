@@ -48,61 +48,94 @@ impl Infer {
                 ref incr,
                 ref body,
             } => {
+                if init.is_none() && cond.is_none() && incr.is_none() {
+                    let body = self.infer_statement(body, level, ctx, env, reporter)?;
+                    return Ok(body);
+                }
 
+                let mut init_tyexpr = None;
 
+                if let Some(ref init) = *init {
+                    init_tyexpr = Some(Box::new(self.infer_statement(
+                        init, level, ctx, env, reporter,
+                    )?));
+                }
 
-                               if init.is_none() && cond.is_none() && incr.is_none() {
-                                   let body = self.infer_statement(body, level, ctx, env, reporter)?;
-                
-                                   return Ok(body);
-                               }
+                let mut incr_tyexpr = None;
 
-                               let mut init_tyexpr = None;
+                if let Some(ref incr) = *incr {
+                    let ty = self.infer_expr(incr, level, ctx, env, reporter)?;
+                    if !ty.ty.is_int() {
+                        // Change
+                        let msg = format!("Increment cannot be of type `{}`", ty.ty.print(env));
 
-                            if let Some(ref init) = *init {
-                                init_tyexpr = Some(self.infer_statement(init, level, ctx, env, reporter)?);
-                            }
+                        reporter.error(msg, incr.span);
+                        return Err(());
+                    }
 
-                            // let mut incr_ty
-                //
-                //
-                //                let init = self.infer_statement(init.unwrap_or(None), level, ctx, env, reporter)?;
-                //
-                //                let Some(ref incr) = *incr;
-                //
-                //                let incr = self.infer_expr(incr, level, ctx, env, reporter)?;
-                //
-                //                if !ty.ty.is_int() {
-                //                    // Change
-                //                    let msg = "Increment should be of type i8,u8,i32,u32,i64,u64";
-                //
-                //                    reporter.error(msg, incr.span);
-                //                    return Err(());
-                //                }
-                //
-                //                if let Some(ref cond) = *cond {
-                //                    let ty = self.infer_expr(cond, level, ctx, env, reporter)?;
-                //
-                //                    self.unify(
-                //                        &Type::App(TyCon::Bool, vec![]),
-                //                        &ty.ty,
-                //                        reporter,
-                //                        cond.span,
-                //                        env,
-                //                    )?;
-                //                }
+                    incr_tyexpr = Some(ty);
+                }
 
-                unimplemented!()
-                //
-                //                Ok(ast::Statement::For {
-                //                    init: Box::new(init),
-                //                    cond,
-                //                    incr,
-                //                    body: Box::new(self.infer_statement(body, level, ctx, env, reporter)?),
-                //                })
+                let mut cond_tyexpr = None;
+
+                if let Some(ref cond) = *cond {
+                    let ty = self.infer_expr(cond, level, ctx, env, reporter)?;
+
+                    self.unify(
+                        &Type::App(TyCon::Bool, vec![]),
+                        &ty.ty,
+                        reporter,
+                        cond.span,
+                        env,
+                    )?;
+
+                    cond_tyexpr = Some(ty);
+                }
+
+                Ok(ast::Statement::For {
+                    init: init_tyexpr,
+                    cond: cond_tyexpr,
+                    incr: incr_tyexpr,
+                    body: Box::new(self.infer_statement(body, level, ctx, env, reporter)?),
+                })
             }
 
-            Statement::Return(ref expr) => Ok(ast::Statement::Return(self.infer_expr(expr, level, ctx, env, reporter)?)),
+            Statement::If {
+                ref cond,
+                ref then,
+                ref otherwise,
+            } => {
+
+                let cond_tyexpr = self.infer_expr(cond, level, ctx, env, reporter)?;
+                self.unify(
+                    &Type::App(TyCon::Bool, vec![]),
+                    &cond_tyexpr.ty,
+                    reporter,
+                    cond.span,
+                    env,
+                )?;
+
+                let then_tyexpr = Box::new(self.infer_statement(then,level,ctx,env,reporter)?);
+                let mut otherwise_tyexpr = None;
+
+                if let Some(ref otherwise) = *otherwise {
+                    let tyexpr = Box::new(self.infer_statement(otherwise, level, ctx, env, reporter)?);
+                  
+
+                    otherwise_tyexpr = Some(tyexpr)
+                } 
+
+                Ok(ast::Statement::If {
+                    cond:cond_tyexpr,
+                    then:then_tyexpr,
+                    otherwise:otherwise_tyexpr,
+                })
+
+            }
+
+            Statement::Return(ref expr) => Ok(ast::Statement::Return(self.infer_expr(
+                expr, level, ctx, env, reporter,
+            )?)),
 
             Statement::While { ref cond, ref body } => {
                 let expr = self.infer_expr(cond, level, ctx, env, reporter)?;
@@ -124,13 +157,7 @@ impl Infer {
                                    //                ref then,
                                    //                ref otherwise,
                                    //            } => {
-                                   //                self.unify(
-                                   //                    &Type::App(TyCon::Bool, vec![]),
-                                   //                    &self.trans_expr(cond, level, ctx, env, reporter)?,
-                                   //                    reporter,
-                                   //                    cond.span,
-                                   //                    env,
-                                   //                )?;
+                                   //
                                    //
                                    //                let then_ty = self.trans_statement(then, level, ctx, env, reporter)?;
                                    //
@@ -615,7 +642,7 @@ impl Infer {
 
             Literal::False(_) | Literal::True(_) => Type::App(TyCon::Bool, vec![]),
 
-            Literal::Str(ref string) => Type::App(TyCon::String, vec![]),
+            Literal::Str(_) => Type::App(TyCon::String, vec![]),
 
             Literal::Nil => Type::App(TyCon::Void, vec![]), // Nil is given the type void as only statements return Nil
 
