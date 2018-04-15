@@ -48,11 +48,22 @@ impl Infer {
                 ref incr,
                 ref body,
             } => {
-                //                if init.is_none() && cond.is_none() && incr.is_none() {
-                //                    let body = self.infer_statement(body, level, ctx, env, reporter)?;
-                //
-                //                    return Ok(body);
-                //                }
+
+
+
+                               if init.is_none() && cond.is_none() && incr.is_none() {
+                                   let body = self.infer_statement(body, level, ctx, env, reporter)?;
+                
+                                   return Ok(body);
+                               }
+
+                               let mut init_tyexpr = None;
+
+                            if let Some(ref init) = *init {
+                                init_tyexpr = Some(self.infer_statement(init, level, ctx, env, reporter)?);
+                            }
+
+                            // let mut incr_ty
                 //
                 //
                 //                let init = self.infer_statement(init.unwrap_or(None), level, ctx, env, reporter)?;
@@ -91,7 +102,7 @@ impl Infer {
                 //                })
             }
 
-            Statement::Return(ref expr) => ast::Statement::Return(self.infer_expr(expr, level, ctx, env, reporter)?),
+            Statement::Return(ref expr) => Ok(ast::Statement::Return(self.infer_expr(expr, level, ctx, env, reporter)?)),
 
             Statement::While { ref cond, ref body } => {
                 let expr = self.infer_expr(cond, level, ctx, env, reporter)?;

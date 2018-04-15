@@ -1,0 +1,4 @@
+
+t1 := 10:32
+t1 := 10:8
+[Store(t1, Const(10, Bit32)), Store(t1, Const(10, Bit8))]
