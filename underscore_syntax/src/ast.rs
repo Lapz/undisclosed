@@ -262,3 +262,14 @@ impl Display for Size {
         }
     }
 }
+
+
+impl Size {
+    pub fn size(&self) -> u32 {
+        match *self {
+            Size::Bit8 => 1,
+            Size::Bit32 => 4,
+            Size::Bit64 => 8,
+        }
+    }
+ }

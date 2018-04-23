@@ -7,6 +7,7 @@ mod cast_check;
 mod env;
 mod escape;
 mod infer;
+mod monomorphize;
 mod resolver;
 mod statements;
 mod subst;

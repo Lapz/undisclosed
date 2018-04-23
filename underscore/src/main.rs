@@ -132,7 +132,7 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool) {
         };
     }
 
-    // codegen.gen_program(&ast);
+    CodeGen::gen_program(&ast, &mut ctx);
 
     if ctx.emit_ir {
         ctx.dump_to_file(format!("{}ir", path));

@@ -5,13 +5,79 @@ use codegen::{temp,
               translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry};
 use std::collections::HashMap;
-use syntax::ast::{Call, Expression, Literal, Op, Sign, Size, Statement, StructLit, UnaryOp, Var};
+use syntax::ast::{Call, Expression, Literal,Function,FunctionParams, Op, Sign, Size, Statement, StructLit, UnaryOp, Var};
 use types::{Field, TyCon, Type, TypeVar, Unique};
 use util::{emitter::Reporter, pos::Spanned, symbol::Symbol};
 
 use ast;
 
 impl Infer {
+
+    pub fn infer_function(&self,function:&Spanned<Function>, level: &mut Level,
+        ctx: &mut Ctx,
+        env: &mut Env,
+        reporter: &mut Reporter) -> InferResult<ast::Function> {
+        let mut poly_tvs = Vec::with_capacity(function.value.name.value.type_params.len());
+
+        for ident in &function.value.name.value.type_params {
+            let tv = TypeVar::new();
+            env.add_type(ident.value, Entry::Ty(Type::Var(tv)));
+            poly_tvs.push(tv);
+        }
+
+        let mut param_tys = Vec::with_capacity(function.value.params.value.len());
+
+        let returns = if let Some(ref return_ty) = function.value.returns {
+            self.trans_ty(return_ty, env, reporter)?
+        } else {
+            Type::Nil
+        };
+
+        let mut formals = Vec::with_capacity(function.value.params.value.len() + 1);
+
+        for param in &function.value.params.value {
+            param_tys.push(self.trans_ty(&param.value.ty, env, reporter)?);
+        }
+
+        for param in &function.value.params.value {
+            if let Some(ref escape) = env.escapes.look(param.value.name.value) {
+                formals.push(escape.1)
+            } else {
+                formals.push(false)
+            }
+        }
+
+        param_tys.push(returns.clone()); // Return is the last value
+
+        let label = temp::new_label(&mut env.escapes);
+        let mut new_level = Translator::new_level(level.clone(), label, &mut formals);
+        env.add_var(
+            function.value.name.value.name.value,
+            VarEntry::Fun {
+                level: new_level.clone(),
+                label,
+                ty: Type::Poly(
+                    poly_tvs,
+                    Box::new(Type::App(TyCon::Arrow, param_tys.clone())),
+                ),
+            },
+        );
+
+        env.begin_scope();
+
+        for (param, ident) in param_tys.into_iter().zip(&function.value.params.value) {
+            env.add_var(ident.value.name.value, VarEntry::Var(None, param))
+        }
+
+        let body = self.infer_statement(&function.value.body, &mut new_level, ctx, env, reporter)?;
+
+        self.unify(&returns, &body, reporter, function.value.body.span, env)?;
+
+        env.end_scope();
+
+        // Ok(())
+        unimplemented!()
+        }
     pub fn infer_statement(
         &self,
         statement: &Spanned<Statement>,

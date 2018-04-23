@@ -1,9 +1,10 @@
 use ir::*;
-use syntax::ast::{Call, Expression, Function, Literal, Op, Program, Size, Statement, StructLit,
+use syntax::ast::{Call, Expression, Function, Literal, Op, Program, Size, Statement, Ty,StructLit,
                   UnaryOp, Var};
 use temp::Temp;
 use util::pos::Spanned;
 use util::symbol::{Symbol, Symbols};
+use std::mem;
 
 #[derive(Debug)]
 pub struct Ctx {
@@ -11,6 +12,7 @@ pub struct Ctx {
     symbols: Symbols<Temp>,
     pub emit_ir: bool,
 }
+
 
 impl Ctx {
     pub fn new(symbols: Symbols<Temp>) -> Self {
@@ -38,8 +40,14 @@ impl Ctx {
 }
 
 pub struct CodeGen {}
+
 impl CodeGen {
-    fn gen_statement<'a>(statement: &Spanned<Statement>, ctx: &mut Ctx) {
+    pub fn gen_program(program:&Program,ctx:&mut Ctx) {
+        for function in &program.functions {
+            Self::gen_statement(&function.value.body,ctx)
+        }
+    }
+    fn gen_statement(statement: &Spanned<Statement>, ctx: &mut Ctx) {
         match statement.value {
             Statement::Block(ref statements) => {
                 for statement in statements {
@@ -92,12 +100,21 @@ impl CodeGen {
 
                 ctx.instructions
                     .push(Instruction::BinOp(op, lhs_temp, rhs_temp, temp))
+            },
+            Expression::Cast{ref from, ref to} => {
+
+                let temp = Temp::new();
+            
+                Self::gen_expression(from,ctx,temp);
+
+            
+                ctx.instructions.push(Instruction::Cast(temp, Self::get_size(to)))
             }
             Expression::Literal(ref literal) => {
                 let value = match *literal {
-                    Literal::Char(ref ch) => Value::Mem(vec![*ch as u8]),
+                    Literal::Char(ref ch) => Value::Mem(vec![mem::size_of::<char>() as u8,*ch as u8]),
 
-                    Literal::True(ref b) | Literal::False(ref b) => Value::Mem(vec![*b as u8]),
+                    Literal::True(ref b) | Literal::False(ref b) => Value::Mem(vec![mem::size_of::<bool>() as u8,*b as u8]),
 
                     Literal::Nil => Value::Mem(vec![]),
 
@@ -105,7 +122,14 @@ impl CodeGen {
                         Some((_, size)) => Value::Const(number.value, size),
                         None => Value::Const(number.value, Size::Bit32),
                     },
-                    Literal::Str(ref string) => Value::Mem(string.as_bytes().into()),
+                    Literal::Str(ref string) => {
+                        let mut bytes = vec![];
+                        bytes.push(string.len() as u8);
+                        bytes.extend(string.as_bytes());
+
+                        Value::Mem(bytes)
+                        
+                    },
                 };
 
                 ctx.instructions.push(Instruction::Store(temp, value))
@@ -155,6 +179,19 @@ impl CodeGen {
             Var::Simple(ref symbol) => symbol.value,
 
             _ => unimplemented!(),
+        }
+    }
+
+    fn get_size(ty:&Spanned<Ty>) -> usize {
+        match ty.value {
+            Ty::I8 =>  1,
+            Ty::I32 => 4,
+            Ty::I64 => 8 ,
+            Ty::U8 => 1 ,
+            Ty::U32 => 4, 
+            Ty::U64 => 8,
+            Ty::Bool => 1,
+            _ => unreachable!() // cast check
         }
     }
 }

@@ -4,6 +4,11 @@ struct List {
 }
 
 fn main() {
-    let x = 10;
-    x = 10u32;
+    let x = true;
+    {
+        let b ="aaaaa\0";
+         x = false;
+         x as i32;
+    }
+    x = true ;
 }
