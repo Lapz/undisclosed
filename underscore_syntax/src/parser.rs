@@ -163,6 +163,8 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let mut err_occured = false;
 
+        // println!("{:?}",self.tokens);
+
         while self.peek(|token| token != &TokenType::EOF) {
             if self.recognise(TokenType::FUNCTION) {
                 match self.parse_function() {

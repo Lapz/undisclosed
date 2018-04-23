@@ -74,7 +74,6 @@ impl<'a> Lexer<'a> {
     fn advance(&mut self) -> Option<(Position, char)> {
         match self.lookahead {
             Some((pos, ch)) => {
-                self.end = self.end.shift(ch);
                 self.lookahead = self.chars.next();
                 Some((pos, ch))
             }
@@ -97,6 +96,10 @@ impl<'a> Lexer<'a> {
         )
     }
 
+    fn next_loc(&self) -> Position {
+        self.lookahead.as_ref().map_or(self.chars.pos, |l| l.0)
+    }
+
     fn slice(&self, start: Position, end: Position) -> &'a str {
         &self.input[start.absolute..end.absolute]
     }
@@ -112,7 +115,7 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
 
-        (self.end, self.slice(start, self.end))
+        (self.next_loc(), self.slice(start,self.next_loc()))
     }
 
     fn peek<F>(&mut self, mut check: F) -> bool

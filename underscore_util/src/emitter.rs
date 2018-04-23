@@ -82,7 +82,7 @@ pub fn print(input: &str, d: &Diagnostic) {
             ref level,
         } => {
             println!("{}: {}", level, Fixed(252).bold().paint(msg.clone()));
-            print_highlight(input, span, level, 4)
+            print_highlight(input, span, level, 2)
         }
     }
 }
