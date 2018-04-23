@@ -47,7 +47,7 @@ pub struct FunctionParams {
     pub name: Spanned<Symbol>,
     pub ty: Spanned<Ty>,
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,Copy)]
 pub enum Linkage {
     Normal,
     External,

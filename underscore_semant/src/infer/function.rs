@@ -5,15 +5,14 @@ use codegen::{temp,
               translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry};
 use std::collections::HashMap;
-use syntax::ast::{Call, Expression, Literal,Function,FunctionParams, Op, Sign, Size, Statement, StructLit, UnaryOp, Var};
+use syntax::ast::{Call, Expression, Literal,Function, Op, Sign, Size, Statement, StructLit, UnaryOp, Var};
 use types::{Field, TyCon, Type, TypeVar, Unique};
 use util::{emitter::Reporter, pos::Spanned, symbol::Symbol};
 
 use ast;
 
 impl Infer {
-
-    pub fn infer_function(&self,function:&Spanned<Function>, level: &mut Level,
+    pub fn infer_function(&mut self,function:&Spanned<Function>, level: &mut Level,
         ctx: &mut Ctx,
         env: &mut Env,
         reporter: &mut Reporter) -> InferResult<ast::Function> {
@@ -26,7 +25,7 @@ impl Infer {
         }
 
         let mut param_tys = Vec::with_capacity(function.value.params.value.len());
-
+        let mut params = Vec::with_capacity(function.value.params.value.len());
         let returns = if let Some(ref return_ty) = function.value.returns {
             self.trans_ty(return_ty, env, reporter)?
         } else {
@@ -36,7 +35,12 @@ impl Infer {
         let mut formals = Vec::with_capacity(function.value.params.value.len() + 1);
 
         for param in &function.value.params.value {
-            param_tys.push(self.trans_ty(&param.value.ty, env, reporter)?);
+            let ty =self.trans_ty(&param.value.ty, env, reporter)?;
+            param_tys.push(ty.clone());
+            params.push(ast::FunctionParam {
+                name:param.value.name.value,
+                ty,
+            })
         }
 
         for param in &function.value.params.value {
@@ -71,15 +75,21 @@ impl Infer {
 
         let body = self.infer_statement(&function.value.body, &mut new_level, ctx, env, reporter)?;
 
-        self.unify(&returns, &body, reporter, function.value.body.span, env)?;
+        self.unify(&returns, &self.body, reporter, function.value.body.span, env)?;
 
         env.end_scope();
 
-        // Ok(())
-        unimplemented!()
+        Ok(ast::Function {
+            span:function.span,
+            name:function.value.name.value.name.value,
+            params:params,
+            returns,
+            body,
+            linkage:function.value.linkage,
+          })
         }
     pub fn infer_statement(
-        &self,
+        &mut self,
         statement: &Spanned<Statement>,
         level: &mut Level,
         ctx: &mut Ctx,
@@ -100,13 +110,18 @@ impl Infer {
 
                 env.end_scope();
 
+                
+
                 Ok(result)
             }
             Statement::Break | Statement::Continue => Ok(ast::Statement::Break),
             Statement::Expr(ref expr) => {
-                Ok(ast::Statement::Expr(self.infer_expr(
+                let type_expr = self.infer_expr(
                     expr, level, ctx, env, reporter,
-                )?)) // Expressions are given the type of Nil to signify that they return nothing
+                )?;
+
+             
+                Ok(ast::Statement::Expr(type_expr)) // Expressions are given the type of Nil to signify that they return nothing
             }
             Statement::For {
                 ref init,
@@ -199,9 +214,15 @@ impl Infer {
 
             }
 
-            Statement::Return(ref expr) => Ok(ast::Statement::Return(self.infer_expr(
+            Statement::Return(ref expr) => {
+                let type_expr = self.infer_expr(
                 expr, level, ctx, env, reporter,
-            )?)),
+            )?;
+                   self.body = type_expr.ty.clone();
+                    Ok(ast::Statement::Return(type_expr))
+            }
+            
+           ,
 
             Statement::While { ref cond, ref body } => {
                 let expr = self.infer_expr(cond, level, ctx, env, reporter)?;
@@ -270,89 +291,8 @@ impl Infer {
 
                     Ok(ast::Statement::Let{ident:ident.value,ty:Type::Nil,expr:None})
                 }
-
-
-
-
-
-
-                // unimplemented!()
             }
-            _ => unimplemented!(), //            Statement::If {
-                                   //                ref cond,
-                                   //                ref then,
-                                   //                ref otherwise,
-                                   //            } => {
-                                   //
-                                   //
-                                   //                let then_ty = self.trans_statement(then, level, ctx, env, reporter)?;
-                                   //
-                                   //                if let Some(ref otherwise) = *otherwise {
-                                   //                    self.unify(
-                                   //                        &then_ty,
-                                   //                        &self.trans_statement(otherwise, level, ctx, env, reporter)?,
-                                   //                        reporter,
-                                   //                        otherwise.span,
-                                   //                        env,
-                                   //                    )?;
-                                   //
-                                   //                    Ok(then_ty)
-                                   //                } else {
-                                   //                    Ok(then_ty)
-                                   //                }
-                                   //            }
-                                   //
-                                   //            Statement::Let {
-                                   //                ref ident,
-                                   //                ref ty,
-                                   //                ref expr,
-                                   //                ref escapes,
-                                   //            } => {
-                                   //                if let Some(ref expr) = *expr {
-                                   //                    let expr_ty = self.trans_expr(expr, level, ctx, env, reporter)?;
-                                   //
-                                   //                    if let Some(ref ty) = *ty {
-                                   //                        let t = self.trans_ty(ty, env, reporter)?;
-                                   //
-                                   //                        self.unify(&expr_ty, &t, reporter, ty.span, env)?;
-                                   //
-                                   //                        env.add_var(
-                                   //                            ident.value,
-                                   //                            VarEntry::Var(
-                                   //                                Some(Translator::alloc_local(level, *escapes)),
-                                   //                                t.clone(),
-                                   //                            ),
-                                   //                        );
-                                   //
-                                   //                        return Ok(t);
-                                   //                    }
-                                   //
-                                   //                    env.add_var(
-                                   //                        ident.value,
-                                   //                        VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), expr_ty),
-                                   //                    );
-                                   //
-                                   //                    Ok(Type::Nil)
-                                   //                } else {
-                                   //                    if let Some(ref ty) = *ty {
-                                   //                        let ty = self.trans_ty(ty, env, reporter)?;
-                                   //
-                                   //                        env.add_var(
-                                   //                            ident.value,
-                                   //                            VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), ty),
-                                   //                        );
-                                   //                        return Ok(Type::Nil);
-                                   //                    }
-                                   //
-                                   //                    env.add_var(
-                                   //                        ident.value,
-                                   //                        VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), Type::Nil),
-                                   //                    );
-                                   //
-                                   //                    Ok(Type::Nil)
-                                   //                }
-                                   //            }
-                                   //
+           
         }
     }
 }

@@ -21,14 +21,14 @@ pub struct Struct {
 pub struct Function {
     pub span: Span,
     pub name: Symbol,
-    pub params: Vec<FunctionParams>,
-    pub returns: Option<Type>,
+    pub params: Vec<FunctionParam>,
+    pub returns: Type,
     pub body: Statement,
     pub linkage: Linkage,
 }
 
 #[derive(Debug, Clone)]
-pub struct FunctionParams {
+pub struct FunctionParam {
     pub name: Symbol,
     pub ty: Type,
 }

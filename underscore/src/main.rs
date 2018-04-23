@@ -95,13 +95,19 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool) {
         }
     };
 
-    let infer = Infer::new();
+    let mut infer = Infer::new();
 
     let mut type_env = TypeEnv::new(&Rc::clone(&strings));
 
     let symbols = Symbols::new(Rc::clone(&strings));
 
     let mut ctx = Ctx::new(symbols);
+    match infer.new_infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {
+        Ok(_) => (),
+        Err(_) => {
+            //  reporter.emit(&input);
+        }
+    }
 
     {
         match infer.infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {

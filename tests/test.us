@@ -3,12 +3,18 @@ struct List {
     body:nil
 }
 
+fn boo() {
+    let x = true;
+    x = true ;
+}
+
+
 fn main() {
     let x = true;
     {
         let b ="aaaaa\0";
          x = false;
          x as i32;
-    }
+    } {}
     x = true ;
 }
