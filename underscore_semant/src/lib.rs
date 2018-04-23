@@ -11,7 +11,6 @@ mod monomorphize;
 mod resolver;
 mod statements;
 mod subst;
-mod trans;
 mod types;
 mod unify;
 use codegen::{gen::Ctx,
@@ -68,6 +67,10 @@ impl Infer {
                 reporter,
             )?);
         }
+
+        let mut resolver = Resolver::new();
+
+        resolver.resolve_ast(program, reporter, env)?;
 
         Ok(new_program)
     }
