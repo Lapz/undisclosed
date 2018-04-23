@@ -529,7 +529,7 @@ impl Infer {
 
                             for (tvar, field) in tvars.iter().zip(fields) {
                                 let ty =
-                                    self.trans_expr(&field.value.expr, level, ctx, env, reporter)?;
+                                    self.infer_expr(&field.value.expr, level, ctx, env, reporter)?.ty;
                                 mappings.insert(*tvar, ty);
                             }
 
@@ -824,7 +824,7 @@ impl Infer {
                     return Err(());
                 }
 
-                let expr_ty = self.trans_expr(expr, level, ctx, env, reporter)?;
+                let expr_ty = self.infer_expr(expr, level, ctx, env, reporter)?.ty;
 
                 if !expr_ty.is_int() {
                     let msg = format!("Index expr cannot be of type `{}`", expr_ty.print(env));

@@ -104,7 +104,17 @@ fn run(path: String, dump_file: Option<String>,) {
     let mut ctx = Ctx::new(symbols);
 
     let ast = match infer.infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {
-        Ok(ast) => ast,
+        Ok(ast) => {
+
+            if dump_file.is_some() {
+                let mut file =
+                    File::create(dump_file.clone().unwrap()).expect("Couldn't create file");
+                file.write(format!("{:#?}",ast).as_bytes())
+                    .expect("Couldn't write to the file");
+            }
+
+            ast
+        },
         Err(_) => {
             reporter.emit(&input);
             if dump_file.is_some() {
