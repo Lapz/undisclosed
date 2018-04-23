@@ -1,8 +1,8 @@
 //! Source Code locations
 
+use std::cmp;
 use std::fmt::{self, Display};
 use std::str::Chars;
-use std::cmp;
 
 /// Represents a Span in the source file along with its value
 #[derive(Debug, Clone)]
@@ -32,7 +32,7 @@ pub const EMPTYSPAN: Span = Span {
 };
 
 /// Represents a postion within a specifc source file
-#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq,PartialOrd,Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, PartialOrd, Ord)]
 pub struct Position {
     /// A 0 offset line the source code
     pub line: i32,
@@ -88,8 +88,8 @@ impl Display for Span {
 impl Span {
     pub fn to(self, other: Span) -> Self {
         Span {
-           start: cmp::min(self.start, other.end),
-           end:cmp::max(self.end, other.end)
+            start: cmp::min(self.start, other.end),
+            end: cmp::max(self.end, other.end),
         }
     }
 }

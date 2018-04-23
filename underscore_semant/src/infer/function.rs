@@ -5,17 +5,22 @@ use codegen::{temp,
               translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry};
 use std::collections::HashMap;
-use syntax::ast::{Call, Expression, Literal,Function, Op, Sign, Size, Statement, StructLit, UnaryOp, Var};
+use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit,
+                  UnaryOp, Var};
 use types::{Field, TyCon, Type, TypeVar, Unique};
 use util::{emitter::Reporter, pos::Spanned, symbol::Symbol};
 
 use ast;
 
 impl Infer {
-    pub fn infer_function(&mut self,function:&Spanned<Function>, level: &mut Level,
+    pub fn infer_function(
+        &mut self,
+        function: &Spanned<Function>,
+        level: &mut Level,
         ctx: &mut Ctx,
         env: &mut Env,
-        reporter: &mut Reporter) -> InferResult<ast::Function> {
+        reporter: &mut Reporter,
+    ) -> InferResult<ast::Function> {
         let mut poly_tvs = Vec::with_capacity(function.value.name.value.type_params.len());
 
         for ident in &function.value.name.value.type_params {
@@ -35,10 +40,10 @@ impl Infer {
         let mut formals = Vec::with_capacity(function.value.params.value.len() + 1);
 
         for param in &function.value.params.value {
-            let ty =self.trans_ty(&param.value.ty, env, reporter)?;
+            let ty = self.trans_ty(&param.value.ty, env, reporter)?;
             param_tys.push(ty.clone());
             params.push(ast::FunctionParam {
-                name:param.value.name.value,
+                name: param.value.name.value,
                 ty,
             })
         }
@@ -75,19 +80,25 @@ impl Infer {
 
         let body = self.infer_statement(&function.value.body, &mut new_level, ctx, env, reporter)?;
 
-        self.unify(&returns, &self.body, reporter, function.value.body.span, env)?;
+        self.unify(
+            &returns,
+            &self.body,
+            reporter,
+            function.value.body.span,
+            env,
+        )?;
 
         env.end_scope();
 
         Ok(ast::Function {
-            span:function.span,
-            name:function.value.name.value.name.value,
-            params:params,
+            span: function.span,
+            name: function.value.name.value.name.value,
+            params: params,
             returns,
             body,
-            linkage:function.value.linkage,
-          })
-        }
+            linkage: function.value.linkage,
+        })
+    }
     pub fn infer_statement(
         &mut self,
         statement: &Spanned<Statement>,
@@ -110,17 +121,12 @@ impl Infer {
 
                 env.end_scope();
 
-                
-
                 Ok(result)
             }
             Statement::Break | Statement::Continue => Ok(ast::Statement::Break),
             Statement::Expr(ref expr) => {
-                let type_expr = self.infer_expr(
-                    expr, level, ctx, env, reporter,
-                )?;
+                let type_expr = self.infer_expr(expr, level, ctx, env, reporter)?;
 
-             
                 Ok(ast::Statement::Expr(type_expr)) // Expressions are given the type of Nil to signify that they return nothing
             }
             Statement::For {
@@ -186,7 +192,6 @@ impl Infer {
                 ref then,
                 ref otherwise,
             } => {
-
                 let cond_tyexpr = self.infer_expr(cond, level, ctx, env, reporter)?;
                 self.unify(
                     &Type::App(TyCon::Bool, vec![]),
@@ -196,33 +201,28 @@ impl Infer {
                     env,
                 )?;
 
-                let then_tyexpr = Box::new(self.infer_statement(then,level,ctx,env,reporter)?);
+                let then_tyexpr = Box::new(self.infer_statement(then, level, ctx, env, reporter)?);
                 let mut otherwise_tyexpr = None;
 
                 if let Some(ref otherwise) = *otherwise {
-                    let tyexpr = Box::new(self.infer_statement(otherwise, level, ctx, env, reporter)?);
-                  
+                    let tyexpr =
+                        Box::new(self.infer_statement(otherwise, level, ctx, env, reporter)?);
 
                     otherwise_tyexpr = Some(tyexpr)
-                } 
+                }
 
                 Ok(ast::Statement::If {
-                    cond:cond_tyexpr,
-                    then:then_tyexpr,
-                    otherwise:otherwise_tyexpr,
+                    cond: cond_tyexpr,
+                    then: then_tyexpr,
+                    otherwise: otherwise_tyexpr,
                 })
-
             }
 
             Statement::Return(ref expr) => {
-                let type_expr = self.infer_expr(
-                expr, level, ctx, env, reporter,
-            )?;
-                   self.body = type_expr.ty.clone();
-                    Ok(ast::Statement::Return(type_expr))
+                let type_expr = self.infer_expr(expr, level, ctx, env, reporter)?;
+                self.body = type_expr.ty.clone();
+                Ok(ast::Statement::Return(type_expr))
             }
-            
-           ,
 
             Statement::While { ref cond, ref body } => {
                 let expr = self.infer_expr(cond, level, ctx, env, reporter)?;
@@ -238,15 +238,14 @@ impl Infer {
                     expr,
                     Box::new(self.infer_statement(body, level, ctx, env, reporter)?),
                 ))
-            },
+            }
 
-             Statement::Let {
+            Statement::Let {
                 ref ident,
                 ref ty,
                 ref expr,
                 ref escapes,
             } => {
-
                 if let Some(ref expr) = *expr {
                     let expr_tyexpr = self.infer_expr(expr, level, ctx, env, reporter)?;
 
@@ -263,25 +262,43 @@ impl Infer {
                             ),
                         );
 
-                        return Ok(ast::Statement::Let{ident:ident.value,ty:t,expr:Some(expr_tyexpr)});
+                        return Ok(ast::Statement::Let {
+                            ident: ident.value,
+                            ty: t,
+                            expr: Some(expr_tyexpr),
+                        });
                     }
 
                     env.add_var(
                         ident.value,
-                        VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), expr_tyexpr.ty.clone()),
+                        VarEntry::Var(
+                            Some(Translator::alloc_local(level, *escapes)),
+                            expr_tyexpr.ty.clone(),
+                        ),
                     );
 
-                     Ok(ast::Statement::Let{ident:ident.value,ty:expr_tyexpr.ty.clone(),expr:Some(expr_tyexpr)})
+                    Ok(ast::Statement::Let {
+                        ident: ident.value,
+                        ty: expr_tyexpr.ty.clone(),
+                        expr: Some(expr_tyexpr),
+                    })
                 } else {
                     if let Some(ref ty) = *ty {
                         let ty = self.trans_ty(ty, env, reporter)?;
 
                         env.add_var(
                             ident.value,
-                            VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), ty.clone()),
+                            VarEntry::Var(
+                                Some(Translator::alloc_local(level, *escapes)),
+                                ty.clone(),
+                            ),
                         );
 
-                        return Ok(ast::Statement::Let{ident:ident.value,ty,expr:None})
+                        return Ok(ast::Statement::Let {
+                            ident: ident.value,
+                            ty,
+                            expr: None,
+                        });
                     }
 
                     env.add_var(
@@ -289,10 +306,13 @@ impl Infer {
                         VarEntry::Var(Some(Translator::alloc_local(level, *escapes)), Type::Nil),
                     );
 
-                    Ok(ast::Statement::Let{ident:ident.value,ty:Type::Nil,expr:None})
+                    Ok(ast::Statement::Let {
+                        ident: ident.value,
+                        ty: Type::Nil,
+                        expr: None,
+                    })
                 }
             }
-           
         }
     }
 }

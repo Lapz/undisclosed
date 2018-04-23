@@ -47,7 +47,7 @@ pub struct FunctionParams {
     pub name: Spanned<Symbol>,
     pub ty: Spanned<Ty>,
 }
-#[derive(Debug, Clone,Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Linkage {
     Normal,
     External,
@@ -263,7 +263,6 @@ impl Display for Size {
     }
 }
 
-
 impl Size {
     pub fn size(&self) -> u32 {
         match *self {
@@ -272,4 +271,4 @@ impl Size {
             Size::Bit64 => 8,
         }
     }
- }
+}

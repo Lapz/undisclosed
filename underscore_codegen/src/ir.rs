@@ -13,7 +13,7 @@ pub enum Instruction {
     Jump(Label),
 
     /// CAST the expresion to a different type treating it a
-    Cast(Temp,usize), //TODO take into account sign
+    Cast(Temp, usize), //TODO take into account sign
 
     /// Binary operation and store in Temp
     BinOp(BinOp, Temp, Temp, Temp),
@@ -54,7 +54,7 @@ impl Display for Instruction {
 
             Instruction::Copy(ref t1, ref t2) => write!(f, "\n{} = {}", t1, t2),
             Instruction::UnOp(ref op, ref t1, ref t2) => write!(f, "\n{} := {} {}", t1, op, t2),
-            Instruction::Cast(ref t1,ref size) => write!(f,"\nt1 := {}:{}",t1,size),
+            Instruction::Cast(ref t1, ref size) => write!(f, "\nt1 := {}:{}", t1, size),
             ref e_ => unimplemented!("{:?}", e_),
         }
     }
@@ -67,18 +67,16 @@ impl Display for Value {
             Value::Name(ref name) => write!(f, "{:?}", name),
             Value::Temp(ref temp) => write!(f, "{}", temp),
             Value::Mem(ref bytes) => {
-
-
                 write!(f, "[");
 
                 for (i, byte) in bytes.iter().enumerate() {
                     if i + 1 == bytes.len() {
                         write!(f, "{}", byte)?;
                     } else {
-                       write!(f, "{},", byte)?;
+                        write!(f, "{},", byte)?;
                     }
                 }
-              
+
                 write!(f, "]")
             }
         }

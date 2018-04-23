@@ -20,7 +20,7 @@ fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file, opts.file, opts.emit_ir);
+        run(file, opts.file,);
     } else {
         repl()
     }
@@ -52,7 +52,7 @@ fn repl() {
     }
 }
 
-fn run(path: String, dump_file: Option<String>, emit_ir: bool) {
+fn run(path: String, dump_file: Option<String>,) {
     use std::fs::File;
     use std::io::Read;
 
@@ -102,43 +102,23 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool) {
     let symbols = Symbols::new(Rc::clone(&strings));
 
     let mut ctx = Ctx::new(symbols);
-    match infer.new_infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {
-        Ok(_) => (),
+
+    let ast = match infer.infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {
+        Ok(ast) => ast,
         Err(_) => {
-            //  reporter.emit(&input);
+            reporter.emit(&input);
+            if dump_file.is_some() {
+                let mut file = File::create(format!("{}.ast", path)).expect("Couldn't create file");
+                file.write(ast.fmt().as_bytes())
+                    .expect("Couldn't write to the file");
+                file.write(format!("{:#?}", type_env).as_bytes())
+                    .expect("Couldn't write to the file");
+            }
+            ::std::process::exit(65)
         }
-    }
+    };
 
-    {
-        match infer.infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {
-            Ok(_) => {
-                if dump_file.is_some() {
-                    let mut file =
-                        File::create(format!("{}.ast", path)).expect("Couldn't create file");
-                    file.write(ast.fmt().as_bytes())
-                        .expect("Couldn't write to the file");
-                    file.write(format!("{:#?}", type_env).as_bytes())
-                        .expect("Couldn't write to the file");
-                }
-
-                ()
-            }
-            Err(_) => {
-                reporter.emit(&input);
-                if dump_file.is_some() {
-                    let mut file =
-                        File::create(format!("{}.ast", path)).expect("Couldn't create file");
-                    file.write(ast.fmt().as_bytes())
-                        .expect("Couldn't write to the file");
-                    file.write(format!("{:#?}", type_env).as_bytes())
-                        .expect("Couldn't write to the file");
-                }
-                ::std::process::exit(65)
-            }
-        };
-    }
-
-    CodeGen::gen_program(&ast, &mut ctx);
+    // CodeGen::gen_program(&ast, &mut ctx);
 
     if ctx.emit_ir {
         ctx.dump_to_file(format!("{}ir", path));

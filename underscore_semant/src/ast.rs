@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use syntax::ast::{Linkage, Literal, Op, Sign, Size, UnaryOp};
-use types::Type;
+use types::{Field, Type};
 use util::{pos::{Span, Spanned},
            symbol::Symbol};
 
@@ -29,11 +29,6 @@ pub struct Function {
 
 #[derive(Debug, Clone)]
 pub struct FunctionParam {
-    pub name: Symbol,
-    pub ty: Type,
-}
-#[derive(Debug, Clone)]
-pub struct Field {
     pub name: Symbol,
     pub ty: Type,
 }

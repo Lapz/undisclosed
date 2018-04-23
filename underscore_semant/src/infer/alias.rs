@@ -1,8 +1,8 @@
 use super::{Infer, InferResult};
 use env::{Entry, Env};
-use syntax::ast::{TyAlias};
-use util::{emitter::Reporter, pos::Spanned,};
+use syntax::ast::TyAlias;
 use types::{Type, TypeVar};
+use util::{emitter::Reporter, pos::Spanned};
 
 impl Infer {
     pub fn infer_alias(
@@ -35,5 +35,4 @@ impl Infer {
 
         Ok(())
     }
-
 }

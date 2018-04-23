@@ -115,7 +115,7 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
 
-        (self.next_loc(), self.slice(start,self.next_loc()))
+        (self.next_loc(), self.slice(start, self.next_loc()))
     }
 
     fn peek<F>(&mut self, mut check: F) -> bool
