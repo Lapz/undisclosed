@@ -1,6 +1,6 @@
 use super::{Infer, InferResult};
 use ast;
-use env::{Entry, Env};
+use env::{Entry, Env, VarType};
 use syntax::ast::Struct;
 use types::{Field, Type, TypeVar, Unique};
 use util::{emitter::Reporter, pos::Spanned};
@@ -16,6 +16,7 @@ impl Infer {
 
         for ident in &struct_def.value.name.value.type_params {
             let tv = TypeVar::new();
+            env.add_tvar(tv, VarType::Other);
             env.add_type(ident.value, Entry::Ty(Type::Var(tv)));
             poly_tvs.push(tv);
             type_params.push(ident.value)

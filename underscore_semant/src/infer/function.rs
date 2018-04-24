@@ -3,7 +3,7 @@ use cast_check::*;
 use codegen::gen::{CodeGen, Ctx};
 use codegen::{temp,
               translate::{Level, Translator}};
-use env::{Entry, Env, VarEntry};
+use env::{Entry, Env, VarEntry, VarType};
 use std::collections::HashMap;
 use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit,
                   UnaryOp, Var};
@@ -25,6 +25,7 @@ impl Infer {
 
         for ident in &function.value.name.value.type_params {
             let tv = TypeVar::new();
+            env.add_tvar(tv, VarType::Other);
             env.add_type(ident.value, Entry::Ty(Type::Var(tv)));
             poly_tvs.push(tv);
         }
@@ -454,7 +455,7 @@ impl Infer {
                 return self.infer_expr(expr, level, ctx, env, reporter)
             }
             Expression::Literal(ref literal) => {
-                let ty = self.infer_literal(literal);
+                let ty = self.infer_literal(literal, env);
                 (ast::Expression::Literal(literal.clone()), ty)
             }
 
@@ -723,7 +724,7 @@ impl Infer {
         }
     }
 
-    fn infer_literal(&self, literal: &Literal) -> Type {
+    fn infer_literal(&self, literal: &Literal, env: &mut Env) -> Type {
         match *literal {
             Literal::Char(_) => Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
 
@@ -735,7 +736,13 @@ impl Infer {
 
             Literal::Number(ref number) => match number.ty {
                 Some((sign, size)) => Type::App(TyCon::Int(sign, size), vec![]),
-                None => Type::Var(TypeVar::new()),
+                None => {
+                    let tv = TypeVar::new();
+
+                    env.add_tvar(tv, VarType::Int);
+
+                    Type::Var(tv)
+                }
             },
         }
     }

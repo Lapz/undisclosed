@@ -1,5 +1,5 @@
 use super::{Infer, InferResult};
-use env::{Entry, Env};
+use env::{Entry, Env,VarType};
 use syntax::ast::TyAlias;
 use types::{Type, TypeVar};
 use util::{emitter::Reporter, pos::Spanned};
@@ -22,6 +22,7 @@ impl Infer {
 
         for ident in &alias.value.ident.value.type_params {
             let tv = TypeVar::new();
+            env.add_tvar(tv, VarType::Other);
             env.add_type(ident.value, Entry::Ty(Type::Var(tv)));
             poly_tvs.push(tv);
         }

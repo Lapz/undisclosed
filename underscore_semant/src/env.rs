@@ -1,11 +1,10 @@
-use types::{TyCon, Type,TypeVar};
-use std::collections::HashMap;
 use codegen::{temp,
               translate::{Level, TranslateAccess}};
+use std::collections::HashMap;
 use std::rc::Rc;
 use syntax::ast::{Sign, Size};
+use types::{TyCon, Type, TypeVar};
 use util::symbol::{Symbol, SymbolMap, Symbols};
-
 
 #[derive(Debug, Clone)]
 pub enum Entry {
@@ -13,8 +12,7 @@ pub enum Entry {
     Ty(Type),
 }
 
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,PartialEq)]
 pub enum VarType {
     /// A typedvariable mapped to a var
     Int,
@@ -43,7 +41,7 @@ impl VarEntry {
 #[derive(Debug, Clone)]
 pub struct Env {
     types: Symbols<Entry>,
-    tvars: HashMap<TypeVar,VarType>,
+    tvars: HashMap<TypeVar, VarType>,
     vars: Symbols<VarEntry>,
     pub escapes: Symbols<(u32, bool)>,
 }
@@ -124,12 +122,20 @@ impl Env {
         self.vars.look(ident)
     }
 
+    pub fn look_tvar(&self, ident: TypeVar) -> Option<&VarType> {
+        self.tvars.get(&ident)
+    }
+
     pub fn add_type(&mut self, ident: Symbol, data: Entry) {
         self.types.enter(ident, data)
     }
 
     pub fn add_var(&mut self, ident: Symbol, data: VarEntry) {
         self.vars.enter(ident, data)
+    }
+
+    pub fn add_tvar(&mut self, ident: TypeVar, data: VarType) {
+        self.tvars.insert(ident, data);
     }
 
     pub fn name(&self, ident: Symbol) -> String {
