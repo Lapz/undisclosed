@@ -395,11 +395,15 @@ impl<'a> Lexer<'a> {
     pub fn lex(&mut self) -> Vec<Spanned<Token<'a>>> {
         let mut tokens = vec![];
 
+
+
         while self.lookahead.is_some() {
             if let Some(token) = self.next() {
                 tokens.push(token);
             }
         }
+
+        tokens.push(span(TokenType::EOF, self.end));
 
         tokens.retain(|t| t.value.token != TokenType::COMMENT);
 

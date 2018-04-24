@@ -163,8 +163,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let mut err_occured = false;
 
-        // println!("{:?}",self.tokens);
-
+    
         while self.peek(|token| token != &TokenType::EOF) {
             if self.recognise(TokenType::FUNCTION) {
                 match self.parse_function() {
@@ -190,7 +189,11 @@ impl<'a, 'b> Parser<'a, 'b> {
                         self.synchronize();
                     }
                 }
-            } else {
+            } else if self.tokens.peek().is_none() {
+                self.reporter.global_error("Unexpected EOF");
+                 err_occured = true;
+            }
+            else{
                 // TODO GET THE UNKONW SPAN and report an error on it;
                 self.synchronize();
                 err_occured = true;
@@ -205,7 +208,8 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     fn synchronize(&mut self) {
-        self.advance();
+
+       
 
         while self.peek(|token| token == &TokenType::EOF) {
             match self.advance().map(|t| t.value.token) {
@@ -793,9 +797,10 @@ impl<'a, 'b> Parser<'a, 'b> {
             statements.push(self.parse_statement()?);
         }
 
+      
+
         let close_span =
             self.consume_get_span(&TokenType::RBRACE, "Expected a \'}\' after block.")?;
-
         Ok((statements, open_span.to(close_span)))
     }
 
