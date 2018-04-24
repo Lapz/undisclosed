@@ -1,6 +1,14 @@
-fn main() {
-    let x = 10;  
-    {
-        x = 10;
-    }
+struct List<T> {
+    head:T,
+    body:T
+}
+
+
+fn main() -> List<i32> {
+    let list = List { 
+        head:10,
+        body:10
+    };
+
+    list;
 }

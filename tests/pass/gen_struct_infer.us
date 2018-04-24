@@ -5,7 +5,7 @@ struct List<T> {
 
 
 fn main() -> List<i32> {
-    let list = List{
+    let list = List { 
         head:10,
         body:10
     };

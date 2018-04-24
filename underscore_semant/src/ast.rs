@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use syntax::ast::{Linkage, Literal, Op, Sign, Size, UnaryOp};
+
+use syntax::ast::{Linkage, Literal, Op, UnaryOp};
 use types::{Field, Type};
-use util::{pos::{Span, Spanned},
+use util::{pos::{Span},
            symbol::Symbol};
 
 #[derive(Debug)]

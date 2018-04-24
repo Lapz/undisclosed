@@ -164,7 +164,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         let mut err_occured = false;
 
         while self.peek(|token| token != &TokenType::EOF) {
-            if self.recognise(TokenType::FUNCTION) {
+            if self.recognise(TokenType::EXTERNAL) || self.recognise(TokenType::FUNCTION) {
                 match self.parse_function() {
                     Ok(func) => program.functions.push(func),
                     Err(_) => {
@@ -205,7 +205,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     fn synchronize(&mut self) {
-        // self.advance();
+        self.advance();
         while self.peek(|token| token == &TokenType::EOF) {
             match self.advance().map(|t| t.value.token) {
                 Some(TokenType::FUNCTION) | Some(TokenType::STRUCT) | Some(TokenType::EXTERNAL) => {
@@ -904,6 +904,8 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_let_declaration(&mut self) -> ParserResult<Spanned<Statement>> {
         let open_span = self.consume_get_span(&TokenType::LET, "Expected 'let' ")?;
 
+        
+
         let ident = self.consume_get_ident("Expected an identifier")?;
 
         let ty = if self.recognise(TokenType::COLON) {
@@ -932,8 +934,11 @@ impl<'a, 'b> Parser<'a, 'b> {
         let expr = if self.recognise(TokenType::SEMICOLON) {
             None
         } else {
+           
             Some(self.parse_expression()?)
         };
+
+         
 
         let close_span = self.consume_get_span(&TokenType::SEMICOLON, "Expected ';'")?;
 
@@ -1085,6 +1090,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     fn parse_comparison(&mut self) -> ParserResult<Spanned<Expression>> {
         let mut lhs = self.parse_addition()?;
 
+
         binary!(
             self,
             vec![
@@ -1150,6 +1156,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     ///         | number | string | Symbol
     ///         | CHAR   | struct_lit
     fn parse_primary(&mut self) -> ParserResult<Spanned<Expression>> {
+        
         match self.advance() {
             Some(Spanned {
                 ref span,
@@ -1204,6 +1211,8 @@ impl<'a, 'b> Parser<'a, 'b> {
                         value: self.ident(ident),
                         span: *span,
                     };
+
+                  
                     self.parse_ident(ident)
                 }
 
@@ -1223,18 +1232,22 @@ impl<'a, 'b> Parser<'a, 'b> {
     ///       |  "." IDENT | "[" expression "]"
     ///       | struct_lit   
     fn parse_ident(&mut self, ident: Spanned<Symbol>) -> ParserResult<Spanned<Expression>> {
+
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
         } else if self.recognise(TokenType::COLONCOLON) {
             self.advance();
 
+         
+
             let ident_span = ident.get_span();
             let open_span = self.consume_get_span(&TokenType::LESSTHAN, "Expected '<' ")?;
-
+           
             let mut types = vec![];
 
             if !self.recognise(TokenType::GREATERTHAN) {
                 loop {
+                    
                     types.push(self.parse_type()?);
 
                     if self.recognise(TokenType::COMMA) {
@@ -1244,9 +1257,10 @@ impl<'a, 'b> Parser<'a, 'b> {
                     }
                 }
             }
+        
 
             let close_span = self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?;
-
+       
             if self.recognise(TokenType::LBRACE) {
                 let struct_lit = self.parse_struct_lit(ident)?;
 
@@ -1274,7 +1288,34 @@ impl<'a, 'b> Parser<'a, 'b> {
                     }),
                     _ => unreachable!(),
                 }
-            } else {
+            } else if self.recognise(TokenType::DOT) {
+            self.consume(&TokenType::DOT, "Expected '.' ")?;
+
+            let value = self.consume_get_ident("Expected an Symbolifer")?;
+
+            Ok(Spanned {
+                span: ident.get_span().to(value.get_span()),
+                value: Expression::Var(Spanned {
+                    span: ident.get_span().to(value.get_span()),
+                    value: Var::Field { ident, value },
+                }),
+            })
+        } else if self.recognise(TokenType::LBRACKET) {
+            self.consume(&TokenType::LBRACKET, "Expected '[' ")?;
+            let expr = Box::new(self.parse_expression()?);
+            let close_span = self.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
+
+            Ok(Spanned {
+                span: ident.get_span().to(close_span),
+                value: Expression::Var(Spanned {
+                    span: ident.get_span().to(close_span),
+                    value: Var::SubScript {
+                        expr,
+                        target: ident,
+                    },
+                }),
+            })
+        } else {
                 let call = self.parse_call(ident)?;
 
                 match call {
@@ -1302,36 +1343,9 @@ impl<'a, 'b> Parser<'a, 'b> {
                     _ => unreachable!(),
                 }
             }
-        } else if self.recognise(TokenType::DOT) {
-            self.consume(&TokenType::DOT, "Expected '.' ")?;
-
-            let value = self.consume_get_ident("Expected an Symbolifer")?;
-
-            Ok(Spanned {
-                span: ident.get_span().to(value.get_span()),
-                value: Expression::Var(Spanned {
-                    span: ident.get_span().to(value.get_span()),
-                    value: Var::Field { ident, value },
-                }),
-            })
-        } else if self.recognise(TokenType::LBRACKET) {
-            self.consume(&TokenType::LBRACKET, "Expected '[' ")?;
-            let expr = Box::new(self.parse_expression()?);
-            let close_span = self.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
-
-            Ok(Spanned {
-                span: ident.get_span().to(close_span),
-                value: Expression::Var(Spanned {
-                    span: ident.get_span().to(close_span),
-                    value: Var::SubScript {
-                        expr,
-                        target: ident,
-                    },
-                }),
-            })
-        } else if self.recognise(TokenType::LBRACE) {
-            self.parse_struct_lit(ident)
-        } else {
+        } 
+         else {
+           
             Ok(Spanned {
                 span: ident.get_span(),
                 value: Expression::Var(Spanned {
@@ -1354,12 +1368,16 @@ impl<'a, 'b> Parser<'a, 'b> {
             });
         }
 
+
         self.consume(&TokenType::LBRACE, "Expected '{'")?;
 
         let mut fields = vec![];
 
+      
+
         if !self.recognise(TokenType::RBRACE) {
             loop {
+                
                 let (open_span, ident) = self.consume_get_ident_and_span("Expected a field name")?;
 
                 self.consume(&TokenType::COLON, "Expected a colon")?;
@@ -1376,11 +1394,13 @@ impl<'a, 'b> Parser<'a, 'b> {
                 } else {
                     break;
                 }
+                
             }
         }
 
         let close_span = self.consume_get_span(&TokenType::RBRACE, "Expected '}' ")?;
 
+      
         Ok(Spanned {
             span: ident.get_span().to(close_span),
             value: Expression::StructLit(Spanned {

@@ -68,9 +68,9 @@ impl Infer {
             )?);
         }
 
-        // let mut resolver = Resolver::new();
+        let mut resolver = Resolver::new();
 
-        // resolver.resolve_ast(program, reporter, env)?;
+        resolver.resolve_ast(program, reporter, env)?;
 
         Ok(new_program)
     }

@@ -84,7 +84,7 @@ fn run(path: String, dump_file: Option<String>) {
             if dump_file.is_some() {
                 let mut file =
                     File::create(dump_file.clone().unwrap()).expect("Couldn't create file");
-                file.write(format!("{:#?}", ast).as_bytes())
+                file.write(format!("../{:#?}", ast).as_bytes())
                     .expect("Couldn't write to the file");
             }
             ast
@@ -108,7 +108,7 @@ fn run(path: String, dump_file: Option<String>) {
             if dump_file.is_some() {
                 let mut file =
                     File::create(dump_file.clone().unwrap()).expect("Couldn't create file");
-                file.write(format!("{:#?}", ast).as_bytes())
+                file.write(format!("../{:#?}.", ast).as_bytes())
                     .expect("Couldn't write to the file");
             }
 
@@ -122,9 +122,9 @@ fn run(path: String, dump_file: Option<String>) {
 
     // CodeGen::gen_program(&ast, &mut ctx);
 
-    if ctx.emit_ir {
-        ctx.dump_to_file(format!("{}ir", path));
-    }
+    // if ctx.emit_ir {
+    //     ctx.dump_to_file(format!("../{}ir", path));
+    // }
 }
 
 #[derive(StructOpt, Debug)]
