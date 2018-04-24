@@ -40,8 +40,6 @@ fn main() {
             }
         }
 
-        println!("{:?}",file);
-
         underscorec.args(&["run", "--", entry.path().to_str().unwrap()]);
 
         let output = underscorec.output().expect("failed to execute process");

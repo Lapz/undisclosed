@@ -1,13 +1,19 @@
-struct List<T> {
-    head:T,
-    tail:List<T>
+type char = u8;
+
+struct List {
+    head:i32,
+    body:nil
+}
+struct List2 {
+    head:i32,
+    body:nil
 }
 
-
-fn main() {
-    let list = List::<i32> {
+fn main() -> List {
+    let list = List2 {
         head:10,
-        tail:nil,
+        body:nil
     };
+
     return list;
 }

@@ -13,7 +13,7 @@ fn main() -> List {
     let list = List2 {
         head:10,
         body:nil
-    } ;
+    };
 
     return list;
 }

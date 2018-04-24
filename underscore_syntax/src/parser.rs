@@ -1234,19 +1234,17 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
-        } else if self.recognise(TokenType::COLONCOLON) {
+        }
+         else if self.recognise(TokenType::COLONCOLON) {
             self.advance();
-
-         
 
             let ident_span = ident.get_span();
             let open_span = self.consume_get_span(&TokenType::LESSTHAN, "Expected '<' ")?;
-           
+
             let mut types = vec![];
 
             if !self.recognise(TokenType::GREATERTHAN) {
                 loop {
-                    
                     types.push(self.parse_type()?);
 
                     if self.recognise(TokenType::COMMA) {
@@ -1256,10 +1254,9 @@ impl<'a, 'b> Parser<'a, 'b> {
                     }
                 }
             }
-        
 
             let close_span = self.consume_get_span(&TokenType::GREATERTHAN, "Expected '>' ")?;
-       
+
             if self.recognise(TokenType::LBRACE) {
                 let struct_lit = self.parse_struct_lit(ident)?;
 
@@ -1287,34 +1284,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                     }),
                     _ => unreachable!(),
                 }
-            } else if self.recognise(TokenType::DOT) {
-            self.consume(&TokenType::DOT, "Expected '.' ")?;
-
-            let value = self.consume_get_ident("Expected an Symbolifer")?;
-
-            Ok(Spanned {
-                span: ident.get_span().to(value.get_span()),
-                value: Expression::Var(Spanned {
-                    span: ident.get_span().to(value.get_span()),
-                    value: Var::Field { ident, value },
-                }),
-            })
-        } else if self.recognise(TokenType::LBRACKET) {
-            self.consume(&TokenType::LBRACKET, "Expected '[' ")?;
-            let expr = Box::new(self.parse_expression()?);
-            let close_span = self.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
-
-            Ok(Spanned {
-                span: ident.get_span().to(close_span),
-                value: Expression::Var(Spanned {
-                    span: ident.get_span().to(close_span),
-                    value: Var::SubScript {
-                        expr,
-                        target: ident,
-                    },
-                }),
-            })
-        } else {
+            } else {
                 let call = self.parse_call(ident)?;
 
                 match call {
@@ -1342,9 +1312,36 @@ impl<'a, 'b> Parser<'a, 'b> {
                     _ => unreachable!(),
                 }
             }
-        } 
-         else {
-           
+        } else if self.recognise(TokenType::DOT) {
+            self.consume(&TokenType::DOT, "Expected '.' ")?;
+
+            let value = self.consume_get_ident("Expected an Identifer")?;
+
+            Ok(Spanned {
+                span: ident.get_span().to(value.get_span()),
+                value: Expression::Var(Spanned {
+                    span: ident.get_span().to(value.get_span()),
+                    value: Var::Field { ident, value },
+                }),
+            })
+        } else if self.recognise(TokenType::LBRACKET) {
+            self.consume(&TokenType::LBRACKET, "Expected '[' ")?;
+            let expr = Box::new(self.parse_expression()?);
+            let close_span = self.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
+
+            Ok(Spanned {
+                span: ident.get_span().to(close_span),
+                value: Expression::Var(Spanned {
+                    span: ident.get_span().to(close_span),
+                    value: Var::SubScript {
+                        expr,
+                        target: ident,
+                    },
+                }),
+            })
+        } else if self.recognise(TokenType::LBRACE) {
+            self.parse_struct_lit(ident)
+        } else {
             Ok(Spanned {
                 span: ident.get_span(),
                 value: Expression::Var(Spanned {
@@ -1352,7 +1349,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                     value: Var::Simple(ident),
                 }),
             })
-        }
+}
     }
 
     /// struct_lit → "{"  (IDENT:expression)* "}"
