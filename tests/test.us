@@ -1,14 +1,13 @@
 struct List<T> {
     head:T,
-    body:T
+    tail:List<T>
 }
 
 
-fn main() -> List<i32> {
-    let list = List { 
+fn main() {
+    let list = List::<i32> {
         head:10,
-        body:10
+        tail:nil,
     };
-
-    list;
+    return list;
 }

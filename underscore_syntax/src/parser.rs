@@ -284,7 +284,6 @@ impl<'a, 'b> Parser<'a, 'b> {
                 Err(())
             }
             None => {
-                self.reporter.global_error("Unexpected EOF");
                 Err(())
             }
         }
@@ -312,7 +311,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                 Err(())
             }
             None => {
-                self.reporter.global_error("Unexpected EOF");
+               
 
                 Err(())
             }
@@ -343,7 +342,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                 Err(())
             }
             None => {
-                self.reporter.global_error("Unexpected EOF");
+               
                 Err(())
             }
         }
@@ -376,7 +375,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                 Err(())
             }
             None => {
-                self.reporter.global_error("Unexpected EOF");
+               
                 Err(())
             }
         }
