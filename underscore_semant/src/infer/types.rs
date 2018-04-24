@@ -1,10 +1,10 @@
 use super::{Infer, InferResult};
-use syntax::ast::{Ty as astType,Sign,Size};
-use util::{emitter::Reporter, pos::Spanned};
 use env::{Entry, Env};
-use types::{Type,TyCon};
-use std::mem;
 use std::collections::HashMap;
+use std::mem;
+use syntax::ast::{Sign, Size, Ty as astType};
+use types::{TyCon, Type};
+use util::{emitter::Reporter, pos::Spanned};
 
 impl Infer {
     pub fn trans_ty(
@@ -114,5 +114,4 @@ impl Infer {
             }
         }
     }
-
 }

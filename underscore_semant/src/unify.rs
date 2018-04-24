@@ -14,6 +14,7 @@ impl Infer {
         span: Span,
         env: &mut Env,
     ) -> InferResult<()> {
+        println!("{:?},{:?}", lhs, rhs);
         match (lhs, rhs) {
             (
                 &Type::Struct(ref name1, ref fields1, ref unique1),
@@ -96,6 +97,8 @@ impl Infer {
             (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
                 Ok(())
             } else {
+                let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(env), rhs.print(env));
+                reporter.error(msg, span);
                 Err(())
             },
 

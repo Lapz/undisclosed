@@ -20,7 +20,7 @@ fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file, opts.file,);
+        run(file, opts.file);
     } else {
         repl()
     }
@@ -52,7 +52,7 @@ fn repl() {
     }
 }
 
-fn run(path: String, dump_file: Option<String>,) {
+fn run(path: String, dump_file: Option<String>) {
     use std::fs::File;
     use std::io::Read;
 
@@ -84,7 +84,7 @@ fn run(path: String, dump_file: Option<String>,) {
             if dump_file.is_some() {
                 let mut file =
                     File::create(dump_file.clone().unwrap()).expect("Couldn't create file");
-                file.write(format!("{:#?}",ast).as_bytes())
+                file.write(format!("{:#?}", ast).as_bytes())
                     .expect("Couldn't write to the file");
             }
             ast
@@ -105,25 +105,17 @@ fn run(path: String, dump_file: Option<String>,) {
 
     let ast = match infer.infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {
         Ok(ast) => {
-
             if dump_file.is_some() {
                 let mut file =
                     File::create(dump_file.clone().unwrap()).expect("Couldn't create file");
-                file.write(format!("{:#?}",ast).as_bytes())
+                file.write(format!("{:#?}", ast).as_bytes())
                     .expect("Couldn't write to the file");
             }
 
             ast
-        },
+        }
         Err(_) => {
             reporter.emit(&input);
-            if dump_file.is_some() {
-                let mut file = File::create(format!("{}.ast", path)).expect("Couldn't create file");
-                file.write(ast.fmt().as_bytes())
-                    .expect("Couldn't write to the file");
-                file.write(format!("{:#?}", type_env).as_bytes())
-                    .expect("Couldn't write to the file");
-            }
             ::std::process::exit(65)
         }
     };

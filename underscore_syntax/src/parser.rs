@@ -163,7 +163,6 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let mut err_occured = false;
 
-   
         while self.peek(|token| token != &TokenType::EOF) {
             if self.recognise(TokenType::FUNCTION) {
                 match self.parse_function() {
@@ -198,7 +197,6 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         self.consume(&TokenType::EOF, "Expected an EOF")?;
 
-
         if err_occured {
             Err(())
         } else {
@@ -207,7 +205,6 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     fn synchronize(&mut self) {
-
         // self.advance();
         while self.peek(|token| token == &TokenType::EOF) {
             match self.advance().map(|t| t.value.token) {
@@ -794,8 +791,6 @@ impl<'a, 'b> Parser<'a, 'b> {
         while !self.recognise(TokenType::RBRACE) {
             statements.push(self.parse_statement()?);
         }
-
-      
 
         let close_span =
             self.consume_get_span(&TokenType::RBRACE, "Expected a \'}\' after block.")?;

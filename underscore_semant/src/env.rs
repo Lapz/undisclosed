@@ -1,14 +1,24 @@
-use types::{TyCon, Type};
-
+use types::{TyCon, Type,TypeVar};
+use std::collections::HashMap;
 use codegen::{temp,
               translate::{Level, TranslateAccess}};
 use std::rc::Rc;
 use syntax::ast::{Sign, Size};
 use util::symbol::{Symbol, SymbolMap, Symbols};
+
+
 #[derive(Debug, Clone)]
 pub enum Entry {
     TyCon(TyCon),
     Ty(Type),
+}
+
+
+#[derive(Debug, Clone)]
+pub enum VarType {
+    /// A typedvariable mapped to a var
+    Int,
+    Other,
 }
 
 #[derive(Debug, Clone)]
@@ -33,6 +43,7 @@ impl VarEntry {
 #[derive(Debug, Clone)]
 pub struct Env {
     types: Symbols<Entry>,
+    tvars: HashMap<TypeVar,VarType>,
     vars: Symbols<VarEntry>,
     pub escapes: Symbols<(u32, bool)>,
 }
@@ -85,6 +96,7 @@ impl Env {
 
         Env {
             types: Symbols::new(Rc::clone(strings)),
+            tvars: HashMap::new(),
             vars: Symbols::new(Rc::clone(strings)),
             escapes: Symbols::new(Rc::clone(strings)),
         }

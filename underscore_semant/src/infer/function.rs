@@ -7,7 +7,7 @@ use env::{Entry, Env, VarEntry};
 use std::collections::HashMap;
 use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit,
                   UnaryOp, Var};
-use types::{Field, TyCon, Type, TypeVar, Unique};
+use types::{Field, TyCon, Type, TypeVar};
 use util::{emitter::Reporter, pos::Spanned, symbol::Symbol};
 
 use ast;
@@ -529,7 +529,8 @@ impl Infer {
 
                             for (tvar, field) in tvars.iter().zip(fields) {
                                 let ty =
-                                    self.infer_expr(&field.value.expr, level, ctx, env, reporter)?.ty;
+                                    self.infer_expr(&field.value.expr, level, ctx, env, reporter)?
+                                        .ty;
                                 mappings.insert(*tvar, ty);
                             }
 
@@ -734,7 +735,6 @@ impl Infer {
 
             Literal::Number(ref number) => match number.ty {
                 Some((sign, size)) => Type::App(TyCon::Int(sign, size), vec![]),
-
                 None => Type::Var(TypeVar::new()),
             },
         }
