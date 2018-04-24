@@ -163,7 +163,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let mut err_occured = false;
 
-    
+   
         while self.peek(|token| token != &TokenType::EOF) {
             if self.recognise(TokenType::FUNCTION) {
                 match self.parse_function() {
@@ -189,16 +189,15 @@ impl<'a, 'b> Parser<'a, 'b> {
                         self.synchronize();
                     }
                 }
-            } else if self.tokens.peek().is_none() {
-                self.reporter.global_error("Unexpected EOF");
-                 err_occured = true;
-            }
-            else{
+            } else {
                 // TODO GET THE UNKONW SPAN and report an error on it;
                 self.synchronize();
                 err_occured = true;
             }
         }
+
+        self.consume(&TokenType::EOF, "Expected an EOF")?;
+
 
         if err_occured {
             Err(())
@@ -209,8 +208,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
     fn synchronize(&mut self) {
 
-       
-
+        // self.advance();
         while self.peek(|token| token == &TokenType::EOF) {
             match self.advance().map(|t| t.value.token) {
                 Some(TokenType::FUNCTION) | Some(TokenType::STRUCT) | Some(TokenType::EXTERNAL) => {

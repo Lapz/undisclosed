@@ -84,7 +84,7 @@ fn run(path: String, dump_file: Option<String>,) {
             if dump_file.is_some() {
                 let mut file =
                     File::create(dump_file.clone().unwrap()).expect("Couldn't create file");
-                file.write(ast.fmt().as_bytes())
+                file.write(format!("{:#?}",ast).as_bytes())
                     .expect("Couldn't write to the file");
             }
             ast

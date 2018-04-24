@@ -1,5 +1,6 @@
 Program {
-    structs: [
+    structs: [],
+    functions: [
         Spanned {
             span: Span {
                 start: Position {
@@ -8,12 +9,12 @@ Program {
                     absolute: 0
                 },
                 end: Position {
-                    line: 4,
+                    line: 6,
                     column: 1,
-                    absolute: 41
+                    absolute: 58
                 }
             },
-            value: Struct {
+            value: Function {
                 span: Span {
                     start: Position {
                         line: 1,
@@ -21,22 +22,22 @@ Program {
                         absolute: 0
                     },
                     end: Position {
-                        line: 1,
-                        column: 7,
-                        absolute: 6
+                        line: 6,
+                        column: 1,
+                        absolute: 58
                     }
                 },
                 name: Spanned {
                     span: Span {
                         start: Position {
                             line: 1,
-                            column: 8,
-                            absolute: 7
+                            column: 4,
+                            absolute: 3
                         },
                         end: Position {
                             line: 1,
-                            column: 12,
-                            absolute: 11
+                            column: 8,
+                            absolute: 7
                         }
                     },
                     value: ItemName {
@@ -44,13 +45,13 @@ Program {
                             span: Span {
                                 start: Position {
                                     line: 1,
-                                    column: 8,
-                                    absolute: 7
+                                    column: 4,
+                                    absolute: 3
                                 },
                                 end: Position {
                                     line: 1,
-                                    column: 12,
-                                    absolute: 11
+                                    column: 8,
+                                    absolute: 7
                                 }
                             },
                             value: Symbol(
@@ -60,430 +61,17 @@ Program {
                         type_params: []
                     }
                 },
-                fields: Spanned {
+                params: Spanned {
                     span: Span {
                         start: Position {
                             line: 1,
-                            column: 13,
-                            absolute: 12
-                        },
-                        end: Position {
-                            line: 4,
-                            column: 1,
-                            absolute: 41
-                        }
-                    },
-                    value: [
-                        Spanned {
-                            span: Span {
-                                start: Position {
-                                    line: 2,
-                                    column: 5,
-                                    absolute: 18
-                                },
-                                end: Position {
-                                    line: 2,
-                                    column: 13,
-                                    absolute: 26
-                                }
-                            },
-                            value: Field {
-                                name: Spanned {
-                                    span: Span {
-                                        start: Position {
-                                            line: 2,
-                                            column: 5,
-                                            absolute: 18
-                                        },
-                                        end: Position {
-                                            line: 2,
-                                            column: 9,
-                                            absolute: 22
-                                        }
-                                    },
-                                    value: Symbol(
-                                        1
-                                    )
-                                },
-                                ty: Spanned {
-                                    span: Span {
-                                        start: Position {
-                                            line: 2,
-                                            column: 10,
-                                            absolute: 23
-                                        },
-                                        end: Position {
-                                            line: 2,
-                                            column: 13,
-                                            absolute: 26
-                                        }
-                                    },
-                                    value: I32
-                                }
-                            }
-                        },
-                        Spanned {
-                            span: Span {
-                                start: Position {
-                                    line: 3,
-                                    column: 5,
-                                    absolute: 32
-                                },
-                                end: Position {
-                                    line: 3,
-                                    column: 13,
-                                    absolute: 40
-                                }
-                            },
-                            value: Field {
-                                name: Spanned {
-                                    span: Span {
-                                        start: Position {
-                                            line: 3,
-                                            column: 5,
-                                            absolute: 32
-                                        },
-                                        end: Position {
-                                            line: 3,
-                                            column: 9,
-                                            absolute: 36
-                                        }
-                                    },
-                                    value: Symbol(
-                                        2
-                                    )
-                                },
-                                ty: Spanned {
-                                    span: Span {
-                                        start: Position {
-                                            line: 3,
-                                            column: 10,
-                                            absolute: 37
-                                        },
-                                        end: Position {
-                                            line: 3,
-                                            column: 13,
-                                            absolute: 40
-                                        }
-                                    },
-                                    value: Nil
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-    ],
-    functions: [
-        Spanned {
-            span: Span {
-                start: Position {
-                    line: 6,
-                    column: 1,
-                    absolute: 44
-                },
-                end: Position {
-                    line: 9,
-                    column: 1,
-                    absolute: 88
-                }
-            },
-            value: Function {
-                span: Span {
-                    start: Position {
-                        line: 6,
-                        column: 1,
-                        absolute: 44
-                    },
-                    end: Position {
-                        line: 9,
-                        column: 1,
-                        absolute: 88
-                    }
-                },
-                name: Spanned {
-                    span: Span {
-                        start: Position {
-                            line: 6,
-                            column: 4,
-                            absolute: 47
-                        },
-                        end: Position {
-                            line: 6,
-                            column: 7,
-                            absolute: 50
-                        }
-                    },
-                    value: ItemName {
-                        name: Spanned {
-                            span: Span {
-                                start: Position {
-                                    line: 6,
-                                    column: 4,
-                                    absolute: 47
-                                },
-                                end: Position {
-                                    line: 6,
-                                    column: 7,
-                                    absolute: 50
-                                }
-                            },
-                            value: Symbol(
-                                3
-                            )
-                        },
-                        type_params: []
-                    }
-                },
-                params: Spanned {
-                    span: Span {
-                        start: Position {
-                            line: 6,
-                            column: 7,
-                            absolute: 50
-                        },
-                        end: Position {
-                            line: 6,
                             column: 8,
-                            absolute: 51
-                        }
-                    },
-                    value: []
-                },
-                returns: None,
-                body: Spanned {
-                    span: Span {
-                        start: Position {
-                            line: 6,
-                            column: 10,
-                            absolute: 53
+                            absolute: 7
                         },
                         end: Position {
-                            line: 9,
-                            column: 1,
-                            absolute: 88
-                        }
-                    },
-                    value: Block(
-                        [
-                            Spanned {
-                                span: Span {
-                                    start: Position {
-                                        line: 7,
-                                        column: 5,
-                                        absolute: 59
-                                    },
-                                    end: Position {
-                                        line: 7,
-                                        column: 17,
-                                        absolute: 71
-                                    }
-                                },
-                                value: Let {
-                                    escapes: false,
-                                    ident: Spanned {
-                                        span: Span {
-                                            start: Position {
-                                                line: 7,
-                                                column: 9,
-                                                absolute: 63
-                                            },
-                                            end: Position {
-                                                line: 7,
-                                                column: 10,
-                                                absolute: 64
-                                            }
-                                        },
-                                        value: Symbol(
-                                            4
-                                        )
-                                    },
-                                    ty: None,
-                                    expr: Some(
-                                        Spanned {
-                                            span: Span {
-                                                start: Position {
-                                                    line: 7,
-                                                    column: 13,
-                                                    absolute: 67
-                                                },
-                                                end: Position {
-                                                    line: 7,
-                                                    column: 17,
-                                                    absolute: 71
-                                                }
-                                            },
-                                            value: Literal(
-                                                True(
-                                                    true
-                                                )
-                                            )
-                                        }
-                                    )
-                                }
-                            },
-                            Spanned {
-                                span: Span {
-                                    start: Position {
-                                        line: 8,
-                                        column: 14,
-                                        absolute: 86
-                                    },
-                                    end: Position {
-                                        line: 8,
-                                        column: 14,
-                                        absolute: 86
-                                    }
-                                },
-                                value: Expr(
-                                    Spanned {
-                                        span: Span {
-                                            start: Position {
-                                                line: 8,
-                                                column: 5,
-                                                absolute: 77
-                                            },
-                                            end: Position {
-                                                line: 8,
-                                                column: 13,
-                                                absolute: 85
-                                            }
-                                        },
-                                        value: Assign {
-                                            name: Spanned {
-                                                span: Span {
-                                                    start: Position {
-                                                        line: 8,
-                                                        column: 5,
-                                                        absolute: 77
-                                                    },
-                                                    end: Position {
-                                                        line: 8,
-                                                        column: 6,
-                                                        absolute: 78
-                                                    }
-                                                },
-                                                value: Simple(
-                                                    Spanned {
-                                                        span: Span {
-                                                            start: Position {
-                                                                line: 8,
-                                                                column: 5,
-                                                                absolute: 77
-                                                            },
-                                                            end: Position {
-                                                                line: 8,
-                                                                column: 6,
-                                                                absolute: 78
-                                                            }
-                                                        },
-                                                        value: Symbol(
-                                                            4
-                                                        )
-                                                    }
-                                                )
-                                            },
-                                            value: Spanned {
-                                                span: Span {
-                                                    start: Position {
-                                                        line: 8,
-                                                        column: 9,
-                                                        absolute: 81
-                                                    },
-                                                    end: Position {
-                                                        line: 8,
-                                                        column: 13,
-                                                        absolute: 85
-                                                    }
-                                                },
-                                                value: Literal(
-                                                    True(
-                                                        true
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    }
-                                )
-                            }
-                        ]
-                    )
-                },
-                linkage: Normal
-            }
-        },
-        Spanned {
-            span: Span {
-                start: Position {
-                    line: 12,
-                    column: 1,
-                    absolute: 92
-                },
-                end: Position {
-                    line: 20,
-                    column: 1,
-                    absolute: 212
-                }
-            },
-            value: Function {
-                span: Span {
-                    start: Position {
-                        line: 12,
-                        column: 1,
-                        absolute: 92
-                    },
-                    end: Position {
-                        line: 20,
-                        column: 1,
-                        absolute: 212
-                    }
-                },
-                name: Spanned {
-                    span: Span {
-                        start: Position {
-                            line: 12,
-                            column: 4,
-                            absolute: 95
-                        },
-                        end: Position {
-                            line: 12,
-                            column: 8,
-                            absolute: 99
-                        }
-                    },
-                    value: ItemName {
-                        name: Spanned {
-                            span: Span {
-                                start: Position {
-                                    line: 12,
-                                    column: 4,
-                                    absolute: 95
-                                },
-                                end: Position {
-                                    line: 12,
-                                    column: 8,
-                                    absolute: 99
-                                }
-                            },
-                            value: Symbol(
-                                5
-                            )
-                        },
-                        type_params: []
-                    }
-                },
-                params: Spanned {
-                    span: Span {
-                        start: Position {
-                            line: 12,
-                            column: 8,
-                            absolute: 99
-                        },
-                        end: Position {
-                            line: 12,
+                            line: 1,
                             column: 9,
-                            absolute: 100
+                            absolute: 8
                         }
                     },
                     value: []
@@ -492,14 +80,14 @@ Program {
                 body: Spanned {
                     span: Span {
                         start: Position {
-                            line: 12,
+                            line: 1,
                             column: 11,
-                            absolute: 102
+                            absolute: 10
                         },
                         end: Position {
-                            line: 20,
+                            line: 6,
                             column: 1,
-                            absolute: 212
+                            absolute: 58
                         }
                     },
                     value: Block(
@@ -507,14 +95,14 @@ Program {
                             Spanned {
                                 span: Span {
                                     start: Position {
-                                        line: 13,
+                                        line: 2,
                                         column: 5,
-                                        absolute: 108
+                                        absolute: 16
                                     },
                                     end: Position {
-                                        line: 13,
+                                        line: 2,
                                         column: 15,
-                                        absolute: 118
+                                        absolute: 26
                                     }
                                 },
                                 value: Let {
@@ -522,18 +110,18 @@ Program {
                                     ident: Spanned {
                                         span: Span {
                                             start: Position {
-                                                line: 13,
+                                                line: 2,
                                                 column: 9,
-                                                absolute: 112
+                                                absolute: 20
                                             },
                                             end: Position {
-                                                line: 13,
+                                                line: 2,
                                                 column: 10,
-                                                absolute: 113
+                                                absolute: 21
                                             }
                                         },
                                         value: Symbol(
-                                            4
+                                            1
                                         )
                                     },
                                     ty: None,
@@ -541,14 +129,14 @@ Program {
                                         Spanned {
                                             span: Span {
                                                 start: Position {
-                                                    line: 13,
+                                                    line: 2,
                                                     column: 13,
-                                                    absolute: 116
+                                                    absolute: 24
                                                 },
                                                 end: Position {
-                                                    line: 13,
+                                                    line: 2,
                                                     column: 15,
-                                                    absolute: 118
+                                                    absolute: 26
                                                 }
                                             },
                                             value: Literal(
@@ -566,14 +154,14 @@ Program {
                             Spanned {
                                 span: Span {
                                     start: Position {
-                                        line: 14,
+                                        line: 3,
                                         column: 5,
-                                        absolute: 124
+                                        absolute: 34
                                     },
                                     end: Position {
-                                        line: 18,
+                                        line: 5,
                                         column: 5,
-                                        absolute: 192
+                                        absolute: 56
                                     }
                                 },
                                 value: Block(
@@ -581,116 +169,60 @@ Program {
                                         Spanned {
                                             span: Span {
                                                 start: Position {
-                                                    line: 15,
-                                                    column: 9,
-                                                    absolute: 134
+                                                    line: 4,
+                                                    column: 15,
+                                                    absolute: 50
                                                 },
                                                 end: Position {
-                                                    line: 15,
-                                                    column: 25,
-                                                    absolute: 150
-                                                }
-                                            },
-                                            value: Let {
-                                                escapes: false,
-                                                ident: Spanned {
-                                                    span: Span {
-                                                        start: Position {
-                                                            line: 15,
-                                                            column: 13,
-                                                            absolute: 138
-                                                        },
-                                                        end: Position {
-                                                            line: 15,
-                                                            column: 14,
-                                                            absolute: 139
-                                                        }
-                                                    },
-                                                    value: Symbol(
-                                                        6
-                                                    )
-                                                },
-                                                ty: None,
-                                                expr: Some(
-                                                    Spanned {
-                                                        span: Span {
-                                                            start: Position {
-                                                                line: 15,
-                                                                column: 16,
-                                                                absolute: 141
-                                                            },
-                                                            end: Position {
-                                                                line: 15,
-                                                                column: 25,
-                                                                absolute: 150
-                                                            }
-                                                        },
-                                                        value: Literal(
-                                                            Str(
-                                                                "aaaaa\\0"
-                                                            )
-                                                        )
-                                                    }
-                                                )
-                                            }
-                                        },
-                                        Spanned {
-                                            span: Span {
-                                                start: Position {
-                                                    line: 16,
-                                                    column: 16,
-                                                    absolute: 167
-                                                },
-                                                end: Position {
-                                                    line: 16,
-                                                    column: 16,
-                                                    absolute: 167
+                                                    line: 4,
+                                                    column: 15,
+                                                    absolute: 50
                                                 }
                                             },
                                             value: Expr(
                                                 Spanned {
                                                     span: Span {
                                                         start: Position {
-                                                            line: 16,
-                                                            column: 10,
-                                                            absolute: 161
+                                                            line: 4,
+                                                            column: 9,
+                                                            absolute: 44
                                                         },
                                                         end: Position {
-                                                            line: 16,
-                                                            column: 16,
-                                                            absolute: 167
+                                                            line: 4,
+                                                            column: 15,
+                                                            absolute: 50
                                                         }
                                                     },
                                                     value: Assign {
                                                         name: Spanned {
                                                             span: Span {
                                                                 start: Position {
-                                                                    line: 16,
-                                                                    column: 10,
-                                                                    absolute: 161
+                                                                    line: 4,
+                                                                    column: 9,
+                                                                    absolute: 44
                                                                 },
                                                                 end: Position {
-                                                                    line: 16,
-                                                                    column: 11,
-                                                                    absolute: 162
+                                                                    line: 4,
+                                                                    column: 10,
+                                                                    absolute: 45
                                                                 }
                                                             },
                                                             value: Simple(
                                                                 Spanned {
                                                                     span: Span {
                                                                         start: Position {
-                                                                            line: 16,
-                                                                            column: 10,
-                                                                            absolute: 161
+                                                                            line: 4,
+                                                                            column: 9,
+                                                                            absolute: 44
                                                                         },
                                                                         end: Position {
-                                                                            line: 16,
-                                                                            column: 11,
-                                                                            absolute: 162
+                                                                            line: 4,
+                                                                            column: 10,
+                                                                            absolute: 45
                                                                         }
                                                                     },
                                                                     value: Symbol(
-                                                                        4
+                                                                        1
                                                                     )
                                                                 }
                                                             )
@@ -698,20 +230,20 @@ Program {
                                                         value: Spanned {
                                                             span: Span {
                                                                 start: Position {
-                                                                    line: 16,
-                                                                    column: 14,
-                                                                    absolute: 165
+                                                                    line: 4,
+                                                                    column: 13,
+                                                                    absolute: 48
                                                                 },
                                                                 end: Position {
-                                                                    line: 16,
-                                                                    column: 16,
-                                                                    absolute: 167
+                                                                    line: 4,
+                                                                    column: 15,
+                                                                    absolute: 50
                                                                 }
                                                             },
                                                             value: Literal(
                                                                 Number(
                                                                     Number {
-                                                                        value: 32,
+                                                                        value: 10,
                                                                         ty: None
                                                                     }
                                                                 )
@@ -720,205 +252,8 @@ Program {
                                                     }
                                                 }
                                             )
-                                        },
-                                        Spanned {
-                                            span: Span {
-                                                start: Position {
-                                                    line: 17,
-                                                    column: 18,
-                                                    absolute: 186
-                                                },
-                                                end: Position {
-                                                    line: 17,
-                                                    column: 18,
-                                                    absolute: 186
-                                                }
-                                            },
-                                            value: Expr(
-                                                Spanned {
-                                                    span: Span {
-                                                        start: Position {
-                                                            line: 17,
-                                                            column: 10,
-                                                            absolute: 178
-                                                        },
-                                                        end: Position {
-                                                            line: 17,
-                                                            column: 18,
-                                                            absolute: 186
-                                                        }
-                                                    },
-                                                    value: Cast {
-                                                        from: Spanned {
-                                                            span: Span {
-                                                                start: Position {
-                                                                    line: 17,
-                                                                    column: 10,
-                                                                    absolute: 178
-                                                                },
-                                                                end: Position {
-                                                                    line: 17,
-                                                                    column: 11,
-                                                                    absolute: 179
-                                                                }
-                                                            },
-                                                            value: Var(
-                                                                Spanned {
-                                                                    span: Span {
-                                                                        start: Position {
-                                                                            line: 17,
-                                                                            column: 10,
-                                                                            absolute: 178
-                                                                        },
-                                                                        end: Position {
-                                                                            line: 17,
-                                                                            column: 11,
-                                                                            absolute: 179
-                                                                        }
-                                                                    },
-                                                                    value: Simple(
-                                                                        Spanned {
-                                                                            span: Span {
-                                                                                start: Position {
-                                                                                    line: 17,
-                                                                                    column: 10,
-                                                                                    absolute: 178
-                                                                                },
-                                                                                end: Position {
-                                                                                    line: 17,
-                                                                                    column: 11,
-                                                                                    absolute: 179
-                                                                                }
-                                                                            },
-                                                                            value: Symbol(
-                                                                                4
-                                                                            )
-                                                                        }
-                                                                    )
-                                                                }
-                                                            )
-                                                        },
-                                                        to: Spanned {
-                                                            span: Span {
-                                                                start: Position {
-                                                                    line: 17,
-                                                                    column: 15,
-                                                                    absolute: 183
-                                                                },
-                                                                end: Position {
-                                                                    line: 17,
-                                                                    column: 18,
-                                                                    absolute: 186
-                                                                }
-                                                            },
-                                                            value: I32
-                                                        }
-                                                    }
-                                                }
-                                            )
                                         }
                                     ]
-                                )
-                            },
-                            Spanned {
-                                span: Span {
-                                    start: Position {
-                                        line: 18,
-                                        column: 7,
-                                        absolute: 194
-                                    },
-                                    end: Position {
-                                        line: 18,
-                                        column: 8,
-                                        absolute: 195
-                                    }
-                                },
-                                value: Block(
-                                    []
-                                )
-                            },
-                            Spanned {
-                                span: Span {
-                                    start: Position {
-                                        line: 19,
-                                        column: 14,
-                                        absolute: 210
-                                    },
-                                    end: Position {
-                                        line: 19,
-                                        column: 14,
-                                        absolute: 210
-                                    }
-                                },
-                                value: Expr(
-                                    Spanned {
-                                        span: Span {
-                                            start: Position {
-                                                line: 19,
-                                                column: 5,
-                                                absolute: 201
-                                            },
-                                            end: Position {
-                                                line: 19,
-                                                column: 13,
-                                                absolute: 209
-                                            }
-                                        },
-                                        value: Assign {
-                                            name: Spanned {
-                                                span: Span {
-                                                    start: Position {
-                                                        line: 19,
-                                                        column: 5,
-                                                        absolute: 201
-                                                    },
-                                                    end: Position {
-                                                        line: 19,
-                                                        column: 6,
-                                                        absolute: 202
-                                                    }
-                                                },
-                                                value: Simple(
-                                                    Spanned {
-                                                        span: Span {
-                                                            start: Position {
-                                                                line: 19,
-                                                                column: 5,
-                                                                absolute: 201
-                                                            },
-                                                            end: Position {
-                                                                line: 19,
-                                                                column: 6,
-                                                                absolute: 202
-                                                            }
-                                                        },
-                                                        value: Symbol(
-                                                            4
-                                                        )
-                                                    }
-                                                )
-                                            },
-                                            value: Spanned {
-                                                span: Span {
-                                                    start: Position {
-                                                        line: 19,
-                                                        column: 9,
-                                                        absolute: 205
-                                                    },
-                                                    end: Position {
-                                                        line: 19,
-                                                        column: 13,
-                                                        absolute: 209
-                                                    }
-                                                },
-                                                value: Literal(
-                                                    True(
-                                                        true
-                                                    )
-                                                )
-                                            }
-                                        }
-                                    }
                                 )
                             }
                         ]
@@ -933,131 +268,51 @@ Program {
     types: Symbols {
         strings: SymbolMap {
             next: RefCell {
-                value: 17
+                value: 12
             },
             mappings: RefCell {
                 value: {
                     Symbol(
-                        8
-                    ): "i8",
-                    Symbol(
-                        9
-                    ): "u8",
-                    Symbol(
-                        1
-                    ): "head",
-                    Symbol(
-                        6
-                    ): "b",
-                    Symbol(
-                        10
-                    ): "i32",
-                    Symbol(
-                        0
-                    ): "List",
-                    Symbol(
                         7
-                    ): "str",
-                    Symbol(
-                        13
-                    ): "u64",
-                    Symbol(
-                        4
-                    ): "x",
-                    Symbol(
-                        16
-                    ): "L0",
-                    Symbol(
-                        2
-                    ): "body",
-                    Symbol(
-                        15
-                    ): "bool",
-                    Symbol(
-                        12
                     ): "i64",
                     Symbol(
-                        14
-                    ): "nil",
+                        1
+                    ): "x",
                     Symbol(
-                        5
+                        0
                     ): "main",
                     Symbol(
+                        3
+                    ): "i8",
+                    Symbol(
                         11
+                    ): "L0",
+                    Symbol(
+                        4
+                    ): "u8",
+                    Symbol(
+                        8
+                    ): "u64",
+                    Symbol(
+                        2
+                    ): "str",
+                    Symbol(
+                        10
+                    ): "bool",
+                    Symbol(
+                        9
+                    ): "nil",
+                    Symbol(
+                        6
                     ): "u32",
                     Symbol(
-                        3
-                    ): "boo"
+                        5
+                    ): "i32"
                 }
             }
         },
-        table: {
-            Symbol(
-                0
-            ): [
-                Ty(
-                    Poly(
-                        [],
-                        Struct(
-                            Symbol(
-                                0
-                            ),
-                            [],
-                            Unique(
-                                0
-                            )
-                        )
-                    )
-                ),
-                Ty(
-                    Poly(
-                        [],
-                        Struct(
-                            Symbol(
-                                0
-                            ),
-                            [
-                                Field {
-                                    name: Symbol(
-                                        1
-                                    ),
-                                    ty: App(
-                                        Int(
-                                            Signed,
-                                            Bit32
-                                        ),
-                                        []
-                                    )
-                                },
-                                Field {
-                                    name: Symbol(
-                                        2
-                                    ),
-                                    ty: App(
-                                        Void,
-                                        []
-                                    )
-                                }
-                            ],
-                            Unique(
-                                0
-                            )
-                        )
-                    )
-                )
-            ]
-        },
+        table: {},
         scopes: [
-            Some(
-                Symbol(
-                    0
-                )
-            ),
-            Some(
-                Symbol(
-                    0
-                )
-            ),
             None,
             None,
             None
@@ -1066,67 +321,52 @@ Program {
     vars: Symbols {
         strings: SymbolMap {
             next: RefCell {
-                value: 17
+                value: 12
             },
             mappings: RefCell {
                 value: {
                     Symbol(
-                        8
-                    ): "i8",
-                    Symbol(
-                        9
-                    ): "u8",
-                    Symbol(
-                        1
-                    ): "head",
-                    Symbol(
-                        6
-                    ): "b",
-                    Symbol(
-                        10
-                    ): "i32",
-                    Symbol(
-                        0
-                    ): "List",
-                    Symbol(
                         7
-                    ): "str",
-                    Symbol(
-                        13
-                    ): "u64",
-                    Symbol(
-                        4
-                    ): "x",
-                    Symbol(
-                        16
-                    ): "L0",
-                    Symbol(
-                        2
-                    ): "body",
-                    Symbol(
-                        15
-                    ): "bool",
-                    Symbol(
-                        12
                     ): "i64",
                     Symbol(
-                        14
-                    ): "nil",
+                        1
+                    ): "x",
                     Symbol(
-                        5
+                        0
                     ): "main",
                     Symbol(
+                        3
+                    ): "i8",
+                    Symbol(
                         11
+                    ): "L0",
+                    Symbol(
+                        4
+                    ): "u8",
+                    Symbol(
+                        8
+                    ): "u64",
+                    Symbol(
+                        2
+                    ): "str",
+                    Symbol(
+                        10
+                    ): "bool",
+                    Symbol(
+                        9
+                    ): "nil",
+                    Symbol(
+                        6
                     ): "u32",
                     Symbol(
-                        3
-                    ): "boo"
+                        5
+                    ): "i32"
                 }
             }
         },
         table: {
             Symbol(
-                4
+                1
             ): [
                 Var(
                     Some(
@@ -1137,7 +377,7 @@ Program {
                                 },
                                 frame: x86 {
                                     name: Symbol(
-                                        16
+                                        11
                                     ),
                                     formals: [
                                         Frame(
@@ -1148,7 +388,7 @@ Program {
                             },
                             Some(
                                 Reg(
-                                    t1
+                                    t0
                                 )
                             )
                         )
@@ -1161,41 +401,7 @@ Program {
                 )
             ],
             Symbol(
-                6
-            ): [
-                Var(
-                    Some(
-                        (
-                            Level {
-                                parent: RefCell {
-                                    value: Top
-                                },
-                                frame: x86 {
-                                    name: Symbol(
-                                        16
-                                    ),
-                                    formals: [
-                                        Frame(
-                                            0
-                                        )
-                                    ]
-                                }
-                            },
-                            Some(
-                                Reg(
-                                    t2
-                                )
-                            )
-                        )
-                    ),
-                    App(
-                        String,
-                        []
-                    )
-                )
-            ],
-            Symbol(
-                3
+                0
             ): [
                 Fun {
                     level: Level {
@@ -1204,7 +410,7 @@ Program {
                         },
                         frame: x86 {
                             name: Symbol(
-                                16
+                                11
                             ),
                             formals: [
                                 Frame(
@@ -1214,40 +420,7 @@ Program {
                         }
                     },
                     label: Symbol(
-                        16
-                    ),
-                    ty: Poly(
-                        [],
-                        App(
-                            Arrow,
-                            [
-                                Nil
-                            ]
-                        )
-                    )
-                }
-            ],
-            Symbol(
-                5
-            ): [
-                Fun {
-                    level: Level {
-                        parent: RefCell {
-                            value: Top
-                        },
-                        frame: x86 {
-                            name: Symbol(
-                                16
-                            ),
-                            formals: [
-                                Frame(
-                                    0
-                                )
-                            ]
-                        }
-                    },
-                    label: Symbol(
-                        16
+                        11
                     ),
                     ty: Poly(
                         [],
@@ -1264,87 +437,62 @@ Program {
         scopes: [
             Some(
                 Symbol(
-                    3
-                )
-            ),
-            Some(
-                Symbol(
-                    5
+                    0
                 )
             ),
             None,
             None,
             Some(
                 Symbol(
-                    4
+                    1
                 )
             ),
-            None,
-            Some(
-                Symbol(
-                    6
-                )
-            )
+            None
         ]
     },
     escapes: Symbols {
         strings: SymbolMap {
             next: RefCell {
-                value: 17
+                value: 12
             },
             mappings: RefCell {
                 value: {
                     Symbol(
-                        8
-                    ): "i8",
-                    Symbol(
-                        9
-                    ): "u8",
-                    Symbol(
-                        1
-                    ): "head",
-                    Symbol(
-                        6
-                    ): "b",
-                    Symbol(
-                        10
-                    ): "i32",
-                    Symbol(
-                        0
-                    ): "List",
-                    Symbol(
                         7
-                    ): "str",
-                    Symbol(
-                        13
-                    ): "u64",
-                    Symbol(
-                        4
-                    ): "x",
-                    Symbol(
-                        16
-                    ): "L0",
-                    Symbol(
-                        2
-                    ): "body",
-                    Symbol(
-                        15
-                    ): "bool",
-                    Symbol(
-                        12
                     ): "i64",
                     Symbol(
-                        14
-                    ): "nil",
+                        1
+                    ): "x",
                     Symbol(
-                        5
+                        0
                     ): "main",
                     Symbol(
+                        3
+                    ): "i8",
+                    Symbol(
                         11
+                    ): "L0",
+                    Symbol(
+                        4
+                    ): "u8",
+                    Symbol(
+                        8
+                    ): "u64",
+                    Symbol(
+                        2
+                    ): "str",
+                    Symbol(
+                        10
+                    ): "bool",
+                    Symbol(
+                        9
+                    ): "nil",
+                    Symbol(
+                        6
                     ): "u32",
                     Symbol(
-                        3
-                    ): "boo"
+                        5
+                    ): "i32"
                 }
             }
         },
