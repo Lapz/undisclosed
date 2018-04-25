@@ -21,10 +21,8 @@ pub enum VarType {
 
 #[derive(Debug, Clone)]
 pub enum VarEntry {
-    Var(Option<TranslateAccess>, Type),
+    Var(Type),
     Fun {
-        level: Level,
-        label: temp::Label,
         ty: Type,
     },
 }
@@ -32,7 +30,7 @@ pub enum VarEntry {
 impl VarEntry {
     pub fn get_ty(self) -> Type {
         match self {
-            VarEntry::Var(_, ty) => ty,
+            VarEntry::Var(ty) => ty,
             VarEntry::Fun { ty, .. } => ty,
         }
     }

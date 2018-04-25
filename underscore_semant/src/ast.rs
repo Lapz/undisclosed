@@ -21,6 +21,7 @@ pub struct Struct {
 pub struct Function {
     pub span: Span,
     pub name: Symbol,
+    pub generic:bool,
     pub params: Vec<FunctionParam>,
     pub returns: Type,
     pub body: Statement,
@@ -63,19 +64,6 @@ pub enum Statement {
     },
     Return(TypedExpression),
     While(TypedExpression, Box<Statement>),
-}
-
-#[derive(Debug)]
-pub enum Var {
-    Field {
-        ident: Symbol,
-        value: Symbol,
-    },
-    Simple(Symbol),
-    SubScript {
-        expr: TypedExpression,
-        target: Symbol,
-    },
 }
 
 #[derive(Debug, Clone)]

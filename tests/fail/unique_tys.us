@@ -18,4 +18,4 @@ fn main() -> List {
     return list;
 }
 
- // Expect :
+ // Expect : struct `List` != struct `List2`

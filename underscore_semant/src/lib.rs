@@ -9,15 +9,13 @@ mod escape;
 mod infer;
 mod monomorphize;
 mod resolver;
-mod statements;
 mod subst;
 mod types;
 mod unify;
-use codegen::{gen::Ctx,
-              temp,
-              translate::{Level, Translator},
-              x86::x86};
+mod gen_ir;
+
 pub use env::Env as TypeEnv;
+pub use gen_ir::Codegen;
 use env::Env;
 use escape::FindEscape;
 use resolver::Resolver;
@@ -40,7 +38,6 @@ impl Infer {
         &mut self,
         program: &mut Program,
         env: &mut Env,
-        ctx: &'a mut Ctx,
         reporter: &mut Reporter,
     ) -> InferResult<ast::Program> {
         let mut new_program = ast::Program {
@@ -61,8 +58,6 @@ impl Infer {
         for function in &program.functions {
             new_program.functions.push(self.infer_function(
                 function,
-                &mut Level::Top,
-                ctx,
                 env,
                 reporter,
             )?);

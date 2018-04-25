@@ -9,8 +9,8 @@ extern crate underscore_util;
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-use underscore_codegen::gen::{CodeGen, Ctx};
-use underscore_semant::{Infer, TypeEnv};
+// use underscore_codegen::gen::{};
+use underscore_semant::{Infer, TypeEnv,Codegen};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
@@ -101,9 +101,9 @@ fn run(path: String, dump_file: Option<String>) {
 
     let symbols = Symbols::new(Rc::clone(&strings));
 
-    let mut ctx = Ctx::new(symbols);
+    
 
-    let ast = match infer.infer(&mut ast, &mut type_env, &mut ctx, &mut reporter) {
+    let ast = match infer.infer(&mut ast, &mut type_env, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
                 let mut file =
@@ -120,11 +120,12 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
-    // CodeGen::gen_program(&ast, &mut ctx);
+    let mut codegen = Codegen::new(symbols);
 
-    // if ctx.emit_ir {
-    //     ctx.dump_to_file(format!("../{}ir", path));
-    // }
+    codegen.gen_program(&ast);
+
+    codegen.dump_to_file(format!("{}ir", path));
+
 }
 
 #[derive(StructOpt, Debug)]

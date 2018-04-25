@@ -1,19 +1,9 @@
-type char = u8;
 
-struct List {
-    head:i32,
-    body:nil
-}
-struct List2 {
-    head:i32,
-    body:nil
-}
 
-fn main() -> List {
-    let list = List2 {
-        head:10,
-        body:nil
-    };
+fn main() {
+    10;
+    10u8+10u8;
+    !true;
+    !false;
 
-    return list;
 }

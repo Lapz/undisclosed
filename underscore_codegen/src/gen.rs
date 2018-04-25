@@ -120,10 +120,7 @@ impl CodeGen {
 
                     Literal::Nil => Value::Mem(vec![]),
 
-                    Literal::Number(ref number) => match number.ty {
-                        Some((_, size)) => Value::Const(number.value, size),
-                        None => Value::Const(number.value, Size::Bit32),
-                    },
+                    Literal::Number(ref number) =>unimplemented!(),
                     Literal::Str(ref string) => {
                         let mut bytes = vec![];
                         bytes.push(string.len() as u8);

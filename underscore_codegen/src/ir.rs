@@ -1,5 +1,5 @@
 use std::fmt::{self, Display};
-use syntax::ast::Size;
+use syntax::ast::{Size,Sign};
 use temp::{Label, Temp};
 
 #[derive(Debug)]
@@ -34,7 +34,7 @@ pub enum Instruction {
 #[derive(Debug)]
 pub enum Value {
     /// Integer Constant
-    Const(u64, Size),
+    Const(u64, Sign,Size),
     /// A named variable
     Name(Label),
     /// A Temporary similar to a register
@@ -63,7 +63,7 @@ impl Display for Instruction {
 impl Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Value::Const(ref v, ref size) => write!(f, "{}:{}", v, size),
+            Value::Const(ref v, ref sign,ref size) => write!(f, "{}:{}{}", v, sign,size),
             Value::Name(ref name) => write!(f, "{:?}", name),
             Value::Temp(ref temp) => write!(f, "{}", temp),
             Value::Mem(ref bytes) => {
