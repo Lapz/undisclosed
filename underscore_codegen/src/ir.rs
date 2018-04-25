@@ -1,7 +1,7 @@
 use std::fmt::{self, Display};
 use syntax::ast::{Size,Sign};
 use temp::{Label, Temp};
-
+use util;
 #[derive(Debug)]
 pub enum Instruction {
     /// Store a value into a register
@@ -28,7 +28,7 @@ pub enum Instruction {
     /// A sequence  of instructions
     Block(Value, Vec<Instruction>),
     /// Call a function with arguments
-    Call(Label, Vec<Instruction>),
+    Call(Temp,Label, Vec<Temp>),
 }
 
 #[derive(Debug)]
@@ -43,6 +43,43 @@ pub enum Value {
     Mem(Vec<u8>),
 }
 
+
+
+
+impl Instruction {
+    pub fn fmt<T:Clone>(&self,symbols:&mut util::symbol::Symbols<T>) -> String {
+        match *self {
+            Instruction::Store(ref temp, ref value) => format!("\n{} := {}", temp, value),
+            Instruction::Value(ref value) => format!("{}", value),
+            Instruction::BinOp(ref op, ref v1, ref v2, ref t) => {
+                format!("\n{} := {} {} {}", t, v1, op, v2)
+            }
+
+            Instruction::Copy(ref t1, ref t2) => format!("\n{} = {}", t1, t2),
+            Instruction::UnOp(ref op, ref t1, ref t2) => format!("\n{} := {} {}", t1, op, t2),
+            Instruction::Cast(ref t1, ref size) => format!("\nt1 := {}:{}", t1, size),
+            Instruction::Call(ref t1,ref label,ref temps) => {
+                let mut fmt_str = format!("\n{} := {}.call(",t1,symbols.name(*label));
+
+               
+                 for (i, temp) in temps.iter().enumerate() {
+                    if i + 1 == temps.len() {
+                        fmt_str.push_str(&format!("{}",temp))
+                    } else {
+                        fmt_str.push_str(&format!("{},", temp));
+                    }
+                }
+
+                fmt_str.push_str(")");
+
+                fmt_str
+            }
+            ref e_ => unimplemented!("{:?}", e_),
+    }
+    }
+}
+
+
 impl Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -55,6 +92,9 @@ impl Display for Instruction {
             Instruction::Copy(ref t1, ref t2) => write!(f, "\n{} = {}", t1, t2),
             Instruction::UnOp(ref op, ref t1, ref t2) => write!(f, "\n{} := {} {}", t1, op, t2),
             Instruction::Cast(ref t1, ref size) => write!(f, "\nt1 := {}:{}", t1, size),
+            // Instruction::Call(ref t1,ref label,ref temps) => {
+            //     write!(f,"{} := {}.call");
+            // }
             ref e_ => unimplemented!("{:?}", e_),
         }
     }

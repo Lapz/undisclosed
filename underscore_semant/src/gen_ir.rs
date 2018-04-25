@@ -1,4 +1,4 @@
-use codegen::{temp::Temp,ir::*};
+use codegen::{temp::{Temp,new_label},ir::*};
 use std::mem;
 use ast;
 use util::symbol::{Symbols};
@@ -21,14 +21,14 @@ impl Codegen {
         }
     }
 
-   pub fn dump_to_file(&self, path: String) {
+   pub fn dump_to_file(&mut self, path: String) {
         use std::fs::File;
         use std::io::Write;
 
         let mut file = File::create(path).expect("Couldn't create file");
 
         for instruction in &self.instructions {
-            file.write(format!("{}", instruction).as_bytes())
+            file.write(instruction.fmt(&mut self.symbols).as_bytes())
                 .expect("Couldn't write to the file");
         }
 
@@ -58,6 +58,9 @@ impl Codegen {
 
      fn gen_expression(&mut self,expr: &ast::TypedExpression, temp: Temp) {
          match *expr.expr {
+             ast::Expression::Assign(ref name ,ref value) => {
+                //  let temp = self.symbols.look(symbol)
+             }
              ast::Expression::Binary(ref lhs,ref op,ref rhs) => {
                   let lhs_temp = Temp::new();
 
@@ -69,7 +72,23 @@ impl Codegen {
                 let op = gen_bin_op(op);
 
                 self.instructions.push(Instruction::BinOp(op,lhs_temp,rhs_temp,temp));
-             }
+             },
+
+              ast::Expression::Call(ref name,ref exprs) => {
+                
+                let label = new_label(*name,&mut self.symbols);
+
+                let mut params = vec![];
+
+                for expr in exprs {
+                    let temp = Temp::new();
+                    self.gen_expression(expr,temp);
+                    params.push(temp)
+                }
+
+                self.instructions.push(Instruction::Call(temp,label,params))
+            }
+             ast::Expression::Grouping {ref expr} => self.gen_expression(expr, temp),
              ast::Expression::Literal(ref literal) => {
                  let value = match *literal {
                     Literal::Char(ref ch) => {
@@ -113,7 +132,16 @@ impl Codegen {
                 let op = gen_un_op(op);
 
                 self.instructions.push(Instruction::UnOp(op, temp, new_temp))
-            }
+            },
+
+            ast::Expression::Var(ref var,_) => {
+            
+               let var = self.symbols.look(*var).unwrap().clone();
+               self.instructions.push(Instruction::Copy(temp,var))
+            },
+
+           
+        
 
              _ => unimplemented!()
          }

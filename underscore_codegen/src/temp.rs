@@ -11,10 +11,10 @@ pub type Label = Symbol;
 pub struct Temp(pub u32);
 
 static mut TEMP_COUNT: u32 = 0;
-static mut LABEL_COUNT: u32 = 0;
 
-pub fn new_label(symbols: &mut Symbols<(u32, bool)>) -> Symbol {
-    unsafe { symbols.symbol(&format!("L{}", LABEL_COUNT)) }
+pub fn new_label<T:Clone>(symbol:Symbol,symbols: &mut Symbols<T>) -> Symbol {
+    let name = symbols.name(symbol);
+    symbols.symbol(&format!("l_{}", name))
 }
 
 impl Temp {

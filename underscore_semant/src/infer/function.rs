@@ -879,6 +879,8 @@ impl Infer {
                     return Err(());
                 };
 
+              
+
                 match func.get_ty() {
                     Type::Poly(ref tvars, ref ret) => match **ret {
                         Type::App(TyCon::Arrow, ref fn_types) => {
@@ -896,6 +898,7 @@ impl Infer {
 
                             let mut arg_tys = Vec::new();
                             let mut callee_exprs = vec![];
+                            
 
                             for (tvar, arg) in tvars.iter().zip(args) {
                                 let ty = self.infer_expr(arg, env, reporter)?;
@@ -903,6 +906,10 @@ impl Infer {
 
                                 arg_tys.push((ty.ty.clone(), arg.span));
                                 callee_exprs.push(ty);
+                            }
+
+                            for arg in args {
+                                callee_exprs.push( self.infer_expr(arg, env, reporter)?)
                             }
 
                             for (ty, arg) in fn_types.iter().zip(arg_tys) {
@@ -996,7 +1003,7 @@ impl Infer {
 
                                     callee_exprs.push(expr);
                                 }
-
+                                
                                 Ok((
                                     ast::Expression::Call(callee.value, callee_exprs),
                                     self.subst(fn_types.last().unwrap(), &mut mappings),
