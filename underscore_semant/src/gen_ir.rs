@@ -43,7 +43,7 @@ impl Codegen {
     }
 
     fn gen_statement(&mut self,statement: &ast::Statement) {
-        match statement {
+        match *statement {
             ast::Statement::Block(ref statements) => {
                 for statement in statements {
                     self.gen_statement(statement)
