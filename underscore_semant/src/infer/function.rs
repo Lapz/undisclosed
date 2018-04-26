@@ -1,8 +1,7 @@
 use super::{Infer, InferResult};
 use cast_check::*;
 use codegen::gen::{CodeGen, Ctx};
-use codegen::{temp,
-              translate::{Level, Translator}};
+use codegen::{temp, translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry, VarType};
 use std::collections::HashMap;
 use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit,
@@ -16,8 +15,7 @@ impl Infer {
     pub fn infer_function(
         &mut self,
         function: &Spanned<Function>,
-       
-        
+
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<ast::Function> {
@@ -59,7 +57,6 @@ impl Infer {
 
         param_tys.push(returns.clone()); // Return is the last value
 
-   
         env.add_var(
             function.value.name.value.name.value,
             VarEntry::Fun {
@@ -91,7 +88,7 @@ impl Infer {
 
         Ok(ast::Function {
             span: function.span,
-            generic:function.value.name.value.type_params.is_empty(),
+            generic: function.value.name.value.type_params.is_empty(),
             name: function.value.name.value.name.value,
             params: params,
             returns,
@@ -102,8 +99,7 @@ impl Infer {
     pub fn infer_statement(
         &mut self,
         statement: &Spanned<Statement>,
-       
-        
+
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<ast::Statement> {
@@ -111,9 +107,9 @@ impl Infer {
             Statement::Block(ref statements) => {
                 if statements.is_empty() {
                     return Ok(ast::Statement::Expr(ast::TypedExpression {
-                    expr: Box::new(ast::Expression::Literal(Literal::Nil)),
-                    ty: Type::Nil,
-                  }))
+                        expr: Box::new(ast::Expression::Literal(Literal::Nil)),
+                        ty: Type::Nil,
+                    }));
                 }
 
                 env.begin_scope();
@@ -126,13 +122,12 @@ impl Infer {
 
                 env.end_scope();
 
-        
                 Ok(ast::Statement::Block(new_statements))
             }
             Statement::Break | Statement::Continue => Ok(ast::Statement::Break),
             Statement::Expr(ref expr) => {
                 let type_expr = self.infer_expr(expr, env, reporter)?;
-                
+
                 Ok(ast::Statement::Expr(type_expr)) // Expressions are given the type of Nil to signify that they return nothing
             }
             Statement::For {
@@ -149,9 +144,7 @@ impl Infer {
                 let mut init_tyexpr = None;
 
                 if let Some(ref init) = *init {
-                    init_tyexpr = Some(Box::new(self.infer_statement(
-                        init, env, reporter,
-                    )?));
+                    init_tyexpr = Some(Box::new(self.infer_statement(init, env, reporter)?));
                 }
 
                 let mut incr_tyexpr = None;
@@ -211,8 +204,7 @@ impl Infer {
                 let mut otherwise_tyexpr = None;
 
                 if let Some(ref otherwise) = *otherwise {
-                    let tyexpr =
-                        Box::new(self.infer_statement(otherwise, env, reporter)?);
+                    let tyexpr = Box::new(self.infer_statement(otherwise, env, reporter)?);
 
                     otherwise_tyexpr = Some(tyexpr)
                 }
@@ -226,10 +218,9 @@ impl Infer {
 
             Statement::Return(ref expr) => {
                 let type_expr = self.infer_expr(expr, env, reporter)?;
-             
-               
+
                 self.body = type_expr.ty.clone();
-               
+
                 Ok(ast::Statement::Return(type_expr))
             }
 
@@ -263,13 +254,7 @@ impl Infer {
 
                         self.unify(&expr_tyexpr.ty, &t, reporter, ty.span, env)?;
 
-                        env.add_var(
-                            ident.value,
-                            VarEntry::Var(
-                               
-                                t.clone(),
-                            ),
-                        );
+                        env.add_var(ident.value, VarEntry::Var(t.clone()));
 
                         return Ok(ast::Statement::Let {
                             ident: ident.value,
@@ -278,13 +263,7 @@ impl Infer {
                         });
                     }
 
-                    env.add_var(
-                        ident.value,
-                        VarEntry::Var(
-                         
-                            expr_tyexpr.ty.clone(),
-                        ),
-                    );
+                    env.add_var(ident.value, VarEntry::Var(expr_tyexpr.ty.clone()));
 
                     Ok(ast::Statement::Let {
                         ident: ident.value,
@@ -295,12 +274,7 @@ impl Infer {
                     if let Some(ref ty) = *ty {
                         let ty = self.trans_ty(ty, env, reporter)?;
 
-                        env.add_var(
-                            ident.value,
-                            VarEntry::Var(
-                                ty.clone(),
-                            ),
-                        );
+                        env.add_var(ident.value, VarEntry::Var(ty.clone()));
 
                         return Ok(ast::Statement::Let {
                             ident: ident.value,
@@ -309,10 +283,7 @@ impl Infer {
                         });
                     }
 
-                    env.add_var(
-                        ident.value,
-                        VarEntry::Var(Type::Nil),
-                    );
+                    env.add_var(ident.value, VarEntry::Var(Type::Nil));
 
                     Ok(ast::Statement::Let {
                         ident: ident.value,
@@ -399,7 +370,7 @@ impl Infer {
                 let expr_ty = self.infer_expr(from, env, reporter)?;
                 let ty = self.trans_ty(to, env, reporter)?;
 
-                match cast_check(&expr_ty.ty, &ty) {
+                match cast_check(env, &expr_ty.ty, &ty) {
                     Ok(()) => (ast::Expression::Cast(expr_ty, ty.clone()), ty),
                     Err(_) => {
                         let msg = format!(
@@ -456,9 +427,7 @@ impl Infer {
             //                    Box::new(Type::App(TyCon::Arrow, param_tys)),
             //                ))
             //            }
-            Expression::Grouping { ref expr } => {
-                return self.infer_expr(expr, env, reporter)
-            }
+            Expression::Grouping { ref expr } => return self.infer_expr(expr, env, reporter),
             Expression::Literal(ref literal) => {
                 let ty = self.infer_literal(literal, env);
                 (ast::Expression::Literal(literal.clone()), ty)
@@ -510,8 +479,7 @@ impl Infer {
     fn infer_struct_lit(
         &self,
         lit: &Spanned<StructLit>,
-       
-        
+
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<(ast::Expression, Type)> {
@@ -534,9 +502,7 @@ impl Infer {
                             let mut mappings = HashMap::new();
 
                             for (tvar, field) in tvars.iter().zip(fields) {
-                                let ty =
-                                    self.infer_expr(&field.value.expr, env, reporter)?
-                                        .ty;
+                                let ty = self.infer_expr(&field.value.expr, env, reporter)?.ty;
                                 mappings.insert(*tvar, ty);
                             }
 
@@ -548,11 +514,7 @@ impl Infer {
                                 if def_ty.name == lit_expr.value.ident.value {
                                     found = true;
 
-                                    let ty = self.infer_expr(
-                                        &lit_expr.value.expr,
-                                        env,
-                                        reporter,
-                                    )?;
+                                    let ty = self.infer_expr(&lit_expr.value.expr, env, reporter)?;
 
                                     self.unify(
                                         &self.subst(&def_ty.ty, &mut mappings),
@@ -654,12 +616,8 @@ impl Infer {
                                 for (ty, expr) in type_fields.iter().zip(fields) {
                                     if ty.name == expr.value.ident.value {
                                         found = true;
-                                        let instance_ty = self.infer_expr(
-                                            &expr.value.expr,
-                                           
-                                            env,
-                                            reporter,
-                                        )?;
+                                        let instance_ty =
+                                            self.infer_expr(&expr.value.expr, env, reporter)?;
                                         self.unify(
                                             &self.subst(&instance_ty.ty, &mut mappings),
                                             &self.subst(&ty.ty, &mut mappings),
@@ -752,8 +710,7 @@ impl Infer {
     fn infer_var(
         &self,
         var: &Spanned<Var>,
-       
-        
+
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<(Symbol, Type)> {
@@ -859,8 +816,7 @@ impl Infer {
     fn infer_call(
         &self,
         call: &Spanned<Call>,
-       
-        
+
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<(ast::Expression, Type)> {
@@ -879,8 +835,6 @@ impl Infer {
                     return Err(());
                 };
 
-              
-
                 match func.get_ty() {
                     Type::Poly(ref tvars, ref ret) => match **ret {
                         Type::App(TyCon::Arrow, ref fn_types) => {
@@ -898,7 +852,6 @@ impl Infer {
 
                             let mut arg_tys = Vec::new();
                             let mut callee_exprs = vec![];
-                            
 
                             for (tvar, arg) in tvars.iter().zip(args) {
                                 let ty = self.infer_expr(arg, env, reporter)?;
@@ -909,7 +862,7 @@ impl Infer {
                             }
 
                             for arg in args {
-                                callee_exprs.push( self.infer_expr(arg, env, reporter)?)
+                                callee_exprs.push(self.infer_expr(arg, env, reporter)?)
                             }
 
                             for (ty, arg) in fn_types.iter().zip(arg_tys) {
@@ -1003,7 +956,7 @@ impl Infer {
 
                                     callee_exprs.push(expr);
                                 }
-                                
+
                                 Ok((
                                     ast::Expression::Call(callee.value, callee_exprs),
                                     self.subst(fn_types.last().unwrap(), &mut mappings),

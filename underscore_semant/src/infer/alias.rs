@@ -1,5 +1,5 @@
 use super::{Infer, InferResult};
-use env::{Entry, Env,VarType};
+use env::{Entry, Env, VarType};
 use syntax::ast::TyAlias;
 use types::{Type, TypeVar};
 use util::{emitter::Reporter, pos::Spanned};

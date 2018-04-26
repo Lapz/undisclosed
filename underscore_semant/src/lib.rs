@@ -56,11 +56,9 @@ impl Infer {
         }
 
         for function in &program.functions {
-            new_program.functions.push(self.infer_function(
-                function,
-                env,
-                reporter,
-            )?);
+            new_program
+                .functions
+                .push(self.infer_function(function, env, reporter)?);
         }
 
         let mut resolver = Resolver::new();

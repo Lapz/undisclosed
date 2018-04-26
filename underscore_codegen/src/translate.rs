@@ -3,7 +3,7 @@ use ir::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 use temp::Label;
-use x86::{x86, Access};
+use x86::{Access, x86};
 
 #[derive(Clone, Debug)]
 pub enum Level {

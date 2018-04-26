@@ -1,4 +1,3 @@
-
 use ast;
 use std::collections::HashMap;
 use util::symbol::Symbol;
@@ -21,14 +20,13 @@ use util::symbol::Symbol;
 //         }else {
 //             new_program.functions.insert(function.name,vec![function]);
 //         }
-        
+
 //     }
 
 // }
 
-
 // fn genbody(&mut self,function:&ast::Function)  {
-  
+
 // }
 
 // fn gen_call(&mut self,call:ast::Expression,function:ast::Function) {
@@ -58,12 +56,9 @@ use util::symbol::Symbol;
 //                 }
 //             }
 
-            
 //         }
 
 //         _ => ()
 //     }
 // }
 // }
-
-

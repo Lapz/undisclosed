@@ -1,8 +1,6 @@
-
 use syntax::ast::{Linkage, Literal, Op, UnaryOp};
 use types::{Field, Type};
-use util::{pos::{Span},
-           symbol::Symbol};
+use util::{pos::Span, symbol::Symbol};
 
 #[derive(Debug)]
 pub struct Program {
@@ -21,7 +19,7 @@ pub struct Struct {
 pub struct Function {
     pub span: Span,
     pub name: Symbol,
-    pub generic:bool,
+    pub generic: bool,
     pub params: Vec<FunctionParam>,
     pub returns: Type,
     pub body: Statement,

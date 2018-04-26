@@ -158,6 +158,17 @@ impl<'a> Lexer<'a> {
                     return Ok(spans(token, start, end));
                 }
 
+                '\\' => {
+                    let (end, escape) = self.escape_code();
+
+                    if let Some(escape) = escape {
+                        string.push(escape)
+                    } else {
+                        self.reporter
+                            .error("Invalid escape", Span { start: next, end })
+                    }
+                }
+
                 ch => string.push(ch),
             }
         }
@@ -165,21 +176,22 @@ impl<'a> Lexer<'a> {
         Err(LexerError::UnclosedString)
     }
 
-    fn escape_code(&mut self) -> Option<char> {
+    fn escape_code(&mut self) -> (Position, Option<char>) {
         match self.advance() {
-            Some((_, 't')) => Some('\t'),
-            Some((_, 'n')) => Some('\n'),
-            Some((_, 'r')) => Some('\r'),
-            Some((_, '\\')) => Some('\\'),
-            Some((_, '"')) => Some('"'),
-            Some((_, _)) => None,
-            None => None,
+            Some((end, 't')) => (end, Some('\t')),
+            Some((end, '0')) => (end, Some('\0')),
+            Some((end, 'n')) => (end, Some('\n')),
+            Some((end, 'r')) => (end, Some('\r')),
+            Some((end, '\\')) => (end, Some('\\')),
+            Some((end, '"')) => (end, Some('"')),
+            Some((end, _)) => (end, None),
+            None => (self.end, None),
         }
     }
 
     fn char_literal(&mut self, start: Position) -> Result<Spanned<Token<'a>>, LexerError> {
         let token = match self.advance() {
-            Some((_, '\\')) => self.escape_code(),
+            Some((_, '\\')) => self.escape_code().1,
 
             Some((_, '\'')) => return Err(LexerError::EmptyCharLit),
             Some((_, ch)) => Some(ch),

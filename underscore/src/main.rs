@@ -10,7 +10,7 @@ use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
 // use underscore_codegen::gen::{};
-use underscore_semant::{Infer, TypeEnv,Codegen};
+use underscore_semant::{Codegen, Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
@@ -73,6 +73,8 @@ fn run(path: String, dump_file: Option<String>) {
 
     let tokens = Lexer::new(&input, reporter.clone()).lex();
 
+    reporter.emit(input);
+
     let strings = Rc::new(SymbolMap::new());
 
     let mut table = Symbols::new(Rc::clone(&strings));
@@ -101,8 +103,6 @@ fn run(path: String, dump_file: Option<String>) {
 
     let symbols = Symbols::new(Rc::clone(&strings));
 
-    
-
     let ast = match infer.infer(&mut ast, &mut type_env, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
@@ -125,7 +125,6 @@ fn run(path: String, dump_file: Option<String>) {
     codegen.gen_program(&ast);
 
     codegen.dump_to_file(format!("{}ir", path));
-
 }
 
 #[derive(StructOpt, Debug)]

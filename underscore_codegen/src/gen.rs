@@ -29,8 +29,8 @@ impl Ctx {
         let mut file = File::create(path).expect("Couldn't create file");
 
         for instruction in &self.instructions {
-            file.write(format!("{}", instruction).as_bytes())
-                .expect("Couldn't write to the file");
+            // file.write(ins.as_bytes())
+            // .expect("Couldn't write to the file");
         }
 
         file.write(format!("\n{:?}", self.instructions).as_bytes())
@@ -48,11 +48,9 @@ impl CodeGen {
     }
     fn gen_statement(statement: &Spanned<Statement>, ctx: &mut Ctx) {
         match statement.value {
-            Statement::Block(ref statements) => {
-                for statement in statements {
-                    Self::gen_statement(statement, ctx)
-                }
-            }
+            Statement::Block(ref statements) => for statement in statements {
+                Self::gen_statement(statement, ctx)
+            },
             Statement::Let {
                 ref ident,
                 ref ty,
@@ -105,8 +103,8 @@ impl CodeGen {
 
                 Self::gen_expression(from, ctx, temp);
 
-                ctx.instructions
-                    .push(Instruction::Cast(temp, Self::get_size(to)))
+                // ctx.instructions
+                // .push(Instruction::Cast(temp, Self::get_size(to)))
             }
             Expression::Literal(ref literal) => {
                 let value = match *literal {
@@ -120,7 +118,7 @@ impl CodeGen {
 
                     Literal::Nil => Value::Mem(vec![]),
 
-                    Literal::Number(ref number) =>unimplemented!(),
+                    Literal::Number(ref number) => unimplemented!(),
                     Literal::Str(ref string) => {
                         let mut bytes = vec![];
                         bytes.push(string.len() as u8);

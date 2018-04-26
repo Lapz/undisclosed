@@ -1,17 +1,6 @@
 
-t0 := 10:i32
-t2 := 10:u8
-t3 := 10:u8
-t1 := t2 + t3
-t5 := 1:u8
-t4 := ! t5
-t7 := 0:u8
-t6 := ! t7
-t9 := 10:i32
-t8 := l_main.call(t9)
-t12 := 10:i32
-t13 := 2:i32
-t11 := t12 - t13
-t14 := 10:i32
-t10 := l_f.call(t11,t14)
-[Store(t0, Const(10, Signed, Bit32)), Store(t2, Const(10, Unsigned, Bit8)), Store(t3, Const(10, Unsigned, Bit8)), BinOp(Plus, t2, t3, t1), Store(t5, Const(1, Unsigned, Bit8)), UnOp(Bang, t4, t5), Store(t7, Const(0, Unsigned, Bit8)), UnOp(Bang, t6, t7), Store(t9, Const(10, Signed, Bit32)), Call(t8, Symbol(13), [t9]), Store(t12, Const(10, Signed, Bit32)), Store(t13, Const(2, Signed, Bit32)), BinOp(Minus, t12, t13, t11), Store(t14, Const(10, Signed, Bit32)), Call(t10, Symbol(14), [t11, t14])]
+t1 := 1:u8
+tjump t1 l_end_0
+t2 := 1:u8
+label l_end_0
+[Store(t1, Const(1, Unsigned, Bit8)), TJump(t1, Symbol(10)), Store(t2, Const(1, Unsigned, Bit8)), Label(Symbol(10))]

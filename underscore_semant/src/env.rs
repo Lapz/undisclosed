@@ -1,5 +1,4 @@
-use codegen::{temp,
-              translate::{Level, TranslateAccess}};
+use codegen::{temp, translate::{Level, TranslateAccess}};
 use std::collections::HashMap;
 use std::rc::Rc;
 use syntax::ast::{Sign, Size};
@@ -12,7 +11,7 @@ pub enum Entry {
     Ty(Type),
 }
 
-#[derive(Debug, Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum VarType {
     /// A typedvariable mapped to a var
     Int,
@@ -22,9 +21,7 @@ pub enum VarType {
 #[derive(Debug, Clone)]
 pub enum VarEntry {
     Var(Type),
-    Fun {
-        ty: Type,
-    },
+    Fun { ty: Type },
 }
 
 impl VarEntry {

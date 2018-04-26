@@ -1,5 +1,5 @@
 use std::fmt::{self, Display};
-use syntax::ast::{Size,Sign};
+use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
 use util;
 #[derive(Debug)]
@@ -12,8 +12,11 @@ pub enum Instruction {
     /// Jump to a label
     Jump(Label),
 
+    /// Jump to a label witha temp
+    TJump(Temp, Label),
+
     /// CAST the expresion to a different type treating it a
-    Cast(Temp, usize), //TODO take into account sign
+    Cast(Temp, Sign, Size), //TODO take into account sign
 
     /// Binary operation and store in Temp
     BinOp(BinOp, Temp, Temp, Temp),
@@ -28,13 +31,15 @@ pub enum Instruction {
     /// A sequence  of instructions
     Block(Value, Vec<Instruction>),
     /// Call a function with arguments
-    Call(Temp,Label, Vec<Temp>),
+    Call(Temp, Label, Vec<Temp>),
+    /// Empty Label
+    Label(Label),
 }
 
 #[derive(Debug)]
 pub enum Value {
     /// Integer Constant
-    Const(u64, Sign,Size),
+    Const(u64, Sign, Size),
     /// A named variable
     Name(Label),
     /// A Temporary similar to a register
@@ -43,11 +48,8 @@ pub enum Value {
     Mem(Vec<u8>),
 }
 
-
-
-
 impl Instruction {
-    pub fn fmt<T:Clone>(&self,symbols:&mut util::symbol::Symbols<T>) -> String {
+    pub fn fmt<T: Clone>(&self, symbols: &mut util::symbol::Symbols<T>) -> String {
         match *self {
             Instruction::Store(ref temp, ref value) => format!("\n{} := {}", temp, value),
             Instruction::Value(ref value) => format!("{}", value),
@@ -57,14 +59,15 @@ impl Instruction {
 
             Instruction::Copy(ref t1, ref t2) => format!("\n{} = {}", t1, t2),
             Instruction::UnOp(ref op, ref t1, ref t2) => format!("\n{} := {} {}", t1, op, t2),
-            Instruction::Cast(ref t1, ref size) => format!("\nt1 := {}:{}", t1, size),
-            Instruction::Call(ref t1,ref label,ref temps) => {
-                let mut fmt_str = format!("\n{} := {}.call(",t1,symbols.name(*label));
+            Instruction::Cast(ref t1, ref sign, ref size) => {
+                format!("\nt1 := {}:{}{}", t1, sign, size)
+            }
+            Instruction::Call(ref t1, ref label, ref temps) => {
+                let mut fmt_str = format!("\n{} := {}.call(", t1, symbols.name(*label));
 
-               
-                 for (i, temp) in temps.iter().enumerate() {
+                for (i, temp) in temps.iter().enumerate() {
                     if i + 1 == temps.len() {
-                        fmt_str.push_str(&format!("{}",temp))
+                        fmt_str.push_str(&format!("{}", temp))
                     } else {
                         fmt_str.push_str(&format!("{},", temp));
                     }
@@ -74,27 +77,8 @@ impl Instruction {
 
                 fmt_str
             }
-            ref e_ => unimplemented!("{:?}", e_),
-    }
-    }
-}
-
-
-impl Display for Instruction {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Instruction::Store(ref temp, ref value) => write!(f, "\n{} := {}", temp, value),
-            Instruction::Value(ref value) => write!(f, "{}", value),
-            Instruction::BinOp(ref op, ref v1, ref v2, ref t) => {
-                write!(f, "\n{} := {} {} {}", t, v1, op, v2)
-            }
-
-            Instruction::Copy(ref t1, ref t2) => write!(f, "\n{} = {}", t1, t2),
-            Instruction::UnOp(ref op, ref t1, ref t2) => write!(f, "\n{} := {} {}", t1, op, t2),
-            Instruction::Cast(ref t1, ref size) => write!(f, "\nt1 := {}:{}", t1, size),
-            // Instruction::Call(ref t1,ref label,ref temps) => {
-            //     write!(f,"{} := {}.call");
-            // }
+            Instruction::TJump(ref temp,ref label) => format!("\ntjump {} {}",temp,symbols.name(*label)),
+            Instruction::Label(ref label) => format!("\nlabel {}",symbols.name(*label)),
             ref e_ => unimplemented!("{:?}", e_),
         }
     }
@@ -103,7 +87,7 @@ impl Display for Instruction {
 impl Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Value::Const(ref v, ref sign,ref size) => write!(f, "{}:{}{}", v, sign,size),
+            Value::Const(ref v, ref sign, ref size) => write!(f, "{}:{}{}", v, sign, size),
             Value::Name(ref name) => write!(f, "{:?}", name),
             Value::Temp(ref temp) => write!(f, "{}", temp),
             Value::Mem(ref bytes) => {
