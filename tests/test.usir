@@ -1,6 +1,15 @@
 
-t1 := 1:u8
-tjump t1 l_end_0
-t2 := 1:u8
+label l_start_0
+label l_while_start_1
+    label l_while_cond_2
+        t0 := 10:i32
+        t1 := 10:i32
+        if t0 < t1 then l_while_true_3 else l_while_false_4
+    label l_while_true_3
+        t2 := []
+    jump l_while_cond_2
+    label l_while_false_4
+
+label l_while_end_1
 label l_end_0
-[Store(t1, Const(1, Unsigned, Bit8)), TJump(t1, Symbol(10)), Store(t2, Const(1, Unsigned, Bit8)), Label(Symbol(10))]
+[Label(Symbol(10)), Label(Symbol(12)), Label(Symbol(14)), Store(t0, Const(10, Signed, Bit32)), Store(t1, Const(10, Signed, Bit32)), CJump(LT, t0, t1, Symbol(15), Symbol(16)), Label(Symbol(15)), Store(t2, Mem([])), Jump(Symbol(14)), Label(Symbol(16)), Label(Symbol(13)), Label(Symbol(11))]

@@ -25,7 +25,7 @@ pub enum Instruction {
     UnOp(UnOp, Temp, Temp),
 
     /// Evaluate l1, l2 compare using CmpOp and then got to L or R
-    CJump(CmpOp, Value, Value, Label, Label),
+    CJump(CmpOp, Temp, Temp, Label, Label),
     /// A Value
     Value(Value),
     /// A sequence  of instructions
@@ -77,8 +77,19 @@ impl Instruction {
 
                 fmt_str
             }
-            Instruction::TJump(ref temp,ref label) => format!("\ntjump {} {}",temp,symbols.name(*label)),
-            Instruction::Label(ref label) => format!("\nlabel {}",symbols.name(*label)),
+            Instruction::Jump(ref label) => format!("\njump {}", symbols.name(*label)),
+            Instruction::TJump(ref temp, ref label) => {
+                format!("\ntjump {} {}", temp, symbols.name(*label))
+            }
+            Instruction::CJump(ref op, ref t1, ref t2, ref ltrue, ref lfalse) => format!(
+                "\n if {} {} {} then {} else {}",
+                t1,
+                op,
+                t2,
+                symbols.name(*ltrue),
+                symbols.name(*lfalse)
+            ),
+            Instruction::Label(ref label) => format!("\nlabel {}", symbols.name(*label)),
             ref e_ => unimplemented!("{:?}", e_),
         }
     }
@@ -120,6 +131,19 @@ impl Display for BinOp {
     }
 }
 
+impl Display for CmpOp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CmpOp::LT => write!(f, "<"),
+            CmpOp::LTE => write!(f, "<="),
+            CmpOp::GT => write!(f, ">"),
+            CmpOp::GTE => write!(f, ">="),
+            CmpOp::NE => write!(f, "!="),
+            CmpOp::EQ => write!(f, "=="),
+        }
+    }
+}
+
 impl Display for UnOp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -147,12 +171,10 @@ pub enum UnOp {
 
 #[derive(Debug)]
 pub enum CmpOp {
-    // signed
     LT,
     GT,
     LTE,
     GTE,
-    // signed  or unsigned
     EQ,
     NE,
 }

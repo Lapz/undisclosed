@@ -1049,7 +1049,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                 },
             })
         } else {
-            binary!(self, OR, lhs, parse_equality);
+            binary!(self, AND, lhs, parse_equality);
 
             Ok(lhs)
         }

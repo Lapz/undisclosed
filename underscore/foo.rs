@@ -9,9 +9,9 @@
                     absolute: 0
                 },
                 end: Position {
-                    line: 3,
+                    line: 5,
                     column: 1,
-                    absolute: 30
+                    absolute: 37
                 }
             },
             name: Symbol(
@@ -22,30 +22,38 @@
             returns: Nil,
             body: Block(
                 [
-                    Expr(
+                    While(
                         TypedExpression {
                             expr: Binary(
                                 TypedExpression {
                                     expr: Literal(
-                                        True(
-                                            true
+                                        Number(
+                                            Number {
+                                                value: 10,
+                                                ty: None
+                                            }
                                         )
                                     ),
-                                    ty: App(
-                                        Bool,
-                                        []
+                                    ty: Var(
+                                        TypeVar(
+                                            0
+                                        )
                                     )
                                 },
-                                Or,
+                                LT,
                                 TypedExpression {
                                     expr: Literal(
-                                        True(
-                                            true
+                                        Number(
+                                            Number {
+                                                value: 10,
+                                                ty: None
+                                            }
                                         )
                                     ),
-                                    ty: App(
-                                        Bool,
-                                        []
+                                    ty: Var(
+                                        TypeVar(
+                                            1
+                                        )
                                     )
                                 }
                             ),
@@ -53,7 +61,15 @@
                                 Bool,
                                 []
                             )
-                        }
+                        },
+                        Expr(
+                            TypedExpression {
+                                expr: Literal(
+                                    Nil
+                                ),
+                                ty: Nil
+                            }
+                        )
                     )
                 ]
             ),

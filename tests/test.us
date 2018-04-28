@@ -1,5 +1,7 @@
 
 
 fn main() {
-    true or true;
+   while 10 < 10 {
+
+   }
 }

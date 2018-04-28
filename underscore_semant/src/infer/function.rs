@@ -124,7 +124,8 @@ impl Infer {
 
                 Ok(ast::Statement::Block(new_statements))
             }
-            Statement::Break | Statement::Continue => Ok(ast::Statement::Break),
+            Statement::Break => Ok(ast::Statement::Break),
+            Statement::Continue => Ok(ast::Statement::Continue),
             Statement::Expr(ref expr) => {
                 let type_expr = self.infer_expr(expr, env, reporter)?;
 

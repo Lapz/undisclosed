@@ -26,6 +26,19 @@ pub fn new_named_label<T: Clone>(name: &str, symbols: &mut Symbols<T>) -> Symbol
     }
 }
 
+pub fn new_label_pair<T: Clone>(
+    name: &str,
+    name2: &str,
+    symbols: &mut Symbols<T>,
+) -> (Symbol, Symbol) {
+    unsafe {
+        let label1 = symbols.symbol(&format!("l_{}_{}", name, LABEL_COUNT));
+        let label2 = symbols.symbol(&format!("l_{}_{}", name2, LABEL_COUNT));
+        LABEL_COUNT += 1;
+        (label1, label2)
+    }
+}
+
 impl Temp {
     /// Makes a new temp with a given Ident.
     /// Warning: avoid repeated calls with the same name.
