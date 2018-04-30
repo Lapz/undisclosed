@@ -56,6 +56,7 @@ pub enum Ty {
     Func(Vec<Spanned<Ty>>, Option<Box<Spanned<Ty>>>),
     Poly(Spanned<Symbol>, Vec<Spanned<Ty>>),
     Simple(Spanned<Symbol>),
+    Array(Box<Spanned<Ty>>, usize),
     Nil,
     I8,
     I32,

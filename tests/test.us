@@ -1,9 +1,13 @@
 
+fn foo(a:[u32;3]) {
 
-fn main() {
-   let a = [1,2,[3,4],];
-
-   return nil;
 }
 
+fn main() {
+   
+
+   foo([1,2,3]);
+
+   
+}
 

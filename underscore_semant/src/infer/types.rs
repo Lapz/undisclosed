@@ -23,6 +23,10 @@ impl Infer {
             astType::I32 => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![])),
             astType::U64 => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit64), vec![])),
             astType::I64 => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit64), vec![])),
+            astType::Array(ref ty, ref len) => Ok(Type::Array(
+                Box::new(self.trans_ty(ty, env, reporter)?),
+                *len,
+            )),
             astType::Simple(ref ident) => {
                 if let Some(ty) = env.look_type(ident.value) {
                     match *ty {

@@ -653,6 +653,31 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::Bool,
                 span: self.consume_get_span(&TokenType::BOOL, "Expected a bool")?,
             })
+        } else if self.recognise(TokenType::LBRACKET) {
+            let open_span = self.consume_get_span(&TokenType::LBRACKET, "Expected '[' ")?;
+
+            let ty = self.parse_type()?;
+
+            self.consume(&TokenType::SEMICOLON, "Expected ';'")?;
+
+            let len = match self.advance() {
+                Some(Spanned {
+                    ref span,
+                    ref value,
+                }) => match value.token {
+                    TokenType::Number(ref n) => n.value as usize,
+
+                    _ => unimplemented!(),
+                },
+                _ => unimplemented!(),
+            };
+
+            let close_span = self.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
+
+            Ok(Spanned {
+                value: Ty::Array(Box::new(ty), len),
+                span: open_span.to(close_span),
+            })
         } else if self.recognise(TokenType::STR) {
             Ok(Spanned {
                 value: Ty::Str,

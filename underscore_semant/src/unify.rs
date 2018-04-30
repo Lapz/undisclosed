@@ -39,6 +39,17 @@ impl Infer {
 
             (&Type::App(TyCon::Void, _), &Type::Struct(_, _, _)) => Ok(()),
             (&Type::Struct(_, _, _), &Type::App(TyCon::Void, _)) => Ok(()),
+            (&Type::Array(ref ty, ref len), &Type::Array(ref ty2, ref len2)) => {
+                if len != len2 {
+                    let msg = format!("Expected array with len `{}` found len `{}`", len, len2);
+                    reporter.error(msg, span);
+                    return Err(());
+                }
+
+                self.unify(ty, ty2, reporter, span, env)?;
+
+                Ok(())
+            }
 
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
                 if tycon1 != tycon2 {
