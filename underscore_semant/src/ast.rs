@@ -44,12 +44,6 @@ pub enum Statement {
     Break,
     Continue,
     Expr(TypedExpression),
-    For {
-        init: Option<Box<Statement>>,
-        cond: Option<TypedExpression>,
-        incr: Option<TypedExpression>,
-        body: Box<Statement>,
-    },
     If {
         cond: TypedExpression,
         then: Box<Statement>,

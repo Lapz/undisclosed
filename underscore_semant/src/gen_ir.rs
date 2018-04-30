@@ -137,8 +137,17 @@ impl Codegen {
                 self.instructions.push(Instruction::Label(lfalse));
 
                 self.instructions.push(Instruction::Label(end));
+            },
+
+            ast::Statement::Return(ref expr) => {
+                let temp = Temp::new();
+
+                self.gen_expression(expr, temp);
+
+                self.instructions.push(Instruction::Return(temp))
+
             }
-            _ => unimplemented!(),
+           
         }
     }
 
@@ -293,7 +302,7 @@ impl Codegen {
                 self.instructions.push(Instruction::Copy(Temp::new(), var))
             }
 
-             _ => self.gen_expression(cond, Temp::new()),
+            _ => self.gen_expression(cond, Temp::new()),
         }
     }
 }

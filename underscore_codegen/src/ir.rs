@@ -34,6 +34,8 @@ pub enum Instruction {
     Call(Temp, Label, Vec<Temp>),
     /// Empty Label
     Label(Label),
+    /// Return
+    Return(Temp),
 }
 
 #[derive(Debug)]
@@ -82,7 +84,7 @@ impl Instruction {
                 format!("\ntjump {} {}", temp, symbols.name(*label))
             }
             Instruction::CJump(ref op, ref t1, ref t2, ref ltrue, ref lfalse) => format!(
-                "\n if {} {} {} then {} else {}",
+                "\nif {} {} {} then {} else {}",
                 t1,
                 op,
                 t2,

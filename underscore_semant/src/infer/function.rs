@@ -142,28 +142,34 @@ impl Infer {
                     return Ok(body);
                 }
 
-                let mut init_tyexpr = None;
+                let mut block = vec![];
 
                 if let Some(ref init) = *init {
-                    init_tyexpr = Some(Box::new(self.infer_statement(init, env, reporter)?));
+                    block.push(self.infer_statement(init, env, reporter)?);
                 }
 
-                let mut incr_tyexpr = None;
+                let mut while_block = vec![self.infer_statement(body, env, reporter)?];
 
                 if let Some(ref incr) = *incr {
                     let ty = self.infer_expr(incr, env, reporter)?;
                     if !ty.ty.is_int() {
-                        // Change
-                        let msg = format!("Increment cannot be of type `{}`", ty.ty.print(env));
+                        match ty.ty {
+                            Type::Var(ref tvar) => {
+                                if let Some(&VarType::Int) = env.look_tvar(*tvar) {}
+                            }
 
-                        reporter.error(msg, incr.span);
-                        return Err(());
+                            _ => {
+                                let msg =
+                                    format!("Increment cannot be of type `{}`", ty.ty.print(env));
+
+                                reporter.error(msg, incr.span);
+                                return Err(());
+                            }
+                        }
                     }
 
-                    incr_tyexpr = Some(ty);
+                    while_block.push(ast::Statement::Expr(ty))
                 }
-
-                let mut cond_tyexpr = None;
 
                 if let Some(ref cond) = *cond {
                     let ty = self.infer_expr(cond, env, reporter)?;
@@ -176,15 +182,21 @@ impl Infer {
                         env,
                     )?;
 
-                    cond_tyexpr = Some(ty);
+                    block.push(ast::Statement::While(
+                        ty,
+                        Box::new(ast::Statement::Block(while_block)),
+                    ))
+                } else {
+                    block.push(ast::Statement::While(
+                        ast::TypedExpression {
+                            expr: Box::new(ast::Expression::Literal(Literal::True(true))),
+                            ty: Type::App(TyCon::Bool, vec![]),
+                        },
+                        Box::new(ast::Statement::Block(while_block)),
+                    ));
                 }
 
-                Ok(ast::Statement::For {
-                    init: init_tyexpr,
-                    cond: cond_tyexpr,
-                    incr: incr_tyexpr,
-                    body: Box::new(self.infer_statement(body, env, reporter)?),
-                })
+                Ok(ast::Statement::Block(block))
             }
 
             Statement::If {
