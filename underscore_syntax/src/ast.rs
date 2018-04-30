@@ -104,6 +104,9 @@ pub enum Statement {
 }
 #[derive(Debug)]
 pub enum Expression {
+    Array {
+        items: Vec<Spanned<Expression>>,
+    },
     Assign {
         name: Spanned<Var>,
         value: Box<Spanned<Expression>>,

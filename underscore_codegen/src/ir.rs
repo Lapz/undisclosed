@@ -11,10 +11,6 @@ pub enum Instruction {
     Copy(Temp, Temp),
     /// Jump to a label
     Jump(Label),
-
-    /// Jump to a label witha temp
-    TJump(Temp, Label),
-
     /// CAST the expresion to a different type treating it a
     Cast(Temp, Sign, Size), //TODO take into account sign
 
@@ -28,8 +24,6 @@ pub enum Instruction {
     CJump(CmpOp, Temp, Temp, Label, Label),
     /// A Value
     Value(Value),
-    /// A sequence  of instructions
-    Block(Value, Vec<Instruction>),
     /// Call a function with arguments
     Call(Temp, Label, Vec<Temp>),
     /// Empty Label
@@ -80,9 +74,6 @@ impl Instruction {
                 fmt_str
             }
             Instruction::Jump(ref label) => format!("\njump {}", symbols.name(*label)),
-            Instruction::TJump(ref temp, ref label) => {
-                format!("\ntjump {} {}", temp, symbols.name(*label))
-            }
             Instruction::CJump(ref op, ref t1, ref t2, ref ltrue, ref lfalse) => format!(
                 "\nif {} {} {} then {} else {}",
                 t1,
@@ -92,7 +83,7 @@ impl Instruction {
                 symbols.name(*lfalse)
             ),
             Instruction::Label(ref label) => format!("\nlabel {}", symbols.name(*label)),
-            ref e_ => unimplemented!("{:?}", e_),
+            Instruction::Return(ref ret) => format!("\nret {}", ret),
         }
     }
 }

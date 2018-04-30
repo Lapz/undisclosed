@@ -1,9 +1,9 @@
 
 
 fn main() {
-   
-   for(let i =10; i<10; i = i+1) {
-       10;
-   }
+   let a = [1,2,[3,4],];
 
+   return nil;
 }
+
+

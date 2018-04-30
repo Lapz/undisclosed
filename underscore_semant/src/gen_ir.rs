@@ -230,7 +230,7 @@ impl Codegen {
                         Value::Const(*b as u64, Sign::Unsigned, Size::Bit8)
                     }
 
-                    Literal::Nil => Value::Mem(vec![]),
+                    Literal::Nil => Value::Mem(vec![0x00000000]),
 
                     Literal::Number(ref number) => match number.ty {
                         Some((sign, size)) => Value::Const(number.value, sign, size),

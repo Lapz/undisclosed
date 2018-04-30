@@ -6,6 +6,7 @@ impl Infer {
     /// Deals with the subsitution of type variables
     pub fn subst(&self, ty: &Type, substions: &mut HashMap<TypeVar, Type>) -> Type {
         match *ty {
+            Type::Array(ref ty,_) => self.subst(ty,substions),
             Type::Var(ref tvar) => {
                 if let Some(ty) = substions.get(tvar) {
                     ty.clone()

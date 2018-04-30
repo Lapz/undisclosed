@@ -1186,6 +1186,8 @@ impl<'a, 'b> Parser<'a, 'b> {
                     })
                 }
 
+                TokenType::LBRACKET => self.parse_array(*span),
+
                 TokenType::IDENTIFIER(ident) => {
                     let ident = Spanned {
                         value: self.ident(ident),
@@ -1404,6 +1406,32 @@ impl<'a, 'b> Parser<'a, 'b> {
                 span: callee.get_span(),
                 value: Call::Simple { callee, args },
             }),
+        })
+    }
+
+    fn parse_array(&mut self, open_span: Span) -> ParserResult<Spanned<Expression>> {
+        let mut items = vec![];
+
+        if !self.recognise(TokenType::RBRACKET) {
+            loop {
+                if self.recognise(TokenType::RBRACKET) {
+                    break;
+                }
+                items.push(self.parse_expression()?);
+
+                if self.recognise(TokenType::COMMA) {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let close = self.consume_get_span(&TokenType::RBRACKET, "Expected ']'")?;
+
+        Ok(Spanned {
+            span: open_span.to(close),
+            value: Expression::Array { items },
         })
     }
 

@@ -19,6 +19,7 @@ pub enum Type {
     Var(TypeVar),
     Poly(Vec<TypeVar>, Box<Type>),
     Struct(Symbol, Vec<Field>, Unique), // Name, Fields, Unique
+    Array(Box<Type>, usize),            // Type and length
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -66,6 +67,7 @@ impl Type {
 impl Type {
     pub fn print(&self, env: &Env) -> String {
         match *self {
+            Type::Array(ref ty, ref len) => format!("[{};{}]", ty.print(env), len),
             Type::Struct(ref name, ref fields, _) => {
                 let mut fmt_string = String::new();
                 fmt_string.push_str(&format!("{}<", env.name(*name)));
@@ -116,7 +118,7 @@ impl Type {
 
                 fmt_string
             }
-            Type::Var(ref v) => format!("{}", v.0 as u8 as char),
+            Type::Var(ref v) => format!("tvar{}", v.0),
             Type::Poly(ref vars, ref ret) => {
                 let mut fmt_string = String::new();
                 fmt_string.push_str("poly<");

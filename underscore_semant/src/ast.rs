@@ -60,6 +60,7 @@ pub enum Statement {
 
 #[derive(Debug, Clone)]
 pub enum Expression {
+    Array(Vec<TypedExpression>),
     Assign(Symbol, TypedExpression),
     Binary(TypedExpression, Op, TypedExpression),
 

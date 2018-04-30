@@ -1,6 +1,5 @@
 use super::{Infer, InferResult};
 use cast_check::*;
-use codegen::gen::{CodeGen, Ctx};
 use codegen::{temp, translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry, VarType};
 use std::collections::HashMap;
@@ -317,6 +316,32 @@ impl Infer {
         reporter: &mut Reporter,
     ) -> InferResult<ast::TypedExpression> {
         let (typed, ty) = match expr.value {
+            Expression::Array { ref items } => {
+                if items.is_empty() {
+                    (ast::Expression::Array(vec![]) ,Type::Array(Box::new(Type::Nil),0) )
+                }else {
+
+                    
+                    let mut nitems = vec![self.infer_expr(&items[0],env,reporter)?];
+                    
+                    for item in items.iter().skip(1) {
+                        let span = item.span;
+                        let ty_expr = self.infer_expr(item,env,reporter)?;
+
+                        self.unify(&nitems[0].ty,&ty_expr.ty,reporter,span,env)?;
+                        nitems.push(ty_expr);
+                    }
+
+                    let ret_ty = nitems[0].ty.clone();
+                    let len = nitems.len();
+                    (ast::Expression::Array(nitems) ,Type::Array(Box::new(ret_ty),len) )
+
+                    
+                    
+                }
+
+               
+            }
             Expression::Assign {
                 ref name,
                 ref value,

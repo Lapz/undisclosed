@@ -9,7 +9,6 @@ extern crate underscore_util;
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-// use underscore_codegen::gen::{};
 use underscore_semant::{Codegen, Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
