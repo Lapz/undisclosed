@@ -404,7 +404,7 @@ impl<'a> Lexer<'a> {
         Some(spans(TokenType::EOF, self.end, self.end))
     }
 
-    pub fn lex(&mut self) -> Vec<Spanned<Token<'a>>> {
+    pub fn lex(&mut self) -> Result<Vec<Spanned<Token<'a>>>, ()> {
         let mut tokens = vec![];
 
         while self.lookahead.is_some() {
@@ -417,7 +417,11 @@ impl<'a> Lexer<'a> {
 
         tokens.retain(|t| t.value.token != TokenType::COMMENT);
 
-        tokens
+        if self.reporter.had_error() {
+            Err(())
+        } else {
+            Ok(tokens)
+        }
     }
 }
 

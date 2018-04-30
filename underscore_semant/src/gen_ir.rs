@@ -137,7 +137,7 @@ impl Codegen {
                 self.instructions.push(Instruction::Label(lfalse));
 
                 self.instructions.push(Instruction::Label(end));
-            },
+            }
 
             ast::Statement::Return(ref expr) => {
                 let temp = Temp::new();
@@ -145,9 +145,7 @@ impl Codegen {
                 self.gen_expression(expr, temp);
 
                 self.instructions.push(Instruction::Return(temp))
-
             }
-           
         }
     }
 

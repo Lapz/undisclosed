@@ -37,7 +37,13 @@ fn repl() {
             .read_line(&mut input)
             .expect("Couldn't read input");
 
-        let tokens = Lexer::new(&input, reporter.clone()).lex();
+        let tokens = match Lexer::new(&input, reporter.clone()).lex() {
+            Ok(tokens) => tokens,
+            Err(_) => {
+                reporter.emit(&input);
+                ::std::process::exit(65)
+            }
+        };
 
         let strings = Rc::new(SymbolMap::new());
 
@@ -71,9 +77,13 @@ fn run(path: String, dump_file: Option<String>) {
 
     let mut reporter = Reporter::new();
 
-    let tokens = Lexer::new(&input, reporter.clone()).lex();
-
-    reporter.emit(input);
+    let tokens = match Lexer::new(&input, reporter.clone()).lex() {
+        Ok(tokens) => tokens,
+        Err(_) => {
+            reporter.emit(&input);
+            ::std::process::exit(65)
+        }
+    };
 
     let strings = Rc::new(SymbolMap::new());
 
