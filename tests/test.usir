@@ -1,10 +1,33 @@
 
 t0 := [0]
 label l_start_0
-t2 := [1,65]
-t4 = t2
-t3 := l_foo.call(t4)
-t5 := [0]
-ret t5
+label l_start_1
+t2 := 10:i32
+label l_while_start_2
+label l_while_cond_3
+t3 = t2
+t4 := 10:i32
+if t3 < t4 then l_while_true_4 else l_while_false_5
+label l_while_true_4
+label l_start_6
+label l_start_7
+t5 = t2
+t6 := 6:i32
+if t5 == t6 then l_if_cond_8 else l_if_then_9
+label l_if_cond_8
+label l_start_10
+t7 := [0]
+ret t7
+label l_end_10
+label l_if_then_9
+label l_end_7
+t9 = t2
+t10 := 1:i32
+t2 := t9 + t10
+label l_end_6
+jump l_while_cond_3
+label l_while_false_5
+label l_while_end_2
+label l_end_1
 label l_end_0
-[Store(t0, Mem([0])), Label(Symbol(12)), Store(t2, Mem([1, 65])), Copy(t4, t2), Call(t3, Symbol(14), [t4]), Store(t5, Mem([0])), Return(t5), Label(Symbol(13))]
+[Store(t0, Mem([0])), Label(Symbol(13)), Label(Symbol(15)), Store(t2, Const(10, Signed, Bit32)), Label(Symbol(17)), Label(Symbol(19)), Copy(t3, t2), Store(t4, Const(10, Signed, Bit32)), CJump(LT, t3, t4, Symbol(20), Symbol(21)), Label(Symbol(20)), Label(Symbol(22)), Label(Symbol(24)), Copy(t5, t2), Store(t6, Const(6, Signed, Bit32)), CJump(EQ, t5, t6, Symbol(26), Symbol(27)), Label(Symbol(26)), Label(Symbol(28)), Store(t7, Mem([0])), Return(t7), Label(Symbol(29)), Label(Symbol(27)), Label(Symbol(25)), Copy(t9, t2), Store(t10, Const(1, Signed, Bit32)), BinOp(Plus, t9, t10, t2), Label(Symbol(23)), Jump(Symbol(19)), Label(Symbol(21)), Label(Symbol(18)), Label(Symbol(16)), Label(Symbol(14))]

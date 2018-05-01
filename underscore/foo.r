@@ -1,27 +1,48 @@
 ../Program {
-    structs: [],
+    structs: [
+        Struct {
+            name: Symbol(
+                0
+            ),
+            type_params: [],
+            fields: [
+                Field {
+                    name: Symbol(
+                        1
+                    ),
+                    ty: App(
+                        Int(
+                            Signed,
+                            Bit32
+                        ),
+                        []
+                    )
+                }
+            ]
+        }
+    ],
     functions: [
         Function {
             span: Span {
                 start: Position {
-                    line: 1,
+                    line: 5,
                     column: 1,
-                    absolute: 0
+                    absolute: 29
                 },
                 end: Position {
-                    line: 3,
+                    line: 7,
                     column: 1,
-                    absolute: 21
+                    absolute: 50
                 }
             },
             name: Symbol(
-                0
+                2
             ),
             generic: true,
             params: [
                 FunctionParam {
                     name: Symbol(
-                        1
+                        3
                     ),
                     ty: Array(
                         App(
@@ -49,18 +70,18 @@
         Function {
             span: Span {
                 start: Position {
-                    line: 5,
+                    line: 9,
                     column: 1,
-                    absolute: 24
+                    absolute: 53
                 },
                 end: Position {
-                    line: 8,
+                    line: 13,
                     column: 1,
-                    absolute: 64
+                    absolute: 109
                 }
             },
             name: Symbol(
-                2
+                4
             ),
             generic: true,
             params: [],
@@ -69,25 +90,40 @@
                 [
                     Let {
                         ident: Symbol(
-                            1
-                        ),
-                        ty: Array(
-                            Var(
-                                TypeVar(
-                                    0
-                                )
-                            ),
                             3
+                        ),
+                        ty: Struct(
+                            Symbol(
+                                0
+                            ),
+                            [
+                                Field {
+                                    name: Symbol(
+                                        1
+                                    ),
+                                    ty: Var(
+                                        TypeVar(
+                                            0
+                                        )
+                                    )
+                                }
+                            ],
+                            Unique(
+                                0
+                            )
                         ),
                         expr: Some(
                             TypedExpression {
-                                expr: Array(
+                                expr: StructLit(
+                                    Symbol(
+                                        0
+                                    ),
                                     [
                                         TypedExpression {
                                             expr: Literal(
                                                 Number(
                                                     Number {
-                                                        value: 1,
+                                                        value: 10,
                                                         ty: None
                                                     }
                                                 )
@@ -97,65 +133,57 @@
                                                     0
                                                 )
                                             )
-                                        },
-                                        TypedExpression {
-                                            expr: Literal(
-                                                Number(
-                                                    Number {
-                                                        value: 2,
-                                                        ty: None
-                                                    }
-                                                )
-                                            ),
-                                            ty: Var(
-                                                TypeVar(
-                                                    1
-                                                )
-                                            )
-                                        },
-                                        TypedExpression {
-                                            expr: Literal(
-                                                Number(
-                                                    Number {
-                                                        value: 3,
-                                                        ty: None
-                                                    }
-                                                )
-                                            ),
-                                            ty: Var(
-                                                TypeVar(
-                                                    2
-                                                )
-                                            )
                                         }
                                     ]
                                 ),
-                                ty: Array(
-                                    Var(
-                                        TypeVar(
-                                            0
-                                        )
+                                ty: Struct(
+                                    Symbol(
+                                        0
                                     ),
-                                    3
+                                    [
+                                        Field {
+                                            name: Symbol(
+                                                1
+                                            ),
+                                            ty: Var(
+                                                TypeVar(
+                                                    0
+                                                )
+                                            )
+                                        }
+                                    ],
+                                    Unique(
+                                        0
+                                    )
                                 )
                             }
                         )
                     },
                     Expr(
                         TypedExpression {
-                            expr: Var(
+                            expr: Assign(
                                 Symbol(
                                     1
                                 ),
-                                Var(
-                                    TypeVar(
-                                        0
+                                TypedExpression {
+                                    expr: Literal(
+                                        Number(
+                                            Number {
+                                                value: 10,
+                                                ty: None
+                                            }
+                                        )
+                                    ),
+                                    ty: Var(
+                                        TypeVar(
+                                            1
+                                        )
                                     )
-                                )
+                                }
                             ),
                             ty: Var(
                                 TypeVar(
-                                    0
+                                    1
                                 )
                             )
                         }

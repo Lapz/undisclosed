@@ -1,5 +1,4 @@
 use codegen::{ir::*, temp::{new_label, new_label_pair, new_named_label, Label, Temp}};
-use std::mem;
 use ast;
 use util::symbol::Symbols;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
@@ -151,6 +150,7 @@ impl Codegen {
 
     fn gen_expression(&mut self, expr: &ast::TypedExpression, temp: Temp) {
         match *expr.expr {
+            ast::Expression::Array(ref items) => {}
             ast::Expression::Assign(ref name, ref value) => {
                 let temp = self.symbols.look(*name).unwrap().clone();
                 self.gen_expression(value, temp);
@@ -263,12 +263,24 @@ impl Codegen {
                     .push(Instruction::UnOp(op, temp, new_temp))
             }
 
-            ast::Expression::Var(ref var, _) => {
-                let var = self.symbols.look(*var).unwrap().clone();
-                self.instructions.push(Instruction::Copy(temp, var))
+            ast::Expression::Var(ref var) => {
+               self.gen_var(var,temp);
+                
             }
 
             _ => unimplemented!(),
+        }
+    }
+
+
+    fn gen_var(&mut self, var:&ast::Var,temp:Temp) {
+        match *var {
+            ast::Var::Simple(ref sym,_) => {
+                  let var = *self.symbols.look(*sym).unwrap();
+                  self.instructions.push(Instruction::Copy(temp, var))
+            },
+
+            _ => unimplemented!()
         }
     }
 
@@ -295,9 +307,8 @@ impl Codegen {
                 }
             }
 
-            ast::Expression::Var(ref var, _) => {
-                let var = self.symbols.look(*var).unwrap().clone();
-                self.instructions.push(Instruction::Copy(Temp::new(), var))
+            ast::Expression::Var(ref var) => {
+                self.gen_var(var, Temp::new())
             }
 
             _ => self.gen_expression(cond, Temp::new()),

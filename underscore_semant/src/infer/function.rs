@@ -345,15 +345,16 @@ impl Infer {
                 ref name,
                 ref value,
             } => {
-                let (name, ty) = self.infer_var(name, env, reporter)?;
+                unimplemented!()
+                // let (name, ty) = self.infer_var(name, env, reporter)?;
 
-                let value_ty = self.infer_expr(value, env, reporter)?;
+                // let value_ty = self.infer_expr(value, env, reporter)?;
 
-                self.unify(&ty, &value_ty.ty, reporter, expr.span, env)?;
+                // self.unify(&ty, &value_ty.ty, reporter, expr.span, env)?;
 
-                let ty = value_ty.ty.clone();
+                // let ty = value_ty.ty.clone();
 
-                (ast::Expression::Assign(name, value_ty), ty)
+                // (ast::Expression::Assign(name, value_ty), ty)
             }
 
             Expression::Binary {
@@ -499,9 +500,9 @@ impl Infer {
             }
 
             Expression::Var(ref var) => {
-                let (typed, ty) = self.infer_var(var, env, reporter)?;
+                let (var, ty) = self.infer_var(var, env, reporter)?;
 
-                (ast::Expression::Var(typed, ty.clone()), ty)
+                (ast::Expression::Var(var), ty)
             }
 
             _ => unimplemented!(),
@@ -750,11 +751,15 @@ impl Infer {
 
         env: &mut Env,
         reporter: &mut Reporter,
-    ) -> InferResult<(Symbol, Type)> {
+    ) -> InferResult<(ast::Var, Type)> {
         match var.value {
             Var::Simple(ref ident) => {
                 if let Some(var) = env.look_var(ident.value).cloned() {
-                    Ok((ident.value, var.get_ty()))
+                    // Ok((ident.value, var.get_ty()))
+
+                    let ty = var.get_ty();
+
+                    Ok((ast::Var::Simple(ident.value, ty.clone()), ty))
                 } else {
                     let msg = format!("Undefined variable `{}` ", env.name(ident.value));
                     reporter.error(msg, var.span);
@@ -780,7 +785,10 @@ impl Infer {
                     Type::Struct(ref ident, ref fields, _) => {
                         for field in fields {
                             if field.name == value.value {
-                                return Ok((field.name, field.ty.clone()));
+                                return Ok((
+                                    ast::Var::Field(*ident, field.name, field.ty.clone()),
+                                    field.ty.clone(),
+                                ));
                             }
                         }
 
@@ -821,25 +829,51 @@ impl Infer {
 
                 let target_ty = target_ty.get_ty();
 
-                if !target_ty.is_int() {
-                    let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
-                    reporter.error(msg, target.span);
-                    return Err(());
+                match target_ty {
+                    Type::Array(_, _) | Type::App(TyCon::String, _) => {}
+
+                    _ => {
+                        let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
+                        reporter.error(msg, target.span);
+                        return Err(());
+                    }
                 }
 
-                let expr_ty = self.infer_expr(expr, env, reporter)?.ty;
+                let expr_ty = self.infer_expr(expr, env, reporter)?;
 
-                if !expr_ty.is_int() {
-                    let msg = format!("Index expr cannot be of type `{}`", expr_ty.print(env));
-                    reporter.error(msg, var.span);
-                    return Err(());
+                match expr_ty.ty {
+                    Type::App(TyCon::Int(_, _), _) => {}
+                    Type::Var(ref tvar) => {
+                        if let Some(&VarType::Other) = env.look_tvar(*tvar) {
+                            let msg =
+                                format!("Index expr cannot be of type `{}`", expr_ty.ty.print(env));
+                            reporter.error(msg, var.span);
+                            return Err(());
+                        }
+                    }
+
+                    _ => {
+                        let msg =
+                            format!("Index expr cannot be of type `{}`", expr_ty.ty.print(env));
+                        reporter.error(msg, var.span);
+                        return Err(());
+                    }
                 }
 
                 match target_ty {
                     Type::App(TyCon::String, _) => Ok((
-                        target.value,
+                        ast::Var::SubScript(
+                            target.value,
+                            expr_ty,
+                            Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
+                        ),
                         Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
                     )),
+                    Type::Array(ref ty, _) => Ok((
+                        ast::Var::SubScript(target.value, expr_ty, *ty.clone()),
+                        *ty.clone(),
+                    )),
+
                     _ => {
                         let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
                         reporter.error(msg, target.span);

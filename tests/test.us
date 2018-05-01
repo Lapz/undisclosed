@@ -1,13 +1,14 @@
+struct Foo {
+    head:i32
+}
 
 fn foo(a:[u32;3]) {
 
 }
 
 fn main() {
-   
-
-   foo([1,2,3]);
-
-   
+    let a = Foo{head:10};
+    
+    a.head = 10;
 }
 
