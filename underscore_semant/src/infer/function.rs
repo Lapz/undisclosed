@@ -345,16 +345,15 @@ impl Infer {
                 ref name,
                 ref value,
             } => {
-                unimplemented!()
-                // let (name, ty) = self.infer_var(name, env, reporter)?;
+                let (name, ty) = self.infer_var(name, env, reporter)?;
 
-                // let value_ty = self.infer_expr(value, env, reporter)?;
+                let value_ty = self.infer_expr(value, env, reporter)?;
 
-                // self.unify(&ty, &value_ty.ty, reporter, expr.span, env)?;
+                self.unify(&ty, &value_ty.ty, reporter, expr.span, env)?;
 
-                // let ty = value_ty.ty.clone();
+                let ty = value_ty.ty.clone();
 
-                // (ast::Expression::Assign(name, value_ty), ty)
+                (ast::Expression::Assign(name, value_ty), ty)
             }
 
             Expression::Binary {

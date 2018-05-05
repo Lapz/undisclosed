@@ -1,14 +1,15 @@
-struct Foo {
-    head:i32
-}
-
-fn foo(a:[u32;3]) {
-
-}
-
 fn main() {
-    let a = Foo{head:10};
+    let x = true;
+    let y = false;
+    let z = 3;
+    let v = 10;
+
+    if x {
+        if y {
+            z =v;
+        }
+    }
+
     
-    a.head = 10;
 }
 

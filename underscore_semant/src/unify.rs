@@ -51,6 +51,18 @@ impl Infer {
                 Ok(())
             }
 
+            (&Type::Array(ref ty, _), ref other) => {
+                self.unify(ty, other, reporter, span, env)?;
+
+                Ok(())
+            }
+
+            (ref other, &Type::Array(ref ty, _)) => {
+                self.unify(ty, other, reporter, span, env)?;
+
+                Ok(())
+            }
+
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
                 if tycon1 != tycon2 {
                     let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(env), rhs.print(env));
@@ -119,6 +131,7 @@ impl Infer {
             },
 
             (&Type::Var(_), &Type::App(TyCon::Int(_, _), _)) => Ok(()),
+
             (&Type::App(TyCon::Int(_, _), _), &Type::Var(_)) => Ok(()),
 
             (&Type::Nil, &Type::Nil) => Ok(()),

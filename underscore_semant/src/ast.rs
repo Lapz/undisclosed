@@ -63,7 +63,7 @@ pub enum Expression {
     Array(Vec<TypedExpression>),
     Assign2(Var, TypedExpression),
 
-    Assign(Symbol, TypedExpression),
+    Assign(Var, TypedExpression),
 
     Binary(TypedExpression, Op, TypedExpression),
 

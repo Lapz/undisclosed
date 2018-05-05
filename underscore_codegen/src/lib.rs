@@ -9,6 +9,7 @@ pub mod ir;
 pub mod temp;
 pub mod translate;
 pub mod x86;
+pub mod optimize;
 
 #[cfg(test)]
 mod tests {
