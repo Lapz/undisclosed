@@ -1,5 +1,4 @@
 use codegen::{ir::*, temp::{new_label, new_label_pair, new_named_label, Label, Temp}};
-use std::mem;
 use ast;
 use util::symbol::Symbols;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
@@ -7,11 +6,13 @@ use types::{TyCon, Type};
 use std::u64;
 #[derive(Debug)]
 pub struct Codegen {
-    instructions: Vec<Instruction>,
+    pub instructions: Vec<Instruction>,
     loop_label: Option<Label>,
     loop_break_label: Option<Label>,
     symbols: Symbols<Temp>,
 }
+
+const HP: Temp = Temp(0);
 
 impl Codegen {
     pub fn new(symbols: Symbols<Temp>) -> Self {
@@ -47,13 +48,13 @@ impl Codegen {
     fn gen_statement(&mut self, statement: &ast::Statement) {
         match *statement {
             ast::Statement::Block(ref statements) => {
-                let (start, end) = new_label_pair("start", "end", &mut self.symbols);
-                self.instructions.push(Instruction::Label(start));
+                // let (start, end) = new_label_pair("start", "end", &mut self.symbols);
+                // self.instructions.push(Instruction::Label(start));
                 for statement in statements {
                     self.gen_statement(statement)
                 }
 
-                self.instructions.push(Instruction::Label(end));
+                // self.instructions.push(Instruction::Label(end));
             }
 
             ast::Statement::Break => self.instructions.push(Instruction::Jump(
@@ -65,7 +66,7 @@ impl Codegen {
             )),
             ast::Statement::Let {
                 ref ident,
-                // ref ty,
+                ref ty,
                 ref expr,
                 ..
             } => {
@@ -75,7 +76,23 @@ impl Codegen {
                 if let Some(ref expr) = *expr {
                     let id_temp = Temp::new();
                     self.symbols.enter(*ident, id_temp);
-                    self.gen_expression(expr, id_temp);
+
+                    match *ty {
+                        Type::Array(_, ref len) => {
+                            self.instructions.push(Instruction::Copy(HP, id_temp));
+
+                            let temp = Temp::new();
+
+                            self.instructions.push(Instruction::Store(
+                                temp,
+                                Value::Const(4 * (*len as u64), Sign::Unsigned, Size::Bit64),
+                            ));
+
+                            self.instructions
+                                .push(Instruction::BinOp(BinOp::Plus, HP, temp, HP));
+                        }
+                        _ => self.gen_expression(expr, id_temp),
+                    }
                 }
             }
             ast::Statement::Expr(ref expr) => self.gen_expression(expr, Temp::new()),
@@ -151,9 +168,24 @@ impl Codegen {
 
     fn gen_expression(&mut self, expr: &ast::TypedExpression, temp: Temp) {
         match *expr.expr {
+            ast::Expression::Array(ref items) => {
+                let mut block = vec![];
+
+                for item in items {
+                    let temp = Temp::new();
+
+                    self.gen_expression(item, temp);
+                    block.push(temp);
+                }
+
+                self.instructions.push(Instruction::Block(temp, block))
+            }
             ast::Expression::Assign(ref name, ref value) => {
-                let temp = self.symbols.look(*name).unwrap().clone();
+                let temp = self.gen_var(name);
+
                 self.gen_expression(value, temp);
+
+                self.instructions.push(Instruction::Copy(temp, temp))
                 //  let temp = self.symbols.look(symbol)
             }
             ast::Expression::Binary(ref lhs, ref op, ref rhs) => {
@@ -162,34 +194,19 @@ impl Codegen {
                 let rhs_temp = Temp::new();
 
                 match *op {
-                    Op::And => {
-                        let lnext = new_named_label("next", &mut self.symbols);
-                        let ltrue = new_named_label("true", &mut self.symbols);
-                        let lfalse = new_named_label("false", &mut self.symbols);
-
-                        self.gen_cond(lhs, lnext, lfalse);
-
-                        self.instructions.push(Instruction::Jump(lnext));
-
-                        self.gen_cond(rhs, ltrue, lfalse);
-                    }
-                    Op::Or => {
-                        let lnext = new_named_label("next", &mut self.symbols);
-                        let ltrue = new_named_label("true", &mut self.symbols);
-                        let lfalse = new_named_label("false", &mut self.symbols);
-
-                        self.gen_cond(lhs, ltrue, lnext);
-
-                        self.instructions.push(Instruction::Jump(lnext));
-
-                        self.gen_cond(rhs, ltrue, lfalse);
-                    }
-                    rest => {
+                    Op::Plus | Op::Minus | Op::Slash | Op::Star => {
                         self.gen_expression(lhs, lhs_temp);
                         self.gen_expression(rhs, rhs_temp);
-                        let op = gen_bin_op(&rest);
+                        let op = gen_bin_op(op);
                         self.instructions
                             .push(Instruction::BinOp(op, lhs_temp, rhs_temp, temp));
+                    }
+
+                    _ => {
+                        let ltrue = new_named_label("ltrue", &mut self.symbols);
+                        let lfalse = new_named_label("lfalse", &mut self.symbols);
+
+                        self.gen_cond(expr, ltrue, lfalse)
                     }
                 }
             }
@@ -230,7 +247,7 @@ impl Codegen {
                         Value::Const(*b as u64, Sign::Unsigned, Size::Bit8)
                     }
 
-                    Literal::Nil => Value::Mem(vec![]),
+                    Literal::Nil => Value::Mem(vec![0x00000000]),
 
                     Literal::Number(ref number) => match number.ty {
                         Some((sign, size)) => Value::Const(number.value, sign, size),
@@ -263,9 +280,40 @@ impl Codegen {
                     .push(Instruction::UnOp(op, temp, new_temp))
             }
 
-            ast::Expression::Var(ref var, _) => {
-                let var = self.symbols.look(*var).unwrap().clone();
-                self.instructions.push(Instruction::Copy(temp, var))
+            ast::Expression::Var(ref var) => {
+                let t = self.gen_var(var);
+                self.instructions.push(Instruction::Copy(temp, t))
+            }
+
+            _ => unimplemented!(),
+        }
+    }
+
+    fn gen_var(&mut self, var: &ast::Var) -> Temp {
+        match *var {
+            ast::Var::Simple(ref sym, _) => *self.symbols.look(*sym).unwrap(),
+
+            ast::Var::SubScript(ref sym, ref expr, _) => {
+                let base = *self.symbols.look(*sym).unwrap();
+
+                let addr = Temp::new();
+
+                self.gen_expression(expr, addr);
+
+                let temp = Temp::new();
+
+                self.instructions.push(Instruction::Store(
+                    temp,
+                    Value::Const(4, Sign::Unsigned, Size::Bit64),
+                ));
+
+                self.instructions
+                    .push(Instruction::BinOp(BinOp::Mul, addr, temp, addr));
+
+                self.instructions
+                    .push(Instruction::BinOp(BinOp::Plus, addr, base, addr));
+
+                addr
             }
 
             _ => unimplemented!(),
@@ -274,31 +322,48 @@ impl Codegen {
 
     fn gen_cond(&mut self, cond: &ast::TypedExpression, ltrue: Label, lfalse: Label) {
         match *cond.expr {
-            ast::Expression::Binary(ref lhs, ref op, ref rhs) => {
-                let lhs_temp = Temp::new();
+            ast::Expression::Binary(ref lhs, ref op, ref rhs) => match *op {
+                Op::NEq => self.gen_cond(cond, lfalse, ltrue),
 
-                let rhs_temp = Temp::new();
+                Op::And => {
+                    let lnext = new_named_label("next", &mut self.symbols);
 
-                match *op {
-                    Op::LT | Op::GT | Op::GTE | Op::LTE | Op::NEq | Op::Equal => {
-                        self.gen_expression(lhs, lhs_temp);
-                        self.gen_expression(rhs, rhs_temp);
-                        self.instructions.push(Instruction::CJump(
-                            gen_cmp_op(op),
-                            lhs_temp,
-                            rhs_temp,
-                            ltrue,
-                            lfalse,
-                        ))
-                    }
-                    _ => unreachable!(),
+                    self.gen_cond(lhs, lnext, lfalse);
+
+                    self.instructions.push(Instruction::Jump(lnext));
+
+                    self.gen_cond(rhs, ltrue, lfalse);
+
+                    self.instructions.push(Instruction::Label(lnext));
                 }
-            }
+                Op::Or => {
+                    let lnext = new_named_label("next", &mut self.symbols);
 
-            ast::Expression::Var(ref var, _) => {
-                let var = self.symbols.look(*var).unwrap().clone();
-                self.instructions.push(Instruction::Copy(Temp::new(), var))
-            }
+                    self.gen_cond(lhs, ltrue, lnext);
+
+                    self.instructions.push(Instruction::Jump(lnext));
+
+                    self.gen_cond(rhs, ltrue, lfalse);
+
+                    self.instructions.push(Instruction::Label(lnext));
+                }
+
+                Op::LT | Op::GT | Op::GTE | Op::LTE => {
+                    let lhs_temp = Temp::new();
+                    let rhs_temp = Temp::new();
+                    self.gen_expression(lhs, lhs_temp);
+                    self.gen_expression(rhs, rhs_temp);
+                    self.instructions.push(Instruction::CJump(
+                        gen_cmp_op(op),
+                        lhs_temp,
+                        rhs_temp,
+                        ltrue,
+                        lfalse,
+                    ))
+                }
+
+                ref e => unreachable!("{:?}", e),
+            },
 
             _ => self.gen_expression(cond, Temp::new()),
         }

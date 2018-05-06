@@ -56,6 +56,7 @@ pub enum Ty {
     Func(Vec<Spanned<Ty>>, Option<Box<Spanned<Ty>>>),
     Poly(Spanned<Symbol>, Vec<Spanned<Ty>>),
     Simple(Spanned<Symbol>),
+    Array(Box<Spanned<Ty>>, usize),
     Nil,
     I8,
     I32,
@@ -104,6 +105,9 @@ pub enum Statement {
 }
 #[derive(Debug)]
 pub enum Expression {
+    Array {
+        items: Vec<Spanned<Expression>>,
+    },
     Assign {
         name: Spanned<Var>,
         value: Box<Spanned<Expression>>,

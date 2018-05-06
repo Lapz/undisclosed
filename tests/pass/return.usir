@@ -1,0 +1,6 @@
+
+label l_start_0
+t0 := [0]
+ret t0
+label l_end_0
+[Label(Symbol(10)), Store(t0, Mem([0])), Return(t0), Label(Symbol(11))]

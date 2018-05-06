@@ -9,12 +9,12 @@ extern crate underscore_util;
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-// use underscore_codegen::gen::{};
 use underscore_semant::{Codegen, Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
+use underscore_codegen::optimize::Optimizer;
 
 fn main() {
     let opts = Cli::from_args();
@@ -135,6 +135,10 @@ fn run(path: String, dump_file: Option<String>) {
     codegen.gen_program(&ast);
 
     codegen.dump_to_file(format!("{}ir", path));
+
+    Optimizer::strength_reduction(&mut codegen.instructions);
+
+    codegen.dump_to_file(format!("{}ir_optimized", path));
 }
 
 #[derive(StructOpt, Debug)]

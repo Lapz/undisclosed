@@ -1,6 +1,5 @@
 use super::{Infer, InferResult};
 use cast_check::*;
-use codegen::gen::{CodeGen, Ctx};
 use codegen::{temp, translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry, VarType};
 use std::collections::HashMap;
@@ -317,6 +316,31 @@ impl Infer {
         reporter: &mut Reporter,
     ) -> InferResult<ast::TypedExpression> {
         let (typed, ty) = match expr.value {
+            Expression::Array { ref items } => {
+                if items.is_empty() {
+                    (
+                        ast::Expression::Array(vec![]),
+                        Type::Array(Box::new(Type::Nil), 0),
+                    )
+                } else {
+                    let mut nitems = vec![self.infer_expr(&items[0], env, reporter)?];
+
+                    for item in items.iter().skip(1) {
+                        let span = item.span;
+                        let ty_expr = self.infer_expr(item, env, reporter)?;
+
+                        self.unify(&nitems[0].ty, &ty_expr.ty, reporter, span, env)?;
+                        nitems.push(ty_expr);
+                    }
+
+                    let ret_ty = nitems[0].ty.clone();
+                    let len = nitems.len();
+                    (
+                        ast::Expression::Array(nitems),
+                        Type::Array(Box::new(ret_ty), len),
+                    )
+                }
+            }
             Expression::Assign {
                 ref name,
                 ref value,
@@ -475,9 +499,9 @@ impl Infer {
             }
 
             Expression::Var(ref var) => {
-                let (typed, ty) = self.infer_var(var, env, reporter)?;
+                let (var, ty) = self.infer_var(var, env, reporter)?;
 
-                (ast::Expression::Var(typed, ty.clone()), ty)
+                (ast::Expression::Var(var), ty)
             }
 
             _ => unimplemented!(),
@@ -726,11 +750,15 @@ impl Infer {
 
         env: &mut Env,
         reporter: &mut Reporter,
-    ) -> InferResult<(Symbol, Type)> {
+    ) -> InferResult<(ast::Var, Type)> {
         match var.value {
             Var::Simple(ref ident) => {
                 if let Some(var) = env.look_var(ident.value).cloned() {
-                    Ok((ident.value, var.get_ty()))
+                    // Ok((ident.value, var.get_ty()))
+
+                    let ty = var.get_ty();
+
+                    Ok((ast::Var::Simple(ident.value, ty.clone()), ty))
                 } else {
                     let msg = format!("Undefined variable `{}` ", env.name(ident.value));
                     reporter.error(msg, var.span);
@@ -756,7 +784,10 @@ impl Infer {
                     Type::Struct(ref ident, ref fields, _) => {
                         for field in fields {
                             if field.name == value.value {
-                                return Ok((field.name, field.ty.clone()));
+                                return Ok((
+                                    ast::Var::Field(*ident, field.name, field.ty.clone()),
+                                    field.ty.clone(),
+                                ));
                             }
                         }
 
@@ -797,25 +828,51 @@ impl Infer {
 
                 let target_ty = target_ty.get_ty();
 
-                if !target_ty.is_int() {
-                    let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
-                    reporter.error(msg, target.span);
-                    return Err(());
+                match target_ty {
+                    Type::Array(_, _) | Type::App(TyCon::String, _) => {}
+
+                    _ => {
+                        let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
+                        reporter.error(msg, target.span);
+                        return Err(());
+                    }
                 }
 
-                let expr_ty = self.infer_expr(expr, env, reporter)?.ty;
+                let expr_ty = self.infer_expr(expr, env, reporter)?;
 
-                if !expr_ty.is_int() {
-                    let msg = format!("Index expr cannot be of type `{}`", expr_ty.print(env));
-                    reporter.error(msg, var.span);
-                    return Err(());
+                match expr_ty.ty {
+                    Type::App(TyCon::Int(_, _), _) => {}
+                    Type::Var(ref tvar) => {
+                        if let Some(&VarType::Other) = env.look_tvar(*tvar) {
+                            let msg =
+                                format!("Index expr cannot be of type `{}`", expr_ty.ty.print(env));
+                            reporter.error(msg, var.span);
+                            return Err(());
+                        }
+                    }
+
+                    _ => {
+                        let msg =
+                            format!("Index expr cannot be of type `{}`", expr_ty.ty.print(env));
+                        reporter.error(msg, var.span);
+                        return Err(());
+                    }
                 }
 
                 match target_ty {
                     Type::App(TyCon::String, _) => Ok((
-                        target.value,
+                        ast::Var::SubScript(
+                            target.value,
+                            expr_ty,
+                            Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
+                        ),
                         Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
                     )),
+                    Type::Array(ref ty, _) => Ok((
+                        ast::Var::SubScript(target.value, expr_ty, *ty.clone()),
+                        *ty.clone(),
+                    )),
+
                     _ => {
                         let msg = format!(" Cannot index type `{}` ", target_ty.print(env));
                         reporter.error(msg, target.span);
@@ -866,22 +923,26 @@ impl Infer {
                             let mut arg_tys = Vec::new();
                             let mut callee_exprs = vec![];
 
-                            for (tvar, arg) in tvars.iter().zip(args) {
-                                let ty = self.infer_expr(arg, env, reporter)?;
-                                mappings.insert(*tvar, ty.ty.clone());
+                            if tvars.is_empty() {
+                                for arg in args {
+                                    let ty_expr = self.infer_expr(arg, env, reporter)?;
+                                    arg_tys.push((ty_expr.ty.clone(), arg.span));
+                                    callee_exprs.push(ty_expr)
+                                }
+                            } else {
+                                for (tvar, arg) in tvars.iter().zip(args) {
+                                    let ty = self.infer_expr(arg, env, reporter)?;
+                                    mappings.insert(*tvar, ty.ty.clone());
 
-                                arg_tys.push((ty.ty.clone(), arg.span));
-                                callee_exprs.push(ty);
-                            }
-
-                            for arg in args {
-                                callee_exprs.push(self.infer_expr(arg, env, reporter)?)
+                                    arg_tys.push((ty.ty.clone(), arg.span));
+                                    callee_exprs.push(ty);
+                                }
                             }
 
                             for (ty, arg) in fn_types.iter().zip(arg_tys) {
                                 self.unify(
-                                    &self.subst(&arg.0, &mut mappings),
                                     &self.subst(ty, &mut mappings),
+                                    &self.subst(&arg.0, &mut mappings),
                                     reporter,
                                     arg.1,
                                     env,

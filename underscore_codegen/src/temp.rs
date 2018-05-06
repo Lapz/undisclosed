@@ -7,10 +7,10 @@ use util::symbol::{Symbol, Symbols};
 pub type Label = Symbol;
 
 /// A Temporary address in assembly language.
-#[derive(Clone, Copy, PartialEq, PartialOrd, Hash)]
+#[derive(Clone, Copy, PartialEq, PartialOrd, Hash, Eq)]
 pub struct Temp(pub u32);
 
-static mut TEMP_COUNT: u32 = 0;
+static mut TEMP_COUNT: u32 = 1;
 static mut LABEL_COUNT: u32 = 0;
 pub fn new_label<T: Clone>(symbol: Symbol, symbols: &mut Symbols<T>) -> Symbol {
     let name = symbols.name(symbol);

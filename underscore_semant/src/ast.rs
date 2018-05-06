@@ -60,21 +60,42 @@ pub enum Statement {
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-    Assign(Symbol, TypedExpression),
+    Array(Vec<TypedExpression>),
+    Assign2(Var, TypedExpression),
+
+    Assign(Var, TypedExpression),
+
     Binary(TypedExpression, Op, TypedExpression),
 
     Cast(TypedExpression, Type),
 
     Call(Symbol, Vec<TypedExpression>),
-    Closure(Box<Function>),
 
-    Grouping { expr: TypedExpression },
+    Closure(Box<Function>),
+    /// Field access i.e foo.bar;
+    Field(Symbol, Symbol),
+
+    Grouping {
+        expr: TypedExpression,
+    },
+
+    Index(Symbol, TypedExpression),
 
     Literal(Literal),
 
     StructLit(Symbol, Vec<TypedExpression>),
 
     Unary(UnaryOp, TypedExpression),
+    /// Simple var i.e x;
+    Var(Var),
+}
 
-    Var(Symbol, Type),
+#[derive(Debug, Clone)]
+pub enum Var {
+    /// Field access i.e foo.bar;
+    Field(Symbol, Symbol, Type),
+    /// Simple var i.e x;
+    Simple(Symbol, Type),
+    /// Index operation i.e a[10];
+    SubScript(Symbol, TypedExpression, Type),
 }

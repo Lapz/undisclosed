@@ -653,6 +653,31 @@ impl<'a, 'b> Parser<'a, 'b> {
                 value: Ty::Bool,
                 span: self.consume_get_span(&TokenType::BOOL, "Expected a bool")?,
             })
+        } else if self.recognise(TokenType::LBRACKET) {
+            let open_span = self.consume_get_span(&TokenType::LBRACKET, "Expected '[' ")?;
+
+            let ty = self.parse_type()?;
+
+            self.consume(&TokenType::SEMICOLON, "Expected ';'")?;
+
+            let len = match self.advance() {
+                Some(Spanned {
+                    ref span,
+                    ref value,
+                }) => match value.token {
+                    TokenType::Number(ref n) => n.value as usize,
+
+                    _ => unimplemented!(),
+                },
+                _ => unimplemented!(),
+            };
+
+            let close_span = self.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
+
+            Ok(Spanned {
+                value: Ty::Array(Box::new(ty), len),
+                span: open_span.to(close_span),
+            })
         } else if self.recognise(TokenType::STR) {
             Ok(Spanned {
                 value: Ty::Str,
@@ -1186,6 +1211,8 @@ impl<'a, 'b> Parser<'a, 'b> {
                     })
                 }
 
+                TokenType::LBRACKET => self.parse_array(*span),
+
                 TokenType::IDENTIFIER(ident) => {
                     let ident = Spanned {
                         value: self.ident(ident),
@@ -1404,6 +1431,32 @@ impl<'a, 'b> Parser<'a, 'b> {
                 span: callee.get_span(),
                 value: Call::Simple { callee, args },
             }),
+        })
+    }
+
+    fn parse_array(&mut self, open_span: Span) -> ParserResult<Spanned<Expression>> {
+        let mut items = vec![];
+
+        if !self.recognise(TokenType::RBRACKET) {
+            loop {
+                if self.recognise(TokenType::RBRACKET) {
+                    break;
+                }
+                items.push(self.parse_expression()?);
+
+                if self.recognise(TokenType::COMMA) {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let close = self.consume_get_span(&TokenType::RBRACKET, "Expected ']'")?;
+
+        Ok(Spanned {
+            span: open_span.to(close),
+            value: Expression::Array { items },
         })
     }
 

@@ -114,6 +114,13 @@ impl FindEscape {
         env: &mut Symbols<(u32, bool)>,
     ) -> InferResult<()> {
         match expr.value {
+            Expression::Array { ref mut items } => {
+                for item in items {
+                    self.escape_expression(item, env)?;
+                }
+
+                Ok(())
+            }
             Expression::Assign {
                 ref name,
                 ref mut value,

@@ -11,10 +11,6 @@ pub enum Instruction {
     Copy(Temp, Temp),
     /// Jump to a label
     Jump(Label),
-
-    /// Jump to a label witha temp
-    TJump(Temp, Label),
-
     /// CAST the expresion to a different type treating it a
     Cast(Temp, Sign, Size), //TODO take into account sign
 
@@ -28,14 +24,17 @@ pub enum Instruction {
     CJump(CmpOp, Temp, Temp, Label, Label),
     /// A Value
     Value(Value),
-    /// A sequence  of instructions
-    Block(Value, Vec<Instruction>),
     /// Call a function with arguments
     Call(Temp, Label, Vec<Temp>),
     /// Empty Label
     Label(Label),
     /// Return
     Return(Temp),
+    /// Load
+    Load(Temp),
+
+    /// Block
+    Block(Temp, Vec<Temp>),
 }
 
 #[derive(Debug)]
@@ -54,12 +53,30 @@ impl Instruction {
     pub fn fmt<T: Clone>(&self, symbols: &mut util::symbol::Symbols<T>) -> String {
         match *self {
             Instruction::Store(ref temp, ref value) => format!("\n{} := {}", temp, value),
-            Instruction::Value(ref value) => format!("{}", value),
+            Instruction::Value(ref value) => format!("\n{}", value),
             Instruction::BinOp(ref op, ref v1, ref v2, ref t) => {
                 format!("\n{} := {} {} {}", t, v1, op, v2)
             }
 
-            Instruction::Copy(ref t1, ref t2) => format!("\n{} = {}", t1, t2),
+            Instruction::Block(ref temp, ref temps) => {
+                let mut fmt_str = format!("\n{} := [", temp);
+
+                for (i, temp) in temps.iter().enumerate() {
+                    if i + 1 == temps.len() {
+                        fmt_str.push_str(&format!("{}", temp))
+                    } else {
+                        fmt_str.push_str(&format!("{},", temp));
+                    }
+                }
+
+                fmt_str.push_str("]");
+
+                fmt_str
+            }
+
+            Instruction::Load(ref temp) => format!("\nload{}", temp),
+
+            Instruction::Copy(ref t1, ref t2) => format!("\n{} := {}", t1, t2),
             Instruction::UnOp(ref op, ref t1, ref t2) => format!("\n{} := {} {}", t1, op, t2),
             Instruction::Cast(ref t1, ref sign, ref size) => {
                 format!("\nt1 := {}:{}{}", t1, sign, size)
@@ -80,9 +97,6 @@ impl Instruction {
                 fmt_str
             }
             Instruction::Jump(ref label) => format!("\njump {}", symbols.name(*label)),
-            Instruction::TJump(ref temp, ref label) => {
-                format!("\ntjump {} {}", temp, symbols.name(*label))
-            }
             Instruction::CJump(ref op, ref t1, ref t2, ref ltrue, ref lfalse) => format!(
                 "\nif {} {} {} then {} else {}",
                 t1,
@@ -92,7 +106,7 @@ impl Instruction {
                 symbols.name(*lfalse)
             ),
             Instruction::Label(ref label) => format!("\nlabel {}", symbols.name(*label)),
-            ref e_ => unimplemented!("{:?}", e_),
+            Instruction::Return(ref ret) => format!("\nret {}", ret),
         }
     }
 }
