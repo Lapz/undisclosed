@@ -57,6 +57,22 @@ impl<'a> VM<'a> {
     pub fn run(&mut self) -> VMResult {
         loop {
             debug!("{:?}", self.dissassemble("run"));
+            
+            if cfg!(feature = "debug") {
+               
+                print!("[");
+
+
+                for (i,byte) in self.stack.iter().enumerate() {
+                    if i + 1 == self.stack.len() {
+                        print!("{}",byte);
+                    } else {
+                        print!("{},",byte);
+                    }
+                }
+
+               print!("]");
+            }
 
             match OpCode::try_from(self.code[self.ip]) {
                 Ok(OpCode::Return) => return Ok(()),
@@ -79,7 +95,7 @@ impl<'a> VM<'a> {
                         _ => unreachable!(),
                     }
 
-                    break;
+                    // break;
                 }
                 Ok(OpCode::ConstantLong) => {
                     break;
