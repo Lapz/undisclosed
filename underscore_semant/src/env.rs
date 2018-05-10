@@ -1,4 +1,6 @@
-use codegen::{temp, translate::{Level, TranslateAccess}};
+use codegen::{
+    temp, translate::{Level, TranslateAccess},
+};
 use std::collections::HashMap;
 use std::rc::Rc;
 use syntax::ast::{Sign, Size};

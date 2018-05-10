@@ -5,16 +5,18 @@ extern crate underscore_codegen;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
+extern crate underscore_vm;
 
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
+use underscore_codegen::optimize::Optimizer;
 use underscore_semant::{Codegen, Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
-use underscore_codegen::optimize::Optimizer;
+use underscore_vm::VM;
 
 fn main() {
     let opts = Cli::from_args();
@@ -130,6 +132,10 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
+    let mut code = vec![1,2,4,12, 0, 0, 0];
+    let mut vm = VM::new(&mut code);
+
+    vm.run().expect("Err");
     let mut codegen = Codegen::new(symbols);
 
     codegen.gen_program(&ast);

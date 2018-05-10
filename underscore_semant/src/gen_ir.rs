@@ -1,9 +1,12 @@
-use codegen::{ir::*, temp::{new_label, new_label_pair, new_named_label, Label, Temp}};
 use ast;
-use util::symbol::Symbols;
+use codegen::{
+    ir::*, temp::{new_label, new_label_pair, new_named_label, Label, Temp},
+};
+use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};
-use std::u64;
+use util::symbol::Symbols;
+
 #[derive(Debug)]
 pub struct Codegen {
     pub instructions: Vec<Instruction>,

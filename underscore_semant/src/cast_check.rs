@@ -1,6 +1,6 @@
 use super::InferResult;
-use types::{TyCon, Type};
 use env::{Env, VarType};
+use types::{TyCon, Type};
 
 pub fn cast_check(env: &Env, expr: &Type, to: &Type) -> InferResult<()> {
     match *to {
