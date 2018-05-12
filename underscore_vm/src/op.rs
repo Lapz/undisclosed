@@ -4,8 +4,8 @@ pub enum OpCode {
     Return = 0x01,
     /// Ints
     Constant = 0x02,
-    /// Floats
-    ConstantLong = 0x03,
+    /// Unary Neg
+    Neg = 0x03,
 }
 
 pub trait TryFrom<T>: Sized {
@@ -29,7 +29,7 @@ impl TryFrom<u8> for OpCode {
         match original {
             1 => Ok(OpCode::Return),
             2 => Ok(OpCode::Constant),
-            3 => Ok(OpCode::ConstantLong),
+            3 => Ok(OpCode::Neg),
             _ => Err(()),
         }
     }

@@ -8,3 +8,4 @@ authors = ["LenardPratt <striderman34@gmail.com>"]
 
 [features]
 debug = []
+stack = ["debug"]

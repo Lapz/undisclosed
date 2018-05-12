@@ -16,7 +16,7 @@ macro_rules! pop {
 #[cfg(feature = "debug")]
     pub fn simple_instruction(name: &str, offset: usize) -> usize {
         println!("{}", name);
-        offset + 1
+        offset + 2
     }
 
 impl<'a> VM<'a> {
@@ -46,10 +46,8 @@ impl<'a> VM<'a> {
 
         match OpCode::try_from(instruction) {
             Ok(OpCode::Return) => simple_instruction("OP_RETURN", offset),
+            Ok(OpCode::Neg) => simple_instruction("OP_NEG", offset),
             Ok(OpCode::Constant) => self.constant_instruction("OP_CONSTANT", offset as usize),
-            Ok(OpCode::ConstantLong) => {
-                self.long_constant_instruction("OP_CONSTANTLONG", offset as usize)
-            }
             _ => {
                 println!("Unknown opcode {}", instruction);
                 offset + 1

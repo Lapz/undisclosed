@@ -4,6 +4,8 @@ pub struct VM<'a> {
     pub code: &'a mut [u8],
     stack: [u8; 256],
     stack_top: usize,
+    values:[u8; 256],
+    values_top: usize,
     ip: usize,
 }
 
@@ -15,7 +17,8 @@ macro_rules! pop {
         $top -= mem::size_of::<$type>();
 
         let mut b: [u8; mem::size_of::<$type>()] = default::Default::default();
-        b.copy_from_slice($stack);
+       
+        b.copy_from_slice(&$stack[$top..$top+mem::size_of::<$type>()]);
         unsafe { mem::transmute::<_, $type>(b) }
     }};
 }
@@ -29,14 +32,24 @@ macro_rules! push {
         use std::default;
         use std::mem;
 
-        let mut b = &mut$stack[$from..$to];
+       
+        let mut b = &mut$stack[$from..($from+$to)];
 
+        
         b.copy_from_slice($bytes);
 
         $from += $to;
     }};
 }
 
+macro_rules! to_bytes {
+    ($expr:expr => $type:ty) => {{
+        use std::mem;
+        unsafe {
+            mem::transmute::<_,[u8;mem::size_of::<$type>()]>($expr)
+        }
+    }}
+}
 type VMResult = Result<(), VMError>;
 
 #[derive(Debug)]
@@ -51,57 +64,135 @@ impl<'a> VM<'a> {
     }
 
     pub fn new(code: &'a mut [u8]) -> Self {
-        VM { ip: 0,stack_top:1,stack:[0;256],code }
+        VM { ip: 0,stack_top:1,stack:[0;256],values:[0;256],values_top:0,code }
     }
 
     pub fn run(&mut self) -> VMResult {
+        debug!("{:?}", self.dissassemble("run"));
         loop {
-            debug!("{:?}", self.dissassemble("run"));
             
-            if cfg!(feature = "debug") {
+            
+            if cfg!(feature = "stack") {
                
-                print!("[");
+                println!("[");
 
 
-                for (i,byte) in self.stack.iter().enumerate() {
-                    if i + 1 == self.stack.len() {
+                for (i,byte) in self.values.iter().enumerate() {
+                    if i + 1 == self.values.len() {
                         print!("{}",byte);
                     } else {
                         print!("{},",byte);
                     }
                 }
 
-               print!("]");
+               println!("]");
             }
 
+            
+
             match OpCode::try_from(self.code[self.ip]) {
-                Ok(OpCode::Return) => return Ok(()),
-                Ok(OpCode::Constant) => {
-                    let size = self.code[self.ip + 1] as usize;
-                    self.ip += 1;
+                Ok(OpCode::Return) => {
+                     self.ip += 1;
+
+                    let size = self.code[self.ip] as usize;
 
                     match size {
                         1 => {
-                            push!(&self.code[self.stack_top..self.stack_top+1] => self.stack,[self.stack_top,size])
+
+                             println!("{}",pop!([&self.values,self.values_top] => i8))
+                            
                         }
+
                         4 => {
-                            push!(&self.code[self.stack_top..self.stack_top+1] => self.stack,[self.stack_top,size])
+                             println!("{}",pop!([&self.values,self.values_top] => i32));
+                            
+            
                         }
 
                         8 => {
-                            push!(&self.code[self.stack_top..self.stack_top+1] => self.stack,[self.stack_top,size])
+                            println!("{}",pop!([&self.values,self.values_top] => i64));
+                             
+                        },
+                        _ => unreachable!()
+                    };
+
+                   
+                    
+                    return Ok(())
+                },
+                Ok(OpCode::Constant) => {
+                    
+                    self.ip += 1;
+
+                    let size = self.code[self.ip] as usize;
+                   
+                    
+                    self.ip +=1;
+                  
+                
+                    match size {
+                        1 => {
+                            push!(&self.code[self.ip..self.ip+size] => self.stack,[self.stack_top,size]);
+                        }
+
+                        4 => {
+                            push!(&self.code[self.ip..self.ip+size] => self.values,[self.values_top,size]);
+                            
+            
+                        }
+
+                        8 => {
+                            push!(&self.code[self.ip..self.ip+size] => self.stack,[self.stack_top,size]);
+                             
                         }
 
                         _ => unreachable!(),
                     }
 
+                    self.ip+=size; 
+
                     // break;
+                },
+
+                Ok(OpCode::Neg) => {
+                    self.ip += 1;
+
+                    let size = self.code[self.ip] as usize;
+                     self.ip += 1;
+                    
+
+           
+                    match size {
+                        1 => {
+                            let a = pop!([&self.values,self.values_top] => i8) ;
+                            push!( &to_bytes!(-a => i8)     => self.values,[self.values_top,size]);
+                           
+                            
+                        }
+
+                        4 => {
+                            let a = pop!([&self.values,self.values_top] => i32) ;
+                             push!( &to_bytes!(-a => i32)     => self.values,[self.values_top,size]);
+                            
+            
+                        }
+
+                        8 => {
+                            let a = pop!([&self.values,self.values_top] => i64) ;
+                            push!( &to_bytes!(-a => i64)     => self.values,[self.values_top,size]);
+                        },
+                        _ => unreachable!()
+                    };
                 }
-                Ok(OpCode::ConstantLong) => {
-                    break;
-                }
-                Err(_) => return Err(VMError::RuntimeError),
+               
+
+                
+                Err(_) => {
+                   println!("{:?}",self.code[self.ip]);
+                    return Err(VMError::RuntimeError)
+                },
             }
+
         }
         Ok(())
     }
