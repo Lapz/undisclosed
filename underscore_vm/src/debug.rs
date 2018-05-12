@@ -1,5 +1,5 @@
+use op::{OpCode, TryFrom};
 use vm::VM;
-use op::{OpCode,TryFrom};
 
 macro_rules! pop {
     ([$stack:expr, $top:expr] => $type:ty) => {{
@@ -12,16 +12,13 @@ macro_rules! pop {
     }};
 }
 
-
 #[cfg(feature = "debug")]
-    pub fn simple_instruction(name: &str, offset: usize) -> usize {
-        println!("{}", name);
-        offset + 2
-    }
+pub fn simple_instruction(name: &str, offset: usize) -> usize {
+    println!("{}", name);
+    offset + 2
+}
 
 impl<'a> VM<'a> {
-    
-
     #[cfg(feature = "debug")]
     pub fn dissassemble(&mut self, name: &str) {
         println!("== {} ==", name);
@@ -47,6 +44,11 @@ impl<'a> VM<'a> {
         match OpCode::try_from(instruction) {
             Ok(OpCode::Return) => simple_instruction("OP_RETURN", offset),
             Ok(OpCode::Neg) => simple_instruction("OP_NEG", offset),
+            Ok(OpCode::Add) => simple_instruction("OP_ADD", offset),
+            Ok(OpCode::Subtract) => simple_instruction("OP_SUBTRACT", offset),
+            Ok(OpCode::Multiply) => simple_instruction("OP_MULTIPLY", offset),
+            Ok(OpCode::Divide) => simple_instruction("OP_DIVIDE", offset),
+
             Ok(OpCode::Constant) => self.constant_instruction("OP_CONSTANT", offset as usize),
             _ => {
                 println!("Unknown opcode {}", instruction);
@@ -60,28 +62,25 @@ impl<'a> VM<'a> {
     /// Matches on the instruction and uses that pointer offset for
     /// were the value is stored
     pub fn constant_instruction(&self, name: &str, mut offset: usize) -> usize {
+        offset += 1;
 
-        offset +=1;
-        
         let size = self.code[offset] as usize;
 
         match size {
             1 => {
                 println!("{:16} {:04}", name, self.code[offset + 1]);
-                offset +1
+                offset + 1
             }
             4 => {
+                let mut slice = [0; 4];
 
-                let mut slice = [0;4];
-               
-                slice.copy_from_slice(&self.code[offset+1..offset+5]);
-                
-                println!("{:16} {:04}", name,unsafe {
+                slice.copy_from_slice(&self.code[offset + 1..offset + 5]);
+
+                println!("{:16} {:04}", name, unsafe {
                     use std::mem;
-                    mem::transmute::<[u8;4],i32>(slice)
+                    mem::transmute::<[u8; 4], i32>(slice)
                 });
                 offset as usize + 5
-                
             }
 
             8 => {
@@ -89,24 +88,7 @@ impl<'a> VM<'a> {
                 offset as usize + 3
             }
 
-            ref e  => unreachable!("{:?}",e),
+            ref e => unreachable!("{:?}", e),
         }
-
-        
-    }
-
-    #[cfg(feature = "debug")]
-    /// Pulls out the `OpCode::LongConstant` and prints that out
-    /// Matches on the instruction and uses that pointer offset for
-    /// were the value is stored
-    pub fn long_constant_instruction(&self, name: &str, offset: usize) -> usize {
-        // let start = self.code[offset + 1] as usize;
-        // let end = self.code[offset + 2] as usize;
-        // let mut rdr = Cursor::new(&self.constants[start..end]);
-
-        // let constant = rdr.read_f64::<LittleEndian>().unwrap();
-        // println!("{:16} {:04}", name, constant,);
-
-        offset as usize + 3
     }
 }

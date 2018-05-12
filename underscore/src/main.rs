@@ -132,7 +132,7 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
-    let mut code = vec![2, 4, 12, 0, 0, 0, 2, 4, 25, 0, 0,0,3,4 ,1, 4];
+    let mut code = vec![2, 4, 12, 0, 0, 0, 2, 4, 25, 0, 0, 0, 7, 4, 1, 4];
     let mut vm = VM::new(&mut code);
 
     vm.run().expect("Err");

@@ -1,11 +1,12 @@
 #[derive(Clone, Copy, Debug)]
 pub enum OpCode {
-    /// Return
     Return = 0x01,
-    /// Ints
     Constant = 0x02,
-    /// Unary Neg
     Neg = 0x03,
+    Add = 0x04,
+    Subtract = 0x05,
+    Multiply = 0x06,
+    Divide = 0x07,
 }
 
 pub trait TryFrom<T>: Sized {
@@ -30,6 +31,10 @@ impl TryFrom<u8> for OpCode {
             1 => Ok(OpCode::Return),
             2 => Ok(OpCode::Constant),
             3 => Ok(OpCode::Neg),
+            4 => Ok(OpCode::Add),
+            5 => Ok(OpCode::Subtract),
+            6 => Ok(OpCode::Multiply),
+            7 => Ok(OpCode::Divide),
             _ => Err(()),
         }
     }
