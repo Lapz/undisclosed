@@ -1,7 +1,6 @@
 use ast;
-use codegen::{
-    ir::*, temp::{new_label, new_label_pair, new_named_label, Label, Temp},
-};
+use codegen::{ir::*,
+              temp::{new_label, new_label_pair, new_named_label, Label, Temp}};
 use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};

@@ -1,15 +1,16 @@
 use op::{OpCode, TryFrom};
+use chunk::Chunk;
 
 pub struct VM<'a> {
-    pub code: &'a mut [u8],
+    pub code: &'a mut Chunk,
     stack: [u8; 256],
     stack_top: usize,
-    values: [u8; 256],
-    values_top: usize,
     ip: usize,
 }
 
-macro_rules! pop {
+/// Converts a slice of n length to type
+
+macro_rules! to_num {
     ([$stack:expr, $top:expr] => $type:ty) => {{
         use std::default;
         use std::mem;
@@ -23,14 +24,9 @@ macro_rules! pop {
     }};
 }
 
-macro_rules! debug {
-    ($($p:tt)*) => {if cfg!(feature = "debug") { println!($($p)*) } else { }}
-}
 
 macro_rules! push {
     ($bytes:expr => $stack:expr,[$from:expr, $to:expr]) => {{
-       
-
         let mut b = &mut$stack[$from..($from + $to)];
 
         b.copy_from_slice($bytes);
@@ -39,12 +35,18 @@ macro_rules! push {
     }};
 }
 
+
+macro_rules! debug {
+    ($($p:tt)*) => {if cfg!(feature = "debug") { println!($($p)*) } else { }}
+}
+
 macro_rules! to_bytes {
     ($expr:expr => $type:ty) => {{
         use std::mem;
         unsafe { mem::transmute::<_, [u8; mem::size_of::<$type>()]>($expr) }
     }};
 }
+
 macro_rules! binary_op {
     ($op:tt, $_self:ident) => {{
         $_self.ip += 1;
@@ -53,28 +55,31 @@ macro_rules! binary_op {
 
         $_self.ip += 1;
 
+      
+
         match size {
             1 => {
-                let a = pop!([&$_self.values,$_self.values_top] => i8);
-                let b = pop!([&$_self.values,$_self.values_top] => i8);
-                push!( &to_bytes!(a $op b => i8)     => $_self.values,[$_self.values_top,size]);
+                let a = to_num!([&$_self.stack,$_self.stack_top] => i8);
+                let b = to_num!([&$_self.stack,$_self.stack_top] => i8);
+                push!( &to_bytes!(a $op b => i8)     => $_self.stack,[$_self.stack_top,size]);
             }
 
             4 => {
-                let a = pop!([&$_self.values,$_self.values_top] => i32);
-                let b = pop!([&$_self.values,$_self.values_top] => i32);
-                push!( &to_bytes!(a $op b => i32)     => $_self.values,[$_self.values_top,size]);
+                let a = to_num!([&$_self.stack,$_self.stack_top] => i32);
+                let b = to_num!([&$_self.stack,$_self.stack_top] => i32);
+                push!( &to_bytes!(a $op b => i32)     => $_self.stack,[$_self.stack_top,size]);
             }
 
             8 => {
-                let a = pop!([&$_self.values,$_self.values_top] => i64);
-                let b = pop!([&$_self.values,$_self.values_top] => i64);
-                push!( &to_bytes!(a $op b => i64)     => $_self.values,[$_self.values_top,size]);
+                let a = to_num!([&$_self.stack,$_self.stack_top] => i64);
+                let b = to_num!([&$_self.stack,$_self.stack_top] => i64);
+                push!( &to_bytes!(a $op b => i64)     => $_self.stack,[$_self.stack_top,size]);
             }
             _ => unreachable!(),
         };
     }};
 }
+
 
 type VMResult = Result<(), VMError>;
 
@@ -89,25 +94,26 @@ impl<'a> VM<'a> {
         self.stack_top = 0;
     }
 
-    pub fn new(code: &'a mut [u8]) -> Self {
+    pub fn new(code: &'a mut Chunk) -> Self {
         VM {
             ip: 0,
             stack_top: 1,
             stack: [0; 256],
-            values: [0; 256],
-            values_top: 0,
             code,
         }
     }
 
     pub fn run(&mut self) -> VMResult {
-        debug!("{:?}", self.dissassemble("run"));
+        debug!("{:?}",self.code.dissassemble("test"));
+    
         loop {
+
+           
             if cfg!(feature = "stack") {
                 println!("[");
 
-                for (i, byte) in self.values.iter().enumerate() {
-                    if i + 1 == self.values.len() {
+                for (i, byte) in self.stack.iter().enumerate() {
+                    if i + 1 == self.stack.len() {
                         print!("{}", byte);
                     } else {
                         print!("{},", byte);
@@ -124,14 +130,14 @@ impl<'a> VM<'a> {
                     let size = self.code[self.ip] as usize;
 
                     match size {
-                        1 => println!("{}", pop!([&self.values,self.values_top] => i8)),
+                        1 => println!("{}", to_num!([&self.stack,self.stack_top] => i8)),
 
                         4 => {
-                            println!("{}", pop!([&self.values,self.values_top] => i32));
+                            println!("{}", to_num!([&self.stack,self.stack_top] => i32));
                         }
 
                         8 => {
-                            println!("{}", pop!([&self.values,self.values_top] => i64));
+                            println!("{}", to_num!([&self.stack,self.stack_top] => i64));
                         }
                         _ => unreachable!(),
                     };
@@ -145,23 +151,25 @@ impl<'a> VM<'a> {
 
                     self.ip += 1;
 
+                    let index = self.code[self.ip] as usize;
+
                     match size {
                         1 => {
-                            push!(&self.code[self.ip..self.ip+size] => self.stack,[self.stack_top,size]);
+                            push!(&self.code.constants[index..index+size] => self.stack,[self.stack_top,size]);
                         }
 
                         4 => {
-                            push!(&self.code[self.ip..self.ip+size] => self.values,[self.values_top,size]);
+                            push!(&self.code.constants[index..index+size] => self.stack,[self.stack_top,size]);
                         }
 
                         8 => {
-                            push!(&self.code[self.ip..self.ip+size] => self.stack,[self.stack_top,size]);
+                            push!(&self.code.constants[index..index+size] => self.stack,[self.stack_top,size]);
                         }
 
                         _ => unreachable!(),
                     }
 
-                    self.ip += size;
+                    self.ip += 1;
 
                     // break;
                 }
@@ -174,18 +182,18 @@ impl<'a> VM<'a> {
 
                     match size {
                         1 => {
-                            let a = pop!([&self.values,self.values_top] => i8);
-                            push!( &to_bytes!(-a => i8)     => self.values,[self.values_top,size]);
+                            let a = to_num!([&self.stack,self.stack_top] => i8);
+                            push!( &to_bytes!(-a => i8)     => self.stack,[self.stack_top,size]);
                         }
 
                         4 => {
-                            let a = pop!([&self.values,self.values_top] => i32);
-                            push!( &to_bytes!(-a => i32)     => self.values,[self.values_top,size]);
+                            let a = to_num!([&self.stack,self.stack_top] => i32);
+                            push!( &to_bytes!(-a => i32)     => self.stack,[self.stack_top,size]);
                         }
 
                         8 => {
-                            let a = pop!([&self.values,self.values_top] => i64);
-                            push!( &to_bytes!(-a => i64)     => self.values,[self.values_top,size]);
+                            let a = to_num!([&self.stack,self.stack_top] => i64);
+                            push!( &to_bytes!(-a => i64)     => self.stack,[self.stack_top,size]);
                         }
                         _ => unreachable!(),
                     };
