@@ -17,7 +17,7 @@ use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
-use underscore_vm::{VM,Chunk};
+use underscore_vm::{Chunk, VM};
 
 fn main() {
     let opts = Cli::from_args();
@@ -133,28 +133,25 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
+    let mut chunk = Chunk::new();
+    let mut constant = chunk.add_constant(&[12, 0, 0, 0], 1);
 
+    chunk.write(2, 1);
+    chunk.write(4, 1);
+    chunk.write(constant as u8, 1);
 
-        let mut chunk = Chunk::new();
-        let mut constant = chunk.add_constant(&[12, 0, 0, 0],1);
+    constant = chunk.add_constant(&[25, 0, 0, 0], 1);
 
-        chunk.write(2,1);
-        chunk.write(4,1);
-        chunk.write(constant as u8,1);
+    chunk.write(2, 1);
+    chunk.write(4, 1);
+    chunk.write(constant as u8, 1);
 
-         constant = chunk.add_constant(&[25, 0, 0, 0],1);
+    chunk.write(7, 1);
+    chunk.write(4, 1);
 
-        chunk.write(2,1);
-        chunk.write(4,1);
-        chunk.write(constant as u8,1);
+    chunk.write(1, 2);
+    chunk.write(4, 2);
 
-         chunk.write(7,1);
-         chunk.write(4,1);
-       
-        chunk.write(1,2);
-        chunk.write(4,2);
-
-   
     let mut vm = VM::new(&mut chunk);
 
     vm.run().expect("Err");

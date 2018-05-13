@@ -1,5 +1,5 @@
-use op::{OpCode, TryFrom};
 use chunk::Chunk;
+use op::{OpCode, TryFrom};
 
 pub struct VM<'a> {
     pub code: &'a mut Chunk,
@@ -24,7 +24,6 @@ macro_rules! to_num {
     }};
 }
 
-
 macro_rules! push {
     ($bytes:expr => $stack:expr,[$from:expr, $to:expr]) => {{
         let mut b = &mut$stack[$from..($from + $to)];
@@ -34,7 +33,6 @@ macro_rules! push {
         $from += $to;
     }};
 }
-
 
 macro_rules! debug {
     ($($p:tt)*) => {if cfg!(feature = "debug") { println!($($p)*) } else { }}
@@ -54,8 +52,6 @@ macro_rules! binary_op {
         let size = $_self.code[$_self.ip] as usize;
 
         $_self.ip += 1;
-
-      
 
         match size {
             1 => {
@@ -80,7 +76,6 @@ macro_rules! binary_op {
     }};
 }
 
-
 type VMResult = Result<(), VMError>;
 
 #[derive(Debug)]
@@ -104,11 +99,9 @@ impl<'a> VM<'a> {
     }
 
     pub fn run(&mut self) -> VMResult {
-        debug!("{:?}",self.code.dissassemble("test"));
-    
-        loop {
+        debug!("{:?}", self.code.dissassemble("test"));
 
-           
+        loop {
             if cfg!(feature = "stack") {
                 println!("[");
 

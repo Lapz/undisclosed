@@ -1,13 +1,7 @@
 /// A sequence of bytecode instrutcions, constant pool and
 /// the line from which an instruction orginated from
-
-use op::{OpCode,TryFrom};
-use std::ops::{Index,Range};
-
-
-
-
-
+use op::{OpCode, TryFrom};
+use std::ops::{Index, Range};
 
 type Line = usize;
 #[derive(Debug, Clone, Default)]
@@ -23,19 +17,17 @@ pub fn simple_instruction(name: &str, offset: usize) -> usize {
     offset + 2
 }
 
-
 macro_rules! to_num {
     ([$stack:expr, $top:expr] => $type:ty) => {{
         use std::default;
         use std::mem;
 
         let mut b: [u8; mem::size_of::<$type>()] = default::Default::default();
-     
+
         b.copy_from_slice($stack);
         unsafe { mem::transmute::<_, $type>(b) }
     }};
-} 
-
+}
 
 impl Chunk {
     pub fn new() -> Self {
@@ -43,13 +35,13 @@ impl Chunk {
     }
 
     /// Write a single byte to this chunk
-    pub fn write<T:Into<u8>>(&mut self, byte: T,line:Line) {
+    pub fn write<T: Into<u8>>(&mut self, byte: T, line: Line) {
         self.lines.push(line);
         self.code.push(byte.into())
     }
 
     /// Write multiple bytes to this chunk
-    pub fn write_values(&mut self, bytes: &[u8],line:Line) {
+    pub fn write_values(&mut self, bytes: &[u8], line: Line) {
         self.lines.push(line);
         self.constants.extend(bytes)
     }
@@ -57,9 +49,9 @@ impl Chunk {
     /// Adds a constant to the constant pool.
     /// Constant must be in bytes.
     /// Returns the offset at which the constant is stored
-    pub fn add_constant(&mut self, bytes: &[u8],line:Line) -> usize {
+    pub fn add_constant(&mut self, bytes: &[u8], line: Line) -> usize {
         let len = self.constants.len();
-        self.write_values(bytes,line);
+        self.write_values(bytes, line);
         len
     }
 
@@ -84,7 +76,6 @@ impl Chunk {
         }
 
         let instruction = self.code[offset];
-     
 
         match OpCode::try_from(instruction) {
             Ok(OpCode::Return) => simple_instruction("OP_RETURN", offset),
@@ -107,13 +98,11 @@ impl Chunk {
     /// Matches on the instruction and uses that pointer offset for
     /// were the value is stored
     pub fn constant_instruction(&self, name: &str, offset: usize) -> usize {
-
         // opcode size start
-        
-    
-        let size = self.code[offset+1] as usize;
-        
-        let index = self.code[offset+2] as usize;
+
+        let size = self.code[offset + 1] as usize;
+
+        let index = self.code[offset + 2] as usize;
 
         match size {
             1 => {
@@ -122,31 +111,29 @@ impl Chunk {
             4 => {
                 let mut slice = [0; 4];
 
-                
+                slice.copy_from_slice(&self.constants[index..index + size]);
 
-
-                slice.copy_from_slice(&self.constants[index..index+size]);
-
-                
-
-                println!("{:16} {:04}", name,to_num!([&self.constants[index..index+size],index] => i32));
-              
+                println!(
+                    "{:16} {:04}",
+                    name,
+                    to_num!([&self.constants[index..index+size],index] => i32)
+                );
             }
 
             8 => {
-                println!("{:16} {:04}", name, to_num!([&self.constants,offset] => i64));
-                
+                println!(
+                    "{:16} {:04}",
+                    name,
+                    to_num!([&self.constants,offset] => i64)
+                );
             }
 
             ref e => unreachable!("{:?}", e),
         }
 
         offset as usize + 3
-
-       
     }
 }
-
 
 impl Index<usize> for Chunk {
     type Output = u8;
@@ -168,21 +155,20 @@ impl Index<Range<usize>> for Chunk {
 #[cfg(feature = "debug")]
 mod test {
 
-    use op::OpCode;
     use chunk::Chunk;
+    use op::OpCode;
 
     #[test]
     fn it_work() {
         let mut chunk = Chunk::new();
-        let constant = chunk.add_constant(&[12, 0, 0, 0],1);
+        let constant = chunk.add_constant(&[12, 0, 0, 0], 1);
 
-        chunk.write(OpCode::Constant,1);
-        chunk.write(4,1);
-        chunk.write(constant as u8,1);
-       
+        chunk.write(OpCode::Constant, 1);
+        chunk.write(4, 1);
+        chunk.write(constant as u8, 1);
 
-        chunk.write(OpCode::Return,2);
-println!("{:?}",chunk );
+        chunk.write(OpCode::Return, 2);
+        println!("{:?}", chunk);
         chunk.dissassemble("test");
     }
 }
