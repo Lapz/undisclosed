@@ -13,6 +13,8 @@ mod resolver;
 mod subst;
 mod types;
 mod unify;
+mod gen_cfg;
+mod cfg;
 
 pub use env::Env as TypeEnv;
 use env::Env;
@@ -22,6 +24,7 @@ use resolver::Resolver;
 use syntax::ast::Program;
 use types::Type;
 use util::emitter::Reporter;
+use ast::typed as t;
 pub(crate) type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug)]
@@ -39,8 +42,8 @@ impl Infer {
         program: &mut Program,
         env: &mut Env,
         reporter: &mut Reporter,
-    ) -> InferResult<ast::Program> {
-        let mut new_program = ast::Program {
+    ) -> InferResult<t::Program> {
+        let mut new_program = t::Program {
             functions: vec![],
             structs: vec![],
         };

@@ -2,6 +2,8 @@ use std::fmt::{self, Display};
 use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
 use util;
+
+
 #[derive(Debug)]
 pub enum Instruction {
     /// Store a value into a register

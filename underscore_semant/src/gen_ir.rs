@@ -1,11 +1,11 @@
-use ast;
+use ast::typed as t;
 use codegen::{
     ir::*, temp::{new_label, new_label_pair, new_named_label, Label, Temp},
 };
 use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};
-use util::symbol::Symbols;
+use util::symbol::{Symbols,Symbol};
 
 #[derive(Debug)]
 pub struct Codegen {
@@ -14,6 +14,7 @@ pub struct Codegen {
     loop_break_label: Option<Label>,
     symbols: Symbols<Temp>,
 }
+
 
 const HP: Temp = Temp(0);
 
@@ -42,15 +43,15 @@ impl Codegen {
             .expect("Couldn't write to the file");
     }
 
-    pub fn gen_program(&mut self, program: &ast::Program) {
+    pub fn gen_program(&mut self, program: &t::Program) {
         for function in &program.functions {
             self.gen_statement(&function.body)
         }
     }
 
-    fn gen_statement(&mut self, statement: &ast::Statement) {
+    fn gen_statement(&mut self, statement: &t::Statement) {
         match *statement {
-            ast::Statement::Block(ref statements) => {
+            t::Statement::Block(ref statements) => {
                 // let (start, end) = new_label_pair("start", "end", &mut self.symbols);
                 // self.instructions.push(Instruction::Label(start));
                 for statement in statements {
@@ -60,14 +61,14 @@ impl Codegen {
                 // self.instructions.push(Instruction::Label(end));
             }
 
-            ast::Statement::Break => self.instructions.push(Instruction::Jump(
+            t::Statement::Break => self.instructions.push(Instruction::Jump(
                 self.loop_break_label.expect("Using continue out side loop"),
             )),
 
-            ast::Statement::Continue => self.instructions.push(Instruction::Jump(
+            t::Statement::Continue => self.instructions.push(Instruction::Jump(
                 self.loop_label.expect("Using continue out side loop"),
             )),
-            ast::Statement::Let {
+            t::Statement::Let {
                 ref ident,
                 ref ty,
                 ref expr,
@@ -98,8 +99,8 @@ impl Codegen {
                     }
                 }
             }
-            ast::Statement::Expr(ref expr) => self.gen_expression(expr, Temp::new()),
-            ast::Statement::If {
+            t::Statement::Expr(ref expr) => self.gen_expression(expr, Temp::new()),
+            t::Statement::If {
                 ref cond,
                 ref then,
                 ref otherwise,
@@ -132,7 +133,7 @@ impl Codegen {
                 }
             }
 
-            ast::Statement::While(ref cond, ref body) => {
+            t::Statement::While(ref cond, ref body) => {
                 let (start, end) = new_label_pair("while_start", "while_end", &mut self.symbols);
 
                 let lbody = new_named_label("while_cond", &mut self.symbols);
@@ -159,7 +160,7 @@ impl Codegen {
                 self.instructions.push(Instruction::Label(end));
             }
 
-            ast::Statement::Return(ref expr) => {
+            t::Statement::Return(ref expr) => {
                 let temp = Temp::new();
 
                 self.gen_expression(expr, temp);
@@ -169,9 +170,9 @@ impl Codegen {
         }
     }
 
-    fn gen_expression(&mut self, expr: &ast::TypedExpression, temp: Temp) {
+    fn gen_expression(&mut self, expr: &t::TypedExpression, temp: Temp) {
         match *expr.expr {
-            ast::Expression::Array(ref items) => {
+            t::Expression::Array(ref items) => {
                 let mut block = vec![];
 
                 for item in items {
@@ -183,7 +184,7 @@ impl Codegen {
 
                 self.instructions.push(Instruction::Block(temp, block))
             }
-            ast::Expression::Assign(ref name, ref value) => {
+            t::Expression::Assign(ref name, ref value) => {
                 let temp = self.gen_var(name);
 
                 self.gen_expression(value, temp);
@@ -191,7 +192,7 @@ impl Codegen {
                 self.instructions.push(Instruction::Copy(temp, temp))
                 //  let temp = self.symbols.look(symbol)
             }
-            ast::Expression::Binary(ref lhs, ref op, ref rhs) => {
+            t::Expression::Binary(ref lhs, ref op, ref rhs) => {
                 let lhs_temp = Temp::new();
 
                 let rhs_temp = Temp::new();
@@ -214,7 +215,7 @@ impl Codegen {
                 }
             }
 
-            ast::Expression::Call(ref name, ref exprs) => {
+            t::Expression::Call(ref name, ref exprs) => {
                 let label = new_label(*name, &mut self.symbols);
 
                 let mut params = vec![];
@@ -229,7 +230,7 @@ impl Codegen {
                     .push(Instruction::Call(temp, label, params))
             }
 
-            ast::Expression::Cast(ref from, _) => {
+            t::Expression::Cast(ref from, _) => {
                 let temp = Temp::new();
                 self.gen_expression(from, temp);
 
@@ -241,8 +242,8 @@ impl Codegen {
                     _ => panic!("Can only cast to ints"),
                 }
             }
-            ast::Expression::Grouping { ref expr } => self.gen_expression(expr, temp),
-            ast::Expression::Literal(ref literal) => {
+            t::Expression::Grouping { ref expr } => self.gen_expression(expr, temp),
+            t::Expression::Literal(ref literal) => {
                 let value = match *literal {
                     Literal::Char(ref ch) => Value::Const(*ch as u64, Sign::Unsigned, Size::Bit8),
 
@@ -274,7 +275,7 @@ impl Codegen {
                 self.instructions.push(Instruction::Store(temp, value))
             }
 
-            ast::Expression::Unary(ref op, ref expr) => {
+            t::Expression::Unary(ref op, ref expr) => {
                 let new_temp = Temp::new();
                 self.gen_expression(expr, new_temp);
                 let op = gen_un_op(op);
@@ -283,7 +284,7 @@ impl Codegen {
                     .push(Instruction::UnOp(op, temp, new_temp))
             }
 
-            ast::Expression::Var(ref var) => {
+            t::Expression::Var(ref var) => {
                 let t = self.gen_var(var);
                 self.instructions.push(Instruction::Copy(temp, t))
             }
@@ -292,11 +293,11 @@ impl Codegen {
         }
     }
 
-    fn gen_var(&mut self, var: &ast::Var) -> Temp {
+    fn gen_var(&mut self, var: &t::Var) -> Temp {
         match *var {
-            ast::Var::Simple(ref sym, _) => *self.symbols.look(*sym).unwrap(),
+            t::Var::Simple(ref sym, _) => *self.symbols.look(*sym).unwrap(),
 
-            ast::Var::SubScript(ref sym, ref expr, _) => {
+            t::Var::SubScript(ref sym, ref expr, _) => {
                 let base = *self.symbols.look(*sym).unwrap();
 
                 let addr = Temp::new();
@@ -323,9 +324,9 @@ impl Codegen {
         }
     }
 
-    fn gen_cond(&mut self, cond: &ast::TypedExpression, ltrue: Label, lfalse: Label) {
+    fn gen_cond(&mut self, cond: &t::TypedExpression, ltrue: Label, lfalse: Label) {
         match *cond.expr {
-            ast::Expression::Binary(ref lhs, ref op, ref rhs) => match *op {
+            t::Expression::Binary(ref lhs, ref op, ref rhs) => match *op {
                 Op::NEq => self.gen_cond(cond, lfalse, ltrue),
 
                 Op::And => {
