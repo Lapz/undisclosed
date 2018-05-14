@@ -73,7 +73,7 @@ impl Infer {
 
         mono.monomorphize_program(&mut new_program, env);
 
-        println!("{:?}",env);
+      
 
         Ok(new_program)
     }

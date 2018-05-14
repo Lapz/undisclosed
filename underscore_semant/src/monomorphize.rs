@@ -86,7 +86,7 @@ impl Mono {
                         name.push_str(&format!("{}", ty.ty))
                     }
 
-                    let new_sym = env.symbol(&name);
+                    let mut new_sym = env.symbol(&name);
 
                   
 
@@ -99,7 +99,7 @@ impl Mono {
                             vec![(new_sym, expressions.iter().map(|e| e.ty.clone()).collect())],
                         );
                     }
-                   
+
 
                     
                 }
