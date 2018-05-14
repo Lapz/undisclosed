@@ -488,11 +488,28 @@ impl Infer {
                     ),
                     UnaryOp::Minus => {
                         if !expr.ty.is_int() {
-                            let msg =
-                                format!("Cannot use `-` operator on type `{}`", expr.ty.print(env));
+                            match expr.ty {
+                                Type::Var(ref tvar) => {
+                                    if let Some(VarType::Other) = env.look_tvar(*tvar) {
+                                        let msg = format!(
+                                            "Cannot use `-` operator on type `{}`",
+                                            expr.ty.print(env)
+                                        );
 
-                            reporter.error(msg, span);
-                            return Err(());
+                                        reporter.error(msg, span);
+                                        return Err(());
+                                    }
+                                }
+                                _ => {
+                                    let msg = format!(
+                                        "Cannot use `-` operator on type `{}`",
+                                        expr.ty.print(env)
+                                    );
+
+                                    reporter.error(msg, span);
+                                    return Err(());
+                                }
+                            }
                         }
 
                         let ty = expr.ty.clone();

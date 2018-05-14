@@ -143,12 +143,9 @@ fn run(path: String, dump_file: Option<String>) {
     codegen.dump_to_file(format!("{}ir", path));
 
     let mut file = File::create("lowered").expect("Couldn't create file");
-    file.write(format!("{:#?}", lowered).as_bytes())
+    file.write(format!("{}", lowered).as_bytes())
         .expect("Couldn't write to the file");
 
-  
-
-    
     codegen.dump_to_file(format!("{}ir_optimized", path));
 }
 

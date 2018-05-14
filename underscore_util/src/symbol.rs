@@ -3,6 +3,7 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt::{self, Display};
 use std::hash::Hash;
 use std::rc::Rc;
 
@@ -92,5 +93,11 @@ impl<V: Clone> Symbols<V> {
 impl<T: Copy + Eq + Hash + Default> SymbolMap<T> {
     pub fn new() -> SymbolMap<T> {
         Self::default()
+    }
+}
+
+impl Display for Symbol {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "s{}", self.0)
     }
 }

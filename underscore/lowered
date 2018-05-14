@@ -1,90 +1,47 @@
-Program {
-    functions: [
-        Function {
-            span: Span {
-                start: Position {
-                    line: 1,
-                    column: 1,
-                    absolute: 0
-                },
-                end: Position {
-                    line: 14,
-                    column: 1,
-                    absolute: 147
-                }
-            },
-            name: Symbol(
-                0
-            ),
-            param_types: [],
-            returns: Nil,
-            body: [
-                Store(
-                    t2,
-                    Const(
-                        1,
-                        Unsigned,
-                        Bit8
-                    )
-                ),
-                Store(
-                    t4,
-                    Const(
-                        0,
-                        Unsigned,
-                        Bit8
-                    )
-                ),
-                Store(
-                    t6,
-                    Const(
-                        3,
-                        Signed,
-                        Bit32
-                    )
-                ),
-                Store(
-                    t8,
-                    Const(
-                        10,
-                        Signed,
-                        Bit32
-                    )
-                ),
-                Copy(
-                    t9,
-                    t2
-                ),
-                Label(
-                    Symbol(
-                        14
-                    )
-                ),
-                Copy(
-                    t10,
-                    t4
-                ),
-                Label(
-                    Symbol(
-                        16
-                    )
-                ),
-                Copy(
-                    t6,
-                    t8
-                ),
-                Label(
-                    Symbol(
-                        17
-                    )
-                ),
-                Label(
-                    Symbol(
-                        15
-                    )
-                )
-            ],
-            linkage: Normal
-        }
-    ]
+function s0(i32) -> i32 {
+    t2 := t1
+    t3 := 0:i32
+    if t2 <= t3 then s16 else s17
+    label s16
+    t5 := 1:i32
+    t4 := - t5
+    ret t4
+    label s17
+    t6 := t1
+    t7 := 1:i32
+    if t6 == t7 then s18 else s20
+    jump s20
+    t8 := t1
+    t9 := 2:i32
+    if t8 == t9 then s18 else s19
+    label s20
+    label s18
+    t10 := 1:i32
+    ret t10
+    label s19
+    t15 := t1
+    t16 := 1:i32
+    t14 := t15 - t16
+    t12 := s21.call(t14)
+    t18 := t1
+    t19 := 2:i32
+    t17 := t18 - t19
+    t13 := s21.call(t17)
+    t11 := t12 + t13
+    ret t11
+}
+function s2() -> nil {
+    t21 := 1:u8
+    t23 := 0:u8
+    t25 := 3:i32
+    t27 := 10:i32
+    t28 := t21
+    label s22
+    t29 := t23
+    label s24
+    t25 := t27
+    label s25
+    label s23
+    t32 := 10:i32
+    t31 := s21.call(t32)
 }

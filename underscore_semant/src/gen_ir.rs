@@ -1,8 +1,7 @@
 use ast::lowered as l;
 use ast::typed as t;
 use codegen::{
-    optimize::Optimizer,
-    ir::*, temp::{new_label, new_label_pair, new_named_label, Label, Temp},
+    ir::*, optimize::Optimizer, temp::{new_label, new_label_pair, new_named_label, Label, Temp},
 };
 use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
@@ -51,7 +50,7 @@ impl Codegen {
 
         for function in program.functions {
             let mut instructions = vec![];
-            self.gen_statement(&function.body, &mut instructions);
+            self.gen_function(&function, &mut instructions);
 
             Optimizer::strength_reduction(&mut instructions);
 
@@ -68,15 +67,32 @@ impl Codegen {
         lowered
     }
 
+
+    fn gen_function(&mut self, func: &t::Function, instructions: &mut Vec<Instruction>) {
+        
+        for param in &func.params {
+            self.symbols.enter(param.name, Temp::new());
+        }
+
+
+        self.gen_statement(&func.body, instructions);
+
+
+    }
+
+
+
     fn gen_statement(&mut self, statement: &t::Statement, instructions: &mut Vec<Instruction>) {
         match *statement {
             t::Statement::Block(ref statements) => {
                 // let (start, end) = new_label_pair("start", "end", &mut self.symbols);
                 // instructions.push(Instruction::Label(start));
+
+                self.symbols.begin_scope();
                 for statement in statements {
                     self.gen_statement(statement, instructions)
                 }
-
+                self.symbols.end_scope();
                 // instructions.push(Instruction::Label(end));
             }
 
@@ -315,7 +331,10 @@ impl Codegen {
 
     fn gen_var(&mut self, var: &t::Var, instructions: &mut Vec<Instruction>) -> Temp {
         match *var {
-            t::Var::Simple(ref sym, _) => *self.symbols.look(*sym).unwrap(),
+            t::Var::Simple(ref sym, _) => {
+                
+                *self.symbols.look(*sym).unwrap()
+            }
 
             t::Var::SubScript(ref sym, ref expr, _) => {
                 let base = *self.symbols.look(*sym).unwrap();
@@ -376,7 +395,7 @@ impl Codegen {
                     instructions.push(Instruction::Label(lnext));
                 }
 
-                Op::LT | Op::GT | Op::GTE | Op::LTE => {
+                Op::LT | Op::GT | Op::GTE | Op::LTE | Op::Equal => {
                     let lhs_temp = Temp::new();
                     let rhs_temp = Temp::new();
                     self.gen_expression(lhs, lhs_temp, instructions);
