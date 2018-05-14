@@ -29,8 +29,6 @@ macro_rules! debug {
 
 macro_rules! push {
     ($bytes:expr => $stack:expr,[$from:expr, $to:expr]) => {{
-       
-
         let mut b = &mut$stack[$from..($from + $to)];
 
         b.copy_from_slice($bytes);

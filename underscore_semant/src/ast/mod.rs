@@ -1,2 +1,2 @@
+pub mod lowered;
 pub mod typed;
-mod lowered;

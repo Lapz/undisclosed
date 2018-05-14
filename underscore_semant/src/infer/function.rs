@@ -190,7 +190,7 @@ impl Infer {
                     ))
                 } else {
                     block.push(t::Statement::While(
-                       t::TypedExpression {
+                        t::TypedExpression {
                             expr: Box::new(t::Expression::Literal(Literal::True(true))),
                             ty: Type::App(TyCon::Bool, vec![]),
                         },
@@ -322,7 +322,7 @@ impl Infer {
             Expression::Array { ref items } => {
                 if items.is_empty() {
                     (
-                       t::Expression::Array(vec![]),
+                        t::Expression::Array(vec![]),
                         Type::Array(Box::new(Type::Nil), 0),
                     )
                 } else {
@@ -339,7 +339,7 @@ impl Infer {
                     let ret_ty = nitems[0].ty.clone();
                     let len = nitems.len();
                     (
-                       t::Expression::Array(nitems),
+                        t::Expression::Array(nitems),
                         Type::Array(Box::new(ret_ty), len),
                     )
                 }
@@ -370,13 +370,13 @@ impl Infer {
 
                 match op.value {
                     Op::NEq | Op::Equal => (
-                       t::Expression::Binary(lhs, op.value, rhs),
+                        t::Expression::Binary(lhs, op.value, rhs),
                         Type::App(TyCon::Bool, vec![]),
                     ),
                     Op::LT | Op::LTE | Op::GT | Op::GTE | Op::And | Op::Or => {
                         self.unify(&lhs.ty, &rhs.ty, reporter, span, env)?;
                         (
-                           t::Expression::Binary(lhs, op.value, rhs),
+                            t::Expression::Binary(lhs, op.value, rhs),
                             Type::App(TyCon::Bool, vec![]),
                         )
                     }
@@ -483,7 +483,7 @@ impl Infer {
 
                 match op.value {
                     UnaryOp::Bang => (
-                       t::Expression::Unary(op.value, expr),
+                        t::Expression::Unary(op.value, expr),
                         Type::App(TyCon::Bool, vec![]),
                     ),
                     UnaryOp::Minus => {
@@ -598,7 +598,7 @@ impl Infer {
                             }
 
                             Ok((
-                               t::Expression::StructLit(ident.value, instance_exprs),
+                                t::Expression::StructLit(ident.value, instance_exprs),
                                 Type::Struct(ident.value, instance_fields, *unique),
                             ))
                         }
@@ -702,7 +702,7 @@ impl Infer {
                                 }
 
                                 Ok((
-                                   t::Expression::StructLit(ident.value, instance_exprs),
+                                    t::Expression::StructLit(ident.value, instance_exprs),
                                     Type::Struct(ident.value, instance_fields, *unique),
                                 ))
                             }
@@ -788,7 +788,7 @@ impl Infer {
                         for field in fields {
                             if field.name == value.value {
                                 return Ok((
-                                   t::Var::Field(*ident, field.name, field.ty.clone()),
+                                    t::Var::Field(*ident, field.name, field.ty.clone()),
                                     field.ty.clone(),
                                 ));
                             }
@@ -864,7 +864,7 @@ impl Infer {
 
                 match target_ty {
                     Type::App(TyCon::String, _) => Ok((
-                       t::Var::SubScript(
+                        t::Var::SubScript(
                             target.value,
                             expr_ty,
                             Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
@@ -872,7 +872,7 @@ impl Infer {
                         Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
                     )),
                     Type::Array(ref ty, _) => Ok((
-                       t::Var::SubScript(target.value, expr_ty, *ty.clone()),
+                        t::Var::SubScript(target.value, expr_ty, *ty.clone()),
                         *ty.clone(),
                     )),
 
@@ -953,7 +953,7 @@ impl Infer {
                             }
 
                             Ok((
-                               t::Expression::Call(callee.value, callee_exprs),
+                                t::Expression::Call(callee.value, callee_exprs),
                                 self.subst(fn_types.last().unwrap(), &mut mappings),
                             ))
                         }
@@ -1035,7 +1035,7 @@ impl Infer {
                                 }
 
                                 Ok((
-                                   t::Expression::Call(callee.value, callee_exprs),
+                                    t::Expression::Call(callee.value, callee_exprs),
                                     self.subst(fn_types.last().unwrap(), &mut mappings),
                                 ))
                             }

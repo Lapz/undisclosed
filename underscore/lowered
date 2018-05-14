@@ -1,0 +1,90 @@
+Program {
+    functions: [
+        Function {
+            span: Span {
+                start: Position {
+                    line: 1,
+                    column: 1,
+                    absolute: 0
+                },
+                end: Position {
+                    line: 14,
+                    column: 1,
+                    absolute: 147
+                }
+            },
+            name: Symbol(
+                0
+            ),
+            param_types: [],
+            returns: Nil,
+            body: [
+                Store(
+                    t2,
+                    Const(
+                        1,
+                        Unsigned,
+                        Bit8
+                    )
+                ),
+                Store(
+                    t4,
+                    Const(
+                        0,
+                        Unsigned,
+                        Bit8
+                    )
+                ),
+                Store(
+                    t6,
+                    Const(
+                        3,
+                        Signed,
+                        Bit32
+                    )
+                ),
+                Store(
+                    t8,
+                    Const(
+                        10,
+                        Signed,
+                        Bit32
+                    )
+                ),
+                Copy(
+                    t9,
+                    t2
+                ),
+                Label(
+                    Symbol(
+                        14
+                    )
+                ),
+                Copy(
+                    t10,
+                    t4
+                ),
+                Label(
+                    Symbol(
+                        16
+                    )
+                ),
+                Copy(
+                    t6,
+                    t8
+                ),
+                Label(
+                    Symbol(
+                        17
+                    )
+                ),
+                Label(
+                    Symbol(
+                        15
+                    )
+                )
+            ],
+            linkage: Normal
+        }
+    ]
+}

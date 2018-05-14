@@ -4,8 +4,10 @@ extern crate underscore_util as util;
 
 mod ast;
 mod cast_check;
+mod cfg;
 mod env;
 mod escape;
+mod gen_cfg;
 mod gen_ir;
 mod infer;
 mod monomorphize;
@@ -13,9 +15,8 @@ mod resolver;
 mod subst;
 mod types;
 mod unify;
-mod gen_cfg;
-mod cfg;
 
+use ast::typed as t;
 pub use env::Env as TypeEnv;
 use env::Env;
 use escape::FindEscape;
@@ -24,7 +25,6 @@ use resolver::Resolver;
 use syntax::ast::Program;
 use types::Type;
 use util::emitter::Reporter;
-use ast::typed as t;
 pub(crate) type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug)]
