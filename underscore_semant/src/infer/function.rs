@@ -90,7 +90,7 @@ impl Infer {
 
         Ok(t::Function {
             span: function.span,
-            generic: function.value.name.value.type_params.is_empty(),
+            generic: !function.value.name.value.type_params.is_empty(),
             name: function.value.name.value.name.value,
             params: params,
             returns,

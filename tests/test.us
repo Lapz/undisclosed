@@ -1,16 +1,11 @@
-fn main() {
-    let x = 10;
-    let y = 12;
-    let z = 3;
-    let v = 10;
-    let a = 1;
-    let b = 2;
+fn id<T>(v:T) -> T {
+    return v;
+}
 
-    if x < y and z < v {
-        a = b;
-    }else {
-        a = 2;
-    }
+fn main() {
+    let x = id('c');
+    let y = id("A");
+    
 }
 
 

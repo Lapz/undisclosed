@@ -1,49 +1,18 @@
-function s0(i32) -> i32 {
+function s0(tv0) -> tv0 {
     t2 := t1
-    t3 := 0:i32
-    if t2 <= t3 then s16 else s17
-    label s16
-    t5 := 1:i32
-    t4 := - t5
-    ret t4
-    label s17
-    t6 := t1
-    t7 := 1:i32
-    if t6 == t7 then s18 else s20
-    jump s20
-    t8 := t1
-    t9 := 2:i32
-    if t8 == t9 then s18 else s19
-    label s20
-    label s18
-    t10 := 1:i32
-    ret t10
-    label s19
-    t15 := t1
-    t16 := 1:i32
-    t14 := t15 - t16
-    t12 := s21.call(t14)
-    t18 := t1
-    t19 := 2:i32
-    t17 := t18 - t19
-    t13 := s21.call(t17)
-    t11 := t12 + t13
-    ret t11
+    ret t2
 }
-function s2() -> nil {
-    t21 := 1:u8
-    t23 := 0:u8
-    t25 := 3:i32
-    t27 := 10:i32
-    t29 := t21
-    if t29 == t28 then s22 else s23
-    label s22
-    t31 := t23
-    if t31 == t30 then s24 else s25
-    label s24
-    t25 := t27
-    label s25
-    label s23
-    t34 := 10:i32
-    t33 := s21.call(t34)
+function s3() -> nil {
+    t5 := 99:u8
+    t4 := s17.call(t5)
+    t8 := [1,65]
+    t7 := s17.call(t8)
+}
+function s15(u8) -> tv0 {
+    t10 := t9
+    ret t10
+}
+function s16(str) -> tv0 {
+    t12 := t11
+    ret t12
 }

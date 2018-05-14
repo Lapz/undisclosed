@@ -97,6 +97,11 @@ impl Env {
         }
     }
 
+    pub fn symbol(&mut self, name: &str) -> Symbol {
+        self.types.symbol(name);
+        self.vars.symbol(name)
+    }
+
     pub fn begin_scope(&mut self) {
         self.types.begin_scope();
         self.vars.begin_scope();

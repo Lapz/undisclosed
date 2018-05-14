@@ -21,6 +21,7 @@ pub use env::Env as TypeEnv;
 use env::Env;
 use escape::FindEscape;
 pub use gen_ir::Codegen;
+use monomorphize::Mono;
 use resolver::Resolver;
 use syntax::ast::Program;
 use types::Type;
@@ -67,6 +68,12 @@ impl Infer {
         let mut resolver = Resolver::new();
 
         resolver.resolve_ast(program, reporter, env)?;
+
+        let mut mono = Mono::new();
+
+        mono.monomorphize_program(&mut new_program, env);
+
+        println!("{:?}",env);
 
         Ok(new_program)
     }

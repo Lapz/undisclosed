@@ -7,7 +7,7 @@ use std::fmt::{self, Display};
 use std::hash::Hash;
 use std::rc::Rc;
 
-#[derive(Hash, Debug, Copy, Clone, PartialEq, Eq, Default)]
+#[derive(Hash, Debug, Copy, Clone, PartialEq, Eq, Default, PartialOrd)]
 pub struct Symbol(pub u32);
 
 #[derive(Debug, Clone, Default)]
