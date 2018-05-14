@@ -9,7 +9,7 @@ use syntax::ast::{
     Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit, UnaryOp, Var,
 };
 use types::{Field, TyCon, Type, TypeVar};
-use util::{emitter::Reporter, pos::Spanned, symbol::Symbol};
+use util::{emitter::Reporter, pos::Spanned};
 
 use ast::typed as t;
 

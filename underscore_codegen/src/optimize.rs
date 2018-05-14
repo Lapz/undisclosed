@@ -1,8 +1,7 @@
 use ir::Instruction;
 use temp::Label;
 
-pub struct Optimizer {
-}
+pub struct Optimizer {}
 
 impl Optimizer {
     pub fn strength_reduction(ir: &mut Vec<Instruction>) {

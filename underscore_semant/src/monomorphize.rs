@@ -1,4 +1,4 @@
-use ast;
+use ast::typed;
 use std::collections::HashMap;
 use util::symbol::Symbol;
 

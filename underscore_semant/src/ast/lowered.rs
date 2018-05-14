@@ -1,7 +1,7 @@
 use codegen::ir::Instruction;
 use std::fmt::{self, Display};
-use syntax::ast::{Linkage, Literal, Op, UnaryOp};
-use types::{Field, Type};
+use syntax::ast::Linkage;
+use types::Type;
 use util::{pos::Span, symbol::Symbol};
 
 #[derive(Debug)]
