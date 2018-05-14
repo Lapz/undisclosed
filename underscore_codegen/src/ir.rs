@@ -145,7 +145,7 @@ impl Display for Value {
             Value::Name(ref name) => write!(f, "{:?}", name),
             Value::Temp(ref temp) => write!(f, "{}", temp),
             Value::Mem(ref bytes) => {
-                write!(f, "[");
+                write!(f, "[")?;
 
                 for (i, byte) in bytes.iter().enumerate() {
                     if i + 1 == bytes.len() {
@@ -206,13 +206,13 @@ impl Display for Instruction {
             }
 
             Instruction::Block(ref temp, ref temps) => {
-                write!(f, "{} := [", temp);
+                write!(f, "{} := [", temp)?;
 
                 for (i, temp) in temps.iter().enumerate() {
                     if i + 1 == temps.len() {
-                        write!(f, "{}", temp);
+                        write!(f, "{}", temp)?;
                     } else {
-                        write!(f, "{},", temp);
+                        write!(f, "{},", temp)?;
                     }
                 }
 
@@ -227,13 +227,13 @@ impl Display for Instruction {
                 write!(f, "t1 := {}:{}{}", t1, sign, size)
             }
             Instruction::Call(ref t1, ref label, ref temps) => {
-                write!(f, "{} := {}.call(", t1, label);
+                write!(f, "{} := {}.call(", t1, label)?;
 
                 for (i, temp) in temps.iter().enumerate() {
                     if i + 1 == temps.len() {
-                        write!(f, "{}", temp);
+                        write!(f, "{}", temp)?;
                     } else {
-                        write!(f, "{},", temp);
+                        write!(f, "{},", temp)?;
                     }
                 }
 

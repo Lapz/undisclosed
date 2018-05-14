@@ -10,7 +10,6 @@ extern crate underscore_vm;
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-use underscore_codegen::optimize::Optimizer;
 use underscore_semant::{Codegen, Infer, TypeEnv};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
@@ -140,13 +139,9 @@ fn run(path: String, dump_file: Option<String>) {
 
     let lowered = codegen.gen_program(ast);
 
-    codegen.dump_to_file(format!("{}ir", path));
-
-    let mut file = File::create("lowered").expect("Couldn't create file");
+    let mut file = File::create("lowered.ir").expect("Couldn't create file");
     file.write(format!("{}", lowered).as_bytes())
         .expect("Couldn't write to the file");
-
-    codegen.dump_to_file(format!("{}ir_optimized", path));
 }
 
 #[derive(StructOpt, Debug)]

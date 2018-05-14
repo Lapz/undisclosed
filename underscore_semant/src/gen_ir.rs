@@ -6,7 +6,7 @@ use codegen::{
 use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};
-use util::symbol::{Symbol, Symbols};
+use util::symbol::Symbols;
 
 #[derive(Debug)]
 pub struct Codegen {
@@ -53,6 +53,7 @@ impl Codegen {
             self.gen_function(&function, &mut instructions);
 
             Optimizer::strength_reduction(&mut instructions);
+            Optimizer::unused_labels(&mut vec![], &mut instructions);
 
             lowered.functions.push(l::Function {
                 span: function.span,
@@ -67,20 +68,13 @@ impl Codegen {
         lowered
     }
 
-
     fn gen_function(&mut self, func: &t::Function, instructions: &mut Vec<Instruction>) {
-        
         for param in &func.params {
             self.symbols.enter(param.name, Temp::new());
         }
 
-
         self.gen_statement(&func.body, instructions);
-
-
     }
-
-
 
     fn gen_statement(&mut self, statement: &t::Statement, instructions: &mut Vec<Instruction>) {
         match *statement {
@@ -134,6 +128,7 @@ impl Codegen {
                 }
             }
             t::Statement::Expr(ref expr) => self.gen_expression(expr, Temp::new(), instructions),
+
             t::Statement::If {
                 ref cond,
                 ref then,
@@ -331,10 +326,7 @@ impl Codegen {
 
     fn gen_var(&mut self, var: &t::Var, instructions: &mut Vec<Instruction>) -> Temp {
         match *var {
-            t::Var::Simple(ref sym, _) => {
-                
-                *self.symbols.look(*sym).unwrap()
-            }
+            t::Var::Simple(ref sym, _) => *self.symbols.look(*sym).unwrap(),
 
             t::Var::SubScript(ref sym, ref expr, _) => {
                 let base = *self.symbols.look(*sym).unwrap();
@@ -412,7 +404,25 @@ impl Codegen {
                 ref e => unreachable!("{:?}", e),
             },
 
-            _ => self.gen_expression(cond, Temp::new(), instructions),
+            ref other => {
+                let true_temp = Temp::new();
+                let expr_temp = Temp::new();
+
+                self.gen_expression(cond, expr_temp, instructions);
+
+                Instruction::Store(
+                    true_temp,
+                    Value::Const(true as u64, Sign::Unsigned, Size::Bit8),
+                );
+
+                instructions.push(Instruction::CJump(
+                    CmpOp::EQ,
+                    expr_temp,
+                    true_temp,
+                    ltrue,
+                    lfalse,
+                ))
+            }
         }
     }
 }

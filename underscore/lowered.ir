@@ -35,13 +35,15 @@ function s2() -> nil {
     t23 := 0:u8
     t25 := 3:i32
     t27 := 10:i32
-    t28 := t21
+    t29 := t21
+    if t29 == t28 then s22 else s23
     label s22
-    t29 := t23
+    t31 := t23
+    if t31 == t30 then s24 else s25
     label s24
     t25 := t27
     label s25
     label s23
-    t32 := 10:i32
-    t31 := s21.call(t32)
+    t34 := 10:i32
+    t33 := s21.call(t34)
 }

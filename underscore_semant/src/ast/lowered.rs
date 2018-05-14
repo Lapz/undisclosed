@@ -21,8 +21,8 @@ pub struct Function {
 impl Display for Program {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for func in &self.functions {
-            write!(f, "{}", func);
-            writeln!(f);
+            write!(f, "{}", func)?;
+            writeln!(f)?;
         }
 
         Ok(())
@@ -31,28 +31,28 @@ impl Display for Program {
 
 impl Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "function {}", self.name);
+        write!(f, "function {}", self.name)?;
 
-        write!(f, "(");
+        write!(f, "(")?;
 
         for (i, param) in self.param_types.iter().enumerate() {
             if i + 1 == self.param_types.len() {
-                write!(f, "{}", param);
+                write!(f, "{}", param)?;
             } else {
-                write!(f, "{},", param);
+                write!(f, "{},", param)?;
             }
         }
 
-        write!(f, ")");
+        write!(f, ")")?;
 
-        write!(f, " -> {}", self.returns);
+        write!(f, " -> {}", self.returns)?;
 
-        write!(f, " {{");
+        write!(f, " {{")?;
 
-        writeln!(f);
+        writeln!(f)?;
 
         for instruction in &self.body {
-            writeln!(f, "    {}", instruction);
+            writeln!(f, "    {}", instruction)?;
         }
 
         write!(f, "}}")

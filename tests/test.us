@@ -19,7 +19,7 @@ fn main() {
 
     if x {
         if y {
-            z =v;
+            z = v;
         }
     }
 
