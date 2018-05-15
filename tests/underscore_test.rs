@@ -103,10 +103,10 @@ fn main() {
         let output = String::from_utf8_lossy(&output.stdout);
         for expects in expected {
             if !output.contains(&expects) {
-                println!("a",);
+             
                 panic!("Expected: {}", expects)
             } else {
-                println!("a")
+              
             }
         }
 

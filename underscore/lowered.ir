@@ -1,18 +1,18 @@
-function s0(tv0) -> tv0 {
+function s15(u8) -> u8 {
     t2 := t1
     ret t2
 }
+function s16(str) -> str {
+    t4 := t3
+    ret t4
+}
+function s0(tv0) -> tv0 {
+    t6 := t5
+    ret t6
+}
 function s3() -> nil {
-    t5 := 99:u8
-    t4 := s17.call(t5)
-    t8 := [1,65]
-    t7 := s17.call(t8)
-}
-function s15(u8) -> tv0 {
-    t10 := t9
-    ret t10
-}
-function s16(str) -> tv0 {
-    t12 := t11
-    ret t12
+    t9 := 99:u8
+    t8 := s15.call(t9)
+    t12 := [1,65]
+    t11 := s16.call(t12)
 }

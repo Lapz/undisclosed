@@ -71,10 +71,9 @@ impl Infer {
 
         let mut mono = Mono::new();
 
-        mono.monomorphize_program(&mut new_program, env);
+        let mono_program = mono.monomorphize_program(new_program, env);
 
-      
-
-        Ok(new_program)
+       
+        Ok(mono_program)
     }
 }

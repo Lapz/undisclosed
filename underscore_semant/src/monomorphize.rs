@@ -7,31 +7,30 @@ use util::symbol::Symbol;
 #[derive(Debug, Default)]
 pub struct Mono {
     gen_functions: Vec<Symbol>,
-    new_defs: HashMap<Symbol, Vec<(Symbol, Vec<Type>)>>,
+    new_defs: HashMap<Symbol, Vec<(Symbol, Vec<Type>, Type)>>,
 }
 
 impl Mono {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn monomorphize_program(&mut self, program: &mut t::Program, env: &mut Env) {
+    pub fn monomorphize_program(&mut self, mut program: t::Program, env: &mut Env) -> t::Program {
         for function in &program.functions {
             if function.generic {
                 self.gen_functions.push(function.name);
             }
         }
 
-        for function in &mut program.functions {
+        for function in &mut program.functions.iter_mut() {
             self.mono_body(&mut function.body, env)
         }
 
         let mut new_defs = vec![];
 
-    
         for function in program.functions.iter() {
             if self.new_defs.get(&function.name).is_some() {
                 let defs = self.new_defs.remove(&function.name).unwrap();
-                for (new_name, param_types) in defs {
+                for (new_name, param_types, returns) in defs {
                     let mut params = vec![];
                     for (param, ty) in function.params.iter().zip(param_types.into_iter()) {
                         params.push(t::FunctionParam {
@@ -44,17 +43,34 @@ impl Mono {
                         name: new_name,
                         generic: true,
                         params: params,
-                        returns: function.returns.clone(),
-                        body: function.body.clone(),
+                        returns,
+                        body: self.new_body(function.body.clone(), env),
                         linkage: function.linkage,
                     });
                 }
             }
         }
 
-        println!("{:?}", new_defs);
+        for function in program.functions {
+            if self.new_defs.get(&function.name).is_none() {
+                new_defs.push(t::Function {
+                    span: function.span,
+                    name: function.name,
+                    generic: true,
+                    params: function.params,
+                    returns: function.returns,
+                    body: self.new_body(function.body, env),
+                    linkage: function.linkage,
+                })
+            }
+        }
 
-        program.functions.extend(new_defs.into_iter());
+        t::Program {
+            functions: new_defs,
+            structs: program.structs,
+        }
+
+        // program.functions.extend(new_defs.into_iter());
     }
 
     fn mono_body(&mut self, body: &mut t::Statement, env: &mut Env) {
@@ -65,22 +81,61 @@ impl Mono {
                 }
             }
             t::Statement::Expr(ref mut texpr) => {
-                self.mono_function_call(&mut texpr.expr, env);
+                self.mono_function_call(texpr, env);
             }
             t::Statement::Let { ref mut expr, .. } => {
                 if let Some(ref mut expr) = *expr {
-                    self.mono_function_call(&mut expr.expr, env);
+                    self.mono_function_call(expr, env);
                 }
             }
             _ => (),
         }
     }
 
-    fn mono_function_call(&mut self, call: &mut t::Expression, env: &mut Env) {
-        match call {
-            t::Expression::Call(mut symbol, expressions) => {
+    fn new_body(&mut self, body: t::Statement, env: &mut Env) -> t::Statement {
+        match body {
+            t::Statement::Block(statements) => {
+                let mut new_block = Vec::new();
+
+                for mut statement in statements {
+                    new_block.push(self.new_body(statement, env))
+                }
+
+                t::Statement::Block(new_block)
+            }
+
+            t::Statement::Let { ident, ty, expr } => {
+                if let Some(texpr) = expr {
+                    t::Statement::Let {
+                        ident,
+                        ty,
+                        expr: Some(self.new_function_call(texpr, env)),
+                    }
+                } else {
+                    t::Statement::Let {
+                        ident,
+                        ty,
+                        expr: None,
+                    }
+                }
+            }
+
+            t::Statement::Expr(texpr) => t::Statement::Expr(self.new_function_call(texpr, env)),
+            t::Statement::Return(texpr) => t::Statement::Return(self.new_function_call(texpr, env)),
+
+            ref e => unimplemented!("{:?}", e),
+        }
+    }
+
+    fn new_function_call(
+        &mut self,
+        texpr: t::TypedExpression,
+        env: &mut Env,
+    ) -> t::TypedExpression {
+        match &*texpr.expr {
+            t::Expression::Call(symbol, expressions) => {
                 if self.gen_functions.contains(&symbol) {
-                    let mut name = env.name(symbol);
+                    let mut name = env.name(*symbol);
 
                     for ty in expressions.iter() {
                         name.push_str(&format!("{}", ty.ty))
@@ -88,20 +143,51 @@ impl Mono {
 
                     let mut new_sym = env.symbol(&name);
 
-                  
+                    t::TypedExpression {
+                        expr: Box::new(t::Expression::Call(new_sym, expressions.clone())),
+                        ty: texpr.ty,
+                    }
+                } else {
+                    t::TypedExpression {
+                        expr: Box::new(t::Expression::Call(*symbol, expressions.clone())),
+                        ty: texpr.ty,
+                    }
+                }
+            }
+
+            _ => texpr.clone(),
+        }
+    }
+
+    fn mono_function_call(&mut self, texpr: &mut t::TypedExpression, env: &mut Env) {
+        match *texpr.expr {
+            t::Expression::Call(ref symbol, ref expressions) => {
+                if self.gen_functions.contains(&symbol) {
+                    let mut name = env.name(*symbol);
+
+                    for ty in expressions.iter() {
+                        name.push_str(&format!("{}", ty.ty))
+                    }
+
+                    let mut new_sym = env.symbol(&name);
 
                     if self.new_defs.get(&symbol).is_some() {
                         let mut defs = self.new_defs.get_mut(&symbol).unwrap();
-                        defs.push((new_sym, expressions.iter().map(|e| e.ty.clone()).collect()))
+                        defs.push((
+                            new_sym,
+                            expressions.iter().map(|e| e.ty.clone()).collect(),
+                            texpr.ty.clone(),
+                        ))
                     } else {
                         self.new_defs.insert(
-                            symbol,
-                            vec![(new_sym, expressions.iter().map(|e| e.ty.clone()).collect())],
+                            *symbol,
+                            vec![(
+                                new_sym,
+                                expressions.iter().map(|e| e.ty.clone()).collect(),
+                                texpr.ty.clone(),
+                            )],
                         );
                     }
-
-
-                    
                 }
             }
 
@@ -110,59 +196,70 @@ impl Mono {
     }
 }
 
-// #[derive(Debug)]
-// struct Program {
-//    pub functions:HashMap<Symbol,Vec<ast::Function>>,
+// #[derive(Debug, Default)]
+// struct Mono2 {
+//     new_defs: HashMap<Symbol, Vec<MonoFunction>>,
+//     gen_functions: Vec<Symbol>,
 // }
 
-// impl Mono {
-// fn monomorphize_program(&mut self,new_program:&mut Program,program:ast::Program) {
+// #[derive(Debug)]
+// struct MonoFunction {
+//     name: Symbol,
+//     params: Vec<Type>,
+//     returns: Type,
+// }
 
-// for function in program.functions {
-//     if function.generic {
-//         self.genbody(&function)
-//     }else {
-//         new_program.functions.insert(function.name,vec![function]);
+// struct Program {
+//     functions: Vec<t::Function>,
+// }
+
+// impl Mono2 {
+//     pub fn new() -> Self {
+//         Self::default()
 //     }
 
-// }
+//     fn monomorphize_program(&mut self, program: t::Program, env: &mut Env) -> t::Program {
+//         let mut new_program = t::Program {
+//             functions: Vec::new(),
+//         };
 
-// }
+//         for function in program.functions {
+//             if function.generic {
+//                 self.gen_functions.push(function.name);
+//             }
 
-// fn genbody(&mut self,function:&ast::Function)  {
+//             if new_program.functions.contains(&function) {
+//                 if self.new_defs.get(&function.name).is_some() {
+//                     let new_defs = self.new_defs.remove(&function.name).unwrap();
 
-// }
+//                     for mono_function in new_defs {
+//                         let mut params = vec![];
+//                         for (param, ty) in
+//                             function.params.iter().zip(mono_function.params.into_iter())
+//                         {
+//                             params.push(t::FunctionParam {
+//                                 name: param.name,
+//                                 ty,
+//                             });
+//                         }
 
-// fn gen_call(&mut self,call:ast::Expression,function:ast::Function) {
-// match call {
-//     ast::Expression::Call(symbol,expressions) => {
-
-//         if let Some(ref defs) =  self.program.functions.get(&symbol) {
-//             if defs.len() > 1 {
-
-//                 let mut new_params = vec![];
-
-//                 for (call_param,def_param) in expressions.iter().zip(function.params) {
-//                     new_params.push(ast::FunctionParam{
-//                         name:def_param.name,
-//                         ty:call_param.ty,
-//                     })
+//                         new_program.functions.push(t::Function {
+//                             span: function.span,
+//                             name: mono_function.name,
+//                             generic: true,
+//                             params: params,
+//                             returns: mono_function.returns,
+//                             body: self.mono_body(function.body.clone(), env),
+//                             linkage: function.linkage,
+//                         });
+//                     }
 //                 }
-//                 ast::Function {
-//             span:function.span,
-//             name:symbol,
-//             generic:true,
-//             params:params,
-//             returns:function.returns.clone(),
-//             body:function.body.clone()
-
-//         }
+//             } else {
+//                 new_program.functions.push(function)
 //             }
 //         }
 
+//         new_program
 //     }
 
-//     _ => ()
-// }
-// }
 // }

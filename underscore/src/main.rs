@@ -139,6 +139,8 @@ fn run(path: String, dump_file: Option<String>) {
 
     let lowered = codegen.gen_program(ast);
 
+ 
+
     let mut file = File::create("lowered.ir").expect("Couldn't create file");
     file.write(format!("{}", lowered).as_bytes())
         .expect("Couldn't write to the file");

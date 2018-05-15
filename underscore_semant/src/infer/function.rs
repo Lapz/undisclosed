@@ -977,8 +977,8 @@ impl Infer {
 
                         _ => unreachable!(), // Structs are not stored in the var environment so this path cannot be reached
                     },
-                    ref e => {
-                        println!("{:?}", e);
+                    _ => {
+                       
                         let msg = format!("`{}` is not callable", env.name(callee.value));
 
                         reporter.error(msg, callee.span);
