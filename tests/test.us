@@ -3,9 +3,8 @@ fn id<T>(v:T) -> T {
 }
 
 fn main() {
-    let x = id('c');
+    let x = id::<i32>(10);
     let y = id("A");
-    
 }
 
 

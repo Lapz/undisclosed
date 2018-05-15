@@ -1,4 +1,4 @@
-function s15(u8) -> u8 {
+function s15(tv1) -> i32 {
     t2 := t1
     ret t2
 }
@@ -11,7 +11,7 @@ function s0(tv0) -> tv0 {
     ret t6
 }
 function s3() -> nil {
-    t9 := 99:u8
+    t9 := 10:i32
     t8 := s15.call(t9)
     t12 := [1,65]
     t11 := s16.call(t12)

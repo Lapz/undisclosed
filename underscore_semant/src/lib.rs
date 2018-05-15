@@ -73,7 +73,6 @@ impl Infer {
 
         let mono_program = mono.monomorphize_program(new_program, env);
 
-       
         Ok(mono_program)
     }
 }

@@ -65,10 +65,7 @@ impl Codegen {
             });
         }
 
-       
         lowered
-
-
     }
 
     fn gen_function(&mut self, func: &t::Function, instructions: &mut Vec<Instruction>) {
@@ -252,9 +249,6 @@ impl Codegen {
             }
 
             t::Expression::Call(ref name, ref exprs) => {
-            
-            
-
                 let mut params = vec![];
 
                 for expr in exprs {

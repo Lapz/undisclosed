@@ -61,7 +61,6 @@ pub enum Statement {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Array(Vec<TypedExpression>),
-    Assign2(Var, TypedExpression),
 
     Assign(Var, TypedExpression),
 
