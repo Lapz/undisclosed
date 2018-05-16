@@ -5,6 +5,7 @@ extern crate underscore_codegen;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
+#[macro_use]
 extern crate underscore_vm;
 
 use std::io::{self, Write};
@@ -15,7 +16,7 @@ use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
-use underscore_vm::VM;
+use underscore_vm::{Chunk, VM};
 
 fn main() {
     let opts = Cli::from_args();
@@ -131,8 +132,26 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
-    let mut code = vec![2, 4, 12, 0, 0, 0, 2, 4, 25, 0, 0, 0, 7, 4, 1, 4];
-    let mut vm = VM::new(&mut code);
+    let mut chunk = Chunk::new();
+    let mut constant = chunk.add_constant(&[12, 0, 0, 0], 1);
+
+    chunk.write(2, 1);
+    chunk.write(4, 1);
+    chunk.write(constant as u8, 1);
+
+    constant = chunk.add_constant(&[25, 0, 0, 0], 1);
+
+    chunk.write(2, 1);
+    chunk.write(4, 1);
+    chunk.write(constant as u8, 1);
+
+    chunk.write(7, 1);
+    chunk.write(4, 1);
+
+    chunk.write(1, 2);
+    chunk.write(4, 2);
+
+    let mut vm = VM::new(&mut chunk);
 
     vm.run().expect("Err");
     let mut codegen = Codegen::new(symbols);
