@@ -49,7 +49,7 @@ pub enum TokenType<'a> {
     LBRACE,     // {
     RBRACE,     // }
     COLONCOLON, // ::
-    BAR,        // | 
+    BAR,        // |
 
     // Comparison
     LESSTHAN,         // <
@@ -123,8 +123,8 @@ impl<'a> Display for TokenType<'a> {
             TokenType::RBRACKET => write!(f, "]"),  // ]
             TokenType::LBRACE => write!(f, "{{"),   // {
             TokenType::RBRACE => write!(f, "}}"),   // }
-            TokenType::FRETURN => write!(f, "->"), // -> 
-            TokenType::BAR=> write!(f, "|"), // -> 
+            TokenType::FRETURN => write!(f, "->"),  // ->
+            TokenType::BAR => write!(f, "|"),       // ->
             // Keywords,
             TokenType::FUNCTION => write!(f, "fun"),
             TokenType::AS => write!(f, "as"),

@@ -1,18 +1,10 @@
-struct List {
-    head:i32,
-    body:nil
-}
-
-
-fn id<T>(v:T) ->T {
+fn id<T>(v:T) -> T {
     return v;
 }
 
-
 fn main() {
-    let v = 10;
-    let a = || {
-    };
-
-    return;
+    let x = id::<i32>(10);
+    let y = id("A");
 }
+
+

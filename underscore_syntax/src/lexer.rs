@@ -74,7 +74,6 @@ impl<'a> Lexer<'a> {
     fn advance(&mut self) -> Option<(Position, char)> {
         match self.lookahead {
             Some((pos, ch)) => {
-                self.end = self.end.shift(ch);
                 self.lookahead = self.chars.next();
                 Some((pos, ch))
             }
@@ -97,6 +96,10 @@ impl<'a> Lexer<'a> {
         )
     }
 
+    fn next_loc(&self) -> Position {
+        self.lookahead.as_ref().map_or(self.chars.pos, |l| l.0)
+    }
+
     fn slice(&self, start: Position, end: Position) -> &'a str {
         &self.input[start.absolute..end.absolute]
     }
@@ -112,7 +115,7 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
 
-        (self.end, self.slice(start, self.end))
+        (self.next_loc(), self.slice(start, self.next_loc()))
     }
 
     fn peek<F>(&mut self, mut check: F) -> bool
@@ -155,6 +158,17 @@ impl<'a> Lexer<'a> {
                     return Ok(spans(token, start, end));
                 }
 
+                '\\' => {
+                    let (end, escape) = self.escape_code();
+
+                    if let Some(escape) = escape {
+                        string.push(escape)
+                    } else {
+                        self.reporter
+                            .error("Invalid escape", Span { start: next, end })
+                    }
+                }
+
                 ch => string.push(ch),
             }
         }
@@ -162,21 +176,22 @@ impl<'a> Lexer<'a> {
         Err(LexerError::UnclosedString)
     }
 
-    fn escape_code(&mut self) -> Option<char> {
+    fn escape_code(&mut self) -> (Position, Option<char>) {
         match self.advance() {
-            Some((_, 't')) => Some('\t'),
-            Some((_, 'n')) => Some('\n'),
-            Some((_, 'r')) => Some('\r'),
-            Some((_, '\\')) => Some('\\'),
-            Some((_, '"')) => Some('"'),
-            Some((_, _)) => None,
-            None => None,
+            Some((end, 't')) => (end, Some('\t')),
+            Some((end, '0')) => (end, Some('\0')),
+            Some((end, 'n')) => (end, Some('\n')),
+            Some((end, 'r')) => (end, Some('\r')),
+            Some((end, '\\')) => (end, Some('\\')),
+            Some((end, '"')) => (end, Some('"')),
+            Some((end, _)) => (end, None),
+            None => (self.end, None),
         }
     }
 
     fn char_literal(&mut self, start: Position) -> Result<Spanned<Token<'a>>, LexerError> {
         let token = match self.advance() {
-            Some((_, '\\')) => self.escape_code(),
+            Some((_, '\\')) => self.escape_code().1,
 
             Some((_, '\'')) => return Err(LexerError::EmptyCharLit),
             Some((_, ch)) => Some(ch),
@@ -274,7 +289,7 @@ impl<'a> Lexer<'a> {
                 '(' => Some(span(TokenType::LPAREN, start)),
                 ')' => Some(span(TokenType::RPAREN, start)),
                 ',' => Some(span(TokenType::COMMA, start)),
-                '|' => Some(span(TokenType::BAR,start)),
+                '|' => Some(span(TokenType::BAR, start)),
                 ':' => {
                     if self.peek(|ch| ch == ':') {
                         self.advance();
@@ -389,7 +404,7 @@ impl<'a> Lexer<'a> {
         Some(spans(TokenType::EOF, self.end, self.end))
     }
 
-    pub fn lex(&mut self) -> Vec<Spanned<Token<'a>>> {
+    pub fn lex(&mut self) -> Result<Vec<Spanned<Token<'a>>>, ()> {
         let mut tokens = vec![];
 
         while self.lookahead.is_some() {
@@ -398,9 +413,15 @@ impl<'a> Lexer<'a> {
             }
         }
 
+        tokens.push(span(TokenType::EOF, self.end));
+
         tokens.retain(|t| t.value.token != TokenType::COMMENT);
 
-        tokens
+        if self.reporter.had_error() {
+            Err(())
+        } else {
+            Ok(tokens)
+        }
     }
 }
 

@@ -7,6 +7,6 @@ struct List<T> {
 fn main() {
     let list = List::<i32> {
         head:10,
-        tail:nil,
+        tail:nil
     };
 }

@@ -1,6 +1,5 @@
-extern crate underscore_util as util;
 extern crate rand;
-
+extern crate underscore_util as util;
 
 pub mod ast;
 pub mod lexer;

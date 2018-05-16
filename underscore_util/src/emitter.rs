@@ -1,7 +1,7 @@
 //! Error reporting that reports all compiler errors.
 use ansi_term::Colour::{Blue, Fixed, Red, Yellow};
-use pos::EMPTYSPAN;
 use pos::Span;
+use pos::EMPTYSPAN;
 use std::cell::RefCell;
 use std::fmt::{self, Display};
 use std::iter::repeat;
@@ -39,6 +39,11 @@ impl Reporter {
         Default::default()
     }
 
+    /// Checks if errors have occured
+    pub fn had_error(&self) -> bool {
+        !self.diagnostics.borrow().is_empty()
+    }
+
     pub fn global_error(&self, msg: &str) {
         self.diagnostics.borrow_mut().push(Diagnostic {
             msg: msg.into(),
@@ -53,6 +58,10 @@ impl Reporter {
             span,
             level: Level::Error,
         })
+    }
+    /// Remove the last entered erro
+    pub fn pop_error(&mut self) {
+        self.diagnostics.borrow_mut().pop();
     }
 
     pub fn warn(&self, msg: &str, span: Span) {
@@ -78,7 +87,7 @@ pub fn print(input: &str, d: &Diagnostic) {
             ref level,
         } => {
             println!("{}: {}", level, Fixed(252).bold().paint(msg.clone()));
-            print_highlight(input, span, level, 4)
+            print_highlight(input, span, level, 2)
         }
     }
 }

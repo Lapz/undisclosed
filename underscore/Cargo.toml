@@ -9,6 +9,13 @@ structopt-derive = "0.1.6"
 underscore_syntax =  {path="../underscore_syntax"}
 underscore_util =  {path="../underscore_util"}
 underscore_semant = {path ="../underscore_semant"}
+underscore_codegen = {path ="../underscore_codegen"}
+
+
+
+[dependencies.underscore_vm]
+path = "../underscore_vm"
+features = ["debug"]
 [[test]]
 name ="underscore_test"
 path ="../tests/underscore_test.rs"

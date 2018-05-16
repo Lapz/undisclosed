@@ -2,20 +2,20 @@ use ast::Program;
 use ast::TyAlias;
 use ast::{Call, Expression, Literal, Op, Statement, UnaryOp, Var};
 use ast::{Field, Struct, StructLit, StructLitField};
-use ast::{Function, FunctionParams, Ident, ItemName, Linkage, Ty};
+use ast::{Function, FunctionParams, ItemName, Linkage, Ty};
+use rand::{self, Rng};
 use std::iter::Peekable;
 use std::vec::IntoIter;
 use tokens::{Token, TokenType};
 use util::emitter::Reporter;
 use util::pos::{Span, Spanned};
-use util::symbol::Table;
-use rand::{self,Rng};
+use util::symbol::{Symbol, Symbols};
 
 pub struct Parser<'a, 'b> {
     reporter: Reporter,
     tokens: Peekable<IntoIter<Spanned<Token<'a>>>>,
     parsing_cond: bool,
-    symbols: &'b Table<Ident, ()>,
+    symbols: &'b mut Symbols<()>,
 }
 
 pub type ParserResult<T> = Result<T, ()>;
@@ -144,7 +144,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     pub fn new(
         tokens: Vec<Spanned<Token<'a>>>,
         reporter: Reporter,
-        symbols: &'b mut Table<Ident, ()>,
+        symbols: &'b mut Symbols<()>,
     ) -> Self {
         Parser {
             tokens: tokens.into_iter().peekable(),
@@ -164,7 +164,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         let mut err_occured = false;
 
         while self.peek(|token| token != &TokenType::EOF) {
-            if self.recognise(TokenType::FUNCTION) {
+            if self.recognise(TokenType::EXTERNAL) || self.recognise(TokenType::FUNCTION) {
                 match self.parse_function() {
                     Ok(func) => program.functions.push(func),
                     Err(_) => {
@@ -195,6 +195,8 @@ impl<'a, 'b> Parser<'a, 'b> {
             }
         }
 
+        self.consume(&TokenType::EOF, "Expected an EOF")?;
+
         if err_occured {
             Err(())
         } else {
@@ -204,7 +206,6 @@ impl<'a, 'b> Parser<'a, 'b> {
 
     fn synchronize(&mut self) {
         self.advance();
-
         while self.peek(|token| token == &TokenType::EOF) {
             match self.advance().map(|t| t.value.token) {
                 Some(TokenType::FUNCTION) | Some(TokenType::STRUCT) | Some(TokenType::EXTERNAL) => {
@@ -216,30 +217,17 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-    fn ident(&mut self, name: &str) -> Ident {
-        for (key, value) in self.symbols.strings.mappings.borrow().iter() {
-            if value == name {
-                return *key;
-            }
-        }
-        let symbol = Ident(*self.symbols.strings.next.borrow());
-        self.symbols
-            .strings
-            .mappings
-            .borrow_mut()
-            .insert(symbol, name.to_owned());
-        *self.symbols.strings.next.borrow_mut() += 1;
-        symbol
+    fn ident(&mut self, name: &str) -> Symbol {
+        self.symbols.symbol(name)
     }
 
-    fn random_ident(&mut self) -> Ident {
-    let mut rng = rand::thread_rng();
-    let letter: char = rng.gen_range(b'A', b'Z') as char;
-    let number: u32 = rng.gen_range(0, 999999);
-    let s = format!("{}{:06}", letter, number);
+    fn random_ident(&mut self) -> Symbol {
+        let mut rng = rand::thread_rng();
+        let letter: char = rng.gen_range(b'A', b'Z') as char;
+        let number: u32 = rng.gen_range(0, 999999);
+        let s = format!("{}{:06}", letter, number);
 
-    self.ident(&s)
-       
+        self.symbols.symbol(&s)
     }
 
     fn peek<F>(&mut self, mut check: F) -> bool
@@ -295,10 +283,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
                 Err(())
             }
-            None => {
-                self.reporter.global_error("Unexpected EOF");
-                Err(())
-            }
+            None => Err(()),
         }
     }
 
@@ -323,16 +308,12 @@ impl<'a, 'b> Parser<'a, 'b> {
 
                 Err(())
             }
-            None => {
-                self.reporter.global_error("Unexpected EOF");
-
-                Err(())
-            }
+            None => Err(()),
         }
     }
 
-    /// Advance the stream of tokens and return `Ident`
-    fn consume_get_ident(&mut self, msg: &str) -> ParserResult<Spanned<Ident>> {
+    /// Advance the stream of tokens and return `Symbol`
+    fn consume_get_ident(&mut self, msg: &str) -> ParserResult<Spanned<Symbol>> {
         match self.advance() {
             Some(Spanned {
                 value:
@@ -354,15 +335,12 @@ impl<'a, 'b> Parser<'a, 'b> {
 
                 Err(())
             }
-            None => {
-                self.reporter.global_error("Unexpected EOF");
-                Err(())
-            }
+            None => Err(()),
         }
     }
 
-    /// Advance the stream of tokens and the return the `Ident` and `Span`
-    fn consume_get_ident_and_span(&mut self, msg: &str) -> ParserResult<(Span, Spanned<Ident>)> {
+    /// Advance the stream of tokens and the return the `Symbol` and `Span`
+    fn consume_get_ident_and_span(&mut self, msg: &str) -> ParserResult<(Span, Spanned<Symbol>)> {
         match self.advance() {
             Some(Spanned {
                 value:
@@ -387,10 +365,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
                 Err(())
             }
-            None => {
-                self.reporter.global_error("Unexpected EOF");
-                Err(())
-            }
+            None => Err(()),
         }
     }
 
@@ -509,7 +484,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
     /// Parse a function
     /// i.e.
-    /// (extern)? fn `Ident` (Vec<FunctionParams>) -> `Ty` {
+    /// (extern)? fn `Symbol` (Vec<FunctionParams>) -> `Ty` {
     ///        statements*
     /// },
     fn parse_function(&mut self) -> ParserResult<Spanned<Function>> {
@@ -549,7 +524,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
     /// Parse an item name
     /// i.e.
-    /// `Ident <Vec<Ident>>`
+    /// `Symbol <Vec<Symbol>>`
     fn parse_item_name(&mut self) -> ParserResult<Spanned<ItemName>> {
         let (open_span, name) = self.consume_get_ident_and_span("Expected an identifier")?;
 
@@ -565,13 +540,13 @@ impl<'a, 'b> Parser<'a, 'b> {
     /// i.e.
     /// <T,T>
     /// <K,V>
-    fn parse_generic_params(&mut self) -> ParserResult<(Vec<Spanned<Ident>>, Option<Span>)> {
+    fn parse_generic_params(&mut self) -> ParserResult<(Vec<Spanned<Symbol>>, Option<Span>)> {
         if self.recognise(TokenType::LESSTHAN) {
             let open_span = self.consume_get_span(&TokenType::LESSTHAN, "Expected a '<' ")?;
             let mut generic_param = Vec::new();
 
             loop {
-                generic_param.push(self.consume_get_ident("Expected an Identifier")?);
+                generic_param.push(self.consume_get_ident("Expected an Symbolifier")?);
 
                 if self.recognise(TokenType::COMMA) {
                     self.advance();
@@ -593,7 +568,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
     /// Parse fn params
     /// i.e.
-    /// (Ident:Ty)*?
+    /// (Symbol:Ty)*?
     /// (a:bar,b:foo)
     fn parse_fn_params(&mut self) -> ParserResult<Spanned<Vec<Spanned<FunctionParams>>>> {
         let open_span =
@@ -610,7 +585,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         })
     }
 
-    fn parse_params(&mut self) ->  ParserResult<Vec<Spanned<FunctionParams>>> {
+    fn parse_params(&mut self) -> ParserResult<Vec<Spanned<FunctionParams>>> {
         let mut params = Vec::new();
 
         if !self.recognise(TokenType::RPAREN) && !self.recognise(TokenType::BAR) {
@@ -677,6 +652,31 @@ impl<'a, 'b> Parser<'a, 'b> {
             Ok(Spanned {
                 value: Ty::Bool,
                 span: self.consume_get_span(&TokenType::BOOL, "Expected a bool")?,
+            })
+        } else if self.recognise(TokenType::LBRACKET) {
+            let open_span = self.consume_get_span(&TokenType::LBRACKET, "Expected '[' ")?;
+
+            let ty = self.parse_type()?;
+
+            self.consume(&TokenType::SEMICOLON, "Expected ';'")?;
+
+            let len = match self.advance() {
+                Some(Spanned {
+                    ref span,
+                    ref value,
+                }) => match value.token {
+                    TokenType::Number(ref n) => n.value as usize,
+
+                    _ => unimplemented!(),
+                },
+                _ => unimplemented!(),
+            };
+
+            let close_span = self.consume_get_span(&TokenType::RBRACKET, "Expected ']' ")?;
+
+            Ok(Spanned {
+                value: Ty::Array(Box::new(ty), len),
+                span: open_span.to(close_span),
             })
         } else if self.recognise(TokenType::STR) {
             Ok(Spanned {
@@ -787,17 +787,15 @@ impl<'a, 'b> Parser<'a, 'b> {
 impl<'a, 'b> Parser<'a, 'b> {
     ///  block_statement → "{" statement* "}" ;
     fn parse_block(&mut self) -> ParserResult<Spanned<Statement>> {
+        let (statements, span) = self.parse_block_()?;
 
-        let (statements,span) = self.parse_block_()?;
-
-        
         Ok(Spanned {
             span: span,
             value: Statement::Block(statements),
         })
     }
 
-    fn parse_block_(&mut self) -> ParserResult<(Vec<Spanned<Statement>>,Span)> {
+    fn parse_block_(&mut self) -> ParserResult<(Vec<Spanned<Statement>>, Span)> {
         let open_span = self.consume_get_span(&TokenType::LBRACE, "Expected a '{' ")?;
 
         let mut statements = vec![];
@@ -808,8 +806,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         let close_span =
             self.consume_get_span(&TokenType::RBRACE, "Expected a \'}\' after block.")?;
-
-            Ok((statements,open_span.to(close_span)))
+        Ok((statements, open_span.to(close_span)))
     }
 
     /// break → "break" ";"
@@ -934,6 +931,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             return Ok(Spanned {
                 span: open_span.to(ident.get_span()),
                 value: Statement::Let {
+                    escapes: false,
                     ident,
                     ty,
                     expr: None,
@@ -953,24 +951,28 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(Spanned {
             span: open_span.to(close_span),
-            value: Statement::Let { ident, ty, expr },
+            value: Statement::Let {
+                escapes: false,
+                ident,
+                ty,
+                expr,
+            },
         })
     }
     /// return_statement → "return" expression_statement? ";"
     fn parse_return_statement(&mut self) -> ParserResult<Spanned<Statement>> {
         let open_span = self.consume_get_span(&TokenType::RETURN, "Expected 'return' ")?;
 
-
         if self.recognise(TokenType::SEMICOLON) {
-            let span = self.consume_get_span(&TokenType::SEMICOLON,"")?;
+            let span = self.consume_get_span(&TokenType::SEMICOLON, "")?;
 
-            return Ok(Spanned{
+            return Ok(Spanned {
                 span,
-                value:Statement::Return(Spanned{
+                value: Statement::Return(Spanned {
                     span,
-                    value:Expression::Literal(Literal::Nil)
-                })
-            })
+                    value: Expression::Literal(Literal::Nil),
+                }),
+            });
         }
 
         let expr = self.parse_expression()?;
@@ -1003,14 +1005,13 @@ impl<'a, 'b> Parser<'a, 'b> {
 }
 
 impl<'a, 'b> Parser<'a, 'b> {
-
     /// expression → assignment ;
     fn parse_expression(&mut self) -> ParserResult<Spanned<Expression>> {
         self.parse_assignment()
     }
 
     /// assignment → IDENT "=" assignment
-    ///            | or;   
+    ///            | or;
     fn parse_assignment(&mut self) -> ParserResult<Spanned<Expression>> {
         let expr = self.parse_or()?;
 
@@ -1043,7 +1044,6 @@ impl<'a, 'b> Parser<'a, 'b> {
         Ok(expr)
     }
 
-
     /// or → and ("or" and)* ;
     fn parse_or(&mut self) -> ParserResult<Spanned<Expression>> {
         let mut lhs = self.parse_and()?;
@@ -1054,7 +1054,6 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(lhs)
     }
-
 
     /// or → equality ( "as"  type |("and" equality))* ;
     fn parse_and(&mut self) -> ParserResult<Spanned<Expression>> {
@@ -1075,7 +1074,7 @@ impl<'a, 'b> Parser<'a, 'b> {
                 },
             })
         } else {
-            binary!(self, OR, lhs, parse_equality);
+            binary!(self, AND, lhs, parse_equality);
 
             Ok(lhs)
         }
@@ -1140,7 +1139,7 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         Ok(lhs)
     }
-   /// unary → ( "!" | "-" ) unary | primary ;
+    /// unary → ( "!" | "-" ) unary | primary ;
     fn parse_unary(&mut self) -> ParserResult<Spanned<Expression>> {
         if self.matched(vec![TokenType::BANG, TokenType::MINUS]) {
             let op = self.get_unary_op()?;
@@ -1160,7 +1159,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     /// primary → "true" | "false" | "nil"
-    ///         | number | string | Ident
+    ///         | number | string | Symbol
     ///         | CHAR   | struct_lit
     fn parse_primary(&mut self) -> ParserResult<Spanned<Expression>> {
         match self.advance() {
@@ -1201,22 +1200,25 @@ impl<'a, 'b> Parser<'a, 'b> {
                         span: span.to(close_span),
                         value: Expression::Grouping { expr },
                     })
-                },
+                }
 
                 TokenType::BAR => {
-                   let closure = self.parse_closure(*span)?;
+                    let closure = self.parse_closure(*span)?;
 
-                   Ok(Spanned{
-                       span:closure.get_span(),
-                       value:Expression::Closure(Box::new(closure))
-                   })
+                    Ok(Spanned {
+                        span: closure.get_span(),
+                        value: Expression::Closure(Box::new(closure)),
+                    })
                 }
+
+                TokenType::LBRACKET => self.parse_array(*span),
 
                 TokenType::IDENTIFIER(ident) => {
                     let ident = Spanned {
                         value: self.ident(ident),
                         span: *span,
                     };
+
                     self.parse_ident(ident)
                 }
 
@@ -1232,14 +1234,13 @@ impl<'a, 'b> Parser<'a, 'b> {
         }
     }
 
-   /// Ident → "(" call ")" | "::" "<" type* ">" struct_lit
-   ///       |  "." IDENT | "[" expression "]"
-   ///       | struct_lit   
-    fn parse_ident(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
+    /// Symbol → "(" call ")" | "::" "<" type* ">" struct_lit
+    ///       |  "." IDENT | "[" expression "]"
+    ///       | struct_lit
+    fn parse_ident(&mut self, ident: Spanned<Symbol>) -> ParserResult<Spanned<Expression>> {
         if self.recognise(TokenType::LPAREN) {
             self.parse_call(ident)
-        }
-         else if self.recognise(TokenType::COLONCOLON) {
+        } else if self.recognise(TokenType::COLONCOLON) {
             self.advance();
 
             let ident_span = ident.get_span();
@@ -1357,7 +1358,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     /// struct_lit → "{"  (IDENT:expression)* "}"
-    fn parse_struct_lit(&mut self, ident: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
+    fn parse_struct_lit(&mut self, ident: Spanned<Symbol>) -> ParserResult<Spanned<Expression>> {
         if self.parsing_cond {
             return Ok(Spanned {
                 span: ident.get_span(),
@@ -1405,7 +1406,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     /// call →  "(" expression ( "," expression )* ")" ;
-    fn parse_call(&mut self, callee: Spanned<Ident>) -> ParserResult<Spanned<Expression>> {
+    fn parse_call(&mut self, callee: Spanned<Symbol>) -> ParserResult<Spanned<Expression>> {
         self.consume(&TokenType::LPAREN, "Expected '(' ")?;
 
         let mut args = vec![];
@@ -1433,42 +1434,61 @@ impl<'a, 'b> Parser<'a, 'b> {
         })
     }
 
-    fn parse_closure(&mut self,open_span:Span) -> ParserResult<Spanned<Function>> {
+    fn parse_array(&mut self, open_span: Span) -> ParserResult<Spanned<Expression>> {
+        let mut items = vec![];
+
+        if !self.recognise(TokenType::RBRACKET) {
+            loop {
+                if self.recognise(TokenType::RBRACKET) {
+                    break;
+                }
+                items.push(self.parse_expression()?);
+
+                if self.recognise(TokenType::COMMA) {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let close = self.consume_get_span(&TokenType::RBRACKET, "Expected ']'")?;
+
+        Ok(Spanned {
+            span: open_span.to(close),
+            value: Expression::Array { items },
+        })
+    }
+
+    fn parse_closure(&mut self, open_span: Span) -> ParserResult<Spanned<Function>> {
         let params = self.parse_params()?;
 
         let params_span = self.consume_get_span(&TokenType::BAR, "Expected `|` ")?;
 
-        let body  = self.parse_block()?;
+        let body = self.parse_block()?;
 
-        Ok(Spanned{
-            span:open_span.to(body.get_span()),
+        Ok(Spanned {
+            span: open_span.to(body.get_span()),
             value: Function {
-                  span:open_span.to(body.get_span()),
-                  name: Spanned {
-                      span:open_span.to(body.get_span()),
-                      value:ItemName {
-                          name:Spanned {
-                              span:open_span.to(body.get_span()),
-                              value:self.random_ident()
-                          },
-                          type_params:vec![]
-                      }
-                  },
-                 params:Spanned{
-                     span:open_span.to(params_span),
-                     value:params
-                 },
-                 body,
-                 linkage:Linkage::Normal,
-                 returns:None
-            }
+                span: open_span.to(body.get_span()),
+                name: Spanned {
+                    span: open_span.to(body.get_span()),
+                    value: ItemName {
+                        name: Spanned {
+                            span: open_span.to(body.get_span()),
+                            value: self.random_ident(),
+                        },
+                        type_params: vec![],
+                    },
+                },
+                params: Spanned {
+                    span: open_span.to(params_span),
+                    value: params,
+                },
+                body,
+                linkage: Linkage::Normal,
+                returns: None,
+            },
         })
-
-
-
-
-
-
-
     }
 }
