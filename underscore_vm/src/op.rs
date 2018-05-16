@@ -1,14 +1,31 @@
-#[derive(Clone, Copy, Debug)]
-pub enum OpCode {
-    Return = 0x01,
-    Constant = 0x02,
-    Neg = 0x03,
-    Add = 0x04,
-    Subtract = 0x05,
-    Multiply = 0x06,
-    Divide = 0x07,
+macro_rules! op {
+    ($($body:tt)*) =>   {
+        op_inner! {
+            #[derive(Clone, Copy, Debug)]
+            pub enum OpCode {
+                $($body)*
+            }
+        }
+    }
 }
 
+macro_rules! op_inner {
+    ($i:item) => {
+        $i
+    };
+}
+
+op! {
+    Return,
+    Constant8,
+    Constant32,
+    Constant64,
+    Neg,
+    Add,
+    Subtract ,
+    Multiply ,
+    Divide,
+}
 pub trait TryFrom<T>: Sized {
     /// The type returned in the event of a conversion error.
     type Error;
@@ -27,14 +44,17 @@ impl TryFrom<u8> for OpCode {
     type Error = ();
 
     fn try_from(original: u8) -> Result<Self, Self::Error> {
+        use self::OpCode::*;
         match original {
-            1 => Ok(OpCode::Return),
-            2 => Ok(OpCode::Constant),
-            3 => Ok(OpCode::Neg),
-            4 => Ok(OpCode::Add),
-            5 => Ok(OpCode::Subtract),
-            6 => Ok(OpCode::Multiply),
-            7 => Ok(OpCode::Divide),
+            0 => Ok(Return),
+            1 => Ok(Constant8),
+            2 => Ok(Constant32),
+            3 => Ok(Constant64),
+            4 => Ok(Neg),
+            5 => Ok(Add),
+            6 => Ok(Subtract),
+            7 => Ok(Multiply),
+            8 => Ok(Divide),
             _ => Err(()),
         }
     }

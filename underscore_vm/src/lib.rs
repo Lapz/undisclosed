@@ -1,3 +1,6 @@
+#![feature(trace_macros)]
+#![feature(log_syntax)]
+
 #[macro_use]
 mod chunk;
 

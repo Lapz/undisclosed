@@ -137,31 +137,32 @@ impl<'a> VM<'a> {
 
                     return Ok(());
                 }
-                Ok(OpCode::Constant) => {
-                    self.ip += 1;
-
-                    let size = self.code[self.ip] as usize;
-
+                Ok(OpCode::Constant8) => {
                     self.ip += 1;
 
                     let index = self.code[self.ip] as usize;
 
-                    match size {
-                        1 => {
-                            push!(&self.code.constants[index..index+size] => self.stack,[self.stack_top,size]);
-                        }
+                    push!(&self.code.constants[index..index+1] => self.stack,[self.stack_top,1]);
+                    self.ip += 1;
 
-                        4 => {
-                            push!(&self.code.constants[index..index+size] => self.stack,[self.stack_top,size]);
-                        }
+                    // break;
+                }
+                Ok(OpCode::Constant32) => {
+                    self.ip += 1;
 
-                        8 => {
-                            push!(&self.code.constants[index..index+size] => self.stack,[self.stack_top,size]);
-                        }
+                    let index = self.code[self.ip] as usize;
 
-                        _ => unreachable!(),
-                    }
+                    push!(&self.code.constants[index..index+4] => self.stack,[self.stack_top,4]);
+                    self.ip += 1;
 
+                    // break;
+                }
+                Ok(OpCode::Constant64) => {
+                    self.ip += 1;
+
+                    let index = self.code[self.ip] as usize;
+
+                    push!(&self.code.constants[index..index+8] => self.stack,[self.stack_top,8]);
                     self.ip += 1;
 
                     // break;

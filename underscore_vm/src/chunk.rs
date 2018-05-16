@@ -24,6 +24,7 @@ macro_rules! to_num {
 
         let mut b: [u8; mem::size_of::<$type>()] = default::Default::default();
 
+    
         b.copy_from_slice($stack);
         unsafe { mem::transmute::<_, $type>(b) }
     }};
@@ -85,7 +86,14 @@ impl Chunk {
             Ok(OpCode::Multiply) => simple_instruction("OP_MULTIPLY", offset),
             Ok(OpCode::Divide) => simple_instruction("OP_DIVIDE", offset),
 
-            Ok(OpCode::Constant) => self.constant_instruction("OP_CONSTANT", offset as usize),
+            Ok(OpCode::Constant8) => self.constant_instruction("OP_CONSTANT8", 1, offset as usize),
+            Ok(OpCode::Constant32) => {
+                self.constant_instruction("OP_CONSTANT32", 4, offset as usize)
+            }
+            Ok(OpCode::Constant64) => {
+                self.constant_instruction("OP_CONSTANT64", 8, offset as usize)
+            }
+
             _ => {
                 println!("Unknown opcode {}", instruction);
                 offset + 1
@@ -97,16 +105,16 @@ impl Chunk {
     /// Pulls out the `OpCode::Constant` and prints that out
     /// Matches on the instruction and uses that pointer offset for
     /// were the value is stored
-    pub fn constant_instruction(&self, name: &str, offset: usize) -> usize {
-        // opcode size start
+    pub fn constant_instruction(&self, name: &str, size: usize, offset: usize) -> usize {
+        // opcode start
 
-        let size = self.code[offset + 1] as usize;
+        let index = self.code[offset + 1] as usize;
 
-        let index = self.code[offset + 2] as usize;
+        println!("{:?}",index);
 
         match size {
             1 => {
-                println!("{:16} {:04}", name, to_num!([&self.constants,offset] => i8));
+                println!("{:16} {:04}", name, to_num!([&self.constants[index..index+1],offset] => i8));
             }
             4 => {
                 let mut slice = [0; 4];
@@ -131,7 +139,7 @@ impl Chunk {
             ref e => unreachable!("{:?}", e),
         }
 
-        offset as usize + 3
+        offset as usize + 2
     }
 }
 

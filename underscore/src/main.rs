@@ -135,21 +135,22 @@ fn run(path: String, dump_file: Option<String>) {
     let mut chunk = Chunk::new();
     let mut constant = chunk.add_constant(&[12, 0, 0, 0], 1);
 
-    chunk.write(2, 1);
-    chunk.write(4, 1);
-    chunk.write(constant as u8, 1);
+    chunk.write(2, 1); //Constant32
+
+    chunk.write(constant as u8, 1); //index
 
     constant = chunk.add_constant(&[25, 0, 0, 0], 1);
 
-    chunk.write(2, 1);
-    chunk.write(4, 1);
-    chunk.write(constant as u8, 1);
+    chunk.write(2, 1);//Constant32
+    chunk.write(constant as u8, 1);//index
 
-    chunk.write(7, 1);
+    chunk.write(7, 1); // Multiply
     chunk.write(4, 1);
 
-    chunk.write(1, 2);
+    chunk.write(0, 2);
     chunk.write(4, 2);
+
+    println!("{:?}",chunk);
 
     let mut vm = VM::new(&mut chunk);
 
