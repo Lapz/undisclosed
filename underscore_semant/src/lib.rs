@@ -4,8 +4,10 @@ extern crate underscore_util as util;
 
 mod ast;
 mod cast_check;
+mod cfg;
 mod env;
 mod escape;
+mod gen_cfg;
 mod gen_ir;
 mod infer;
 mod monomorphize;
@@ -14,10 +16,12 @@ mod subst;
 mod types;
 mod unify;
 
+use ast::typed as t;
 pub use env::Env as TypeEnv;
 use env::Env;
 use escape::FindEscape;
 pub use gen_ir::Codegen;
+use monomorphize::Mono;
 use resolver::Resolver;
 use syntax::ast::Program;
 use types::Type;
@@ -39,8 +43,8 @@ impl Infer {
         program: &mut Program,
         env: &mut Env,
         reporter: &mut Reporter,
-    ) -> InferResult<ast::Program> {
-        let mut new_program = ast::Program {
+    ) -> InferResult<t::Program> {
+        let mut new_program = t::Program {
             functions: vec![],
             structs: vec![],
         };
@@ -65,6 +69,10 @@ impl Infer {
 
         resolver.resolve_ast(program, reporter, env)?;
 
-        Ok(new_program)
+        let mut mono = Mono::new();
+
+        let mono_program = mono.monomorphize_program(new_program, env);
+
+        Ok(mono_program)
     }
 }

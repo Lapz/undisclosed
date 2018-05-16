@@ -1,15 +1,10 @@
-fn main() {
-    let x = true;
-    let y = false;
-    let z = 3;
-    let v = 10;
-
-    if x {
-        if y {
-            z =v;
-        }
-    }
-
-    
+fn id<T>(v:T) -> T {
+    return v;
 }
+
+fn main() {
+    let x = id::<i32>(10);
+    let y = id("A");
+}
+
 

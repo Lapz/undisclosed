@@ -1,5 +1,5 @@
 use super::{Infer, InferResult};
-use ast;
+use ast::typed as t;
 use env::{Entry, Env, VarType};
 use syntax::ast::Struct;
 use types::{Field, Type, TypeVar, Unique};
@@ -10,7 +10,7 @@ impl Infer {
         struct_def: &Spanned<Struct>,
         env: &mut Env,
         reporter: &mut Reporter,
-    ) -> InferResult<ast::Struct> {
+    ) -> InferResult<t::Struct> {
         let mut poly_tvs = Vec::with_capacity(struct_def.value.name.value.type_params.len());
         let mut type_params = Vec::with_capacity(struct_def.value.name.value.type_params.len());
 
@@ -57,7 +57,7 @@ impl Infer {
             )),
         );
 
-        Ok(ast::Struct {
+        Ok(t::Struct {
             name: struct_def.value.name.value.name.value,
             fields: type_fields,
             type_params,

@@ -2,6 +2,7 @@ use env::Env;
 use std::fmt::{self, Display};
 use syntax::ast::{Sign, Size};
 use util::symbol::Symbol;
+
 static mut UNIQUE_COUNT: u32 = 0;
 
 static mut TYPEVAR_COUNT: u32 = 0;
@@ -151,6 +152,81 @@ impl Display for TyCon {
             TyCon::Arrow => write!(f, "->"),
             TyCon::Bool => write!(f, "bool"),
             TyCon::Fun(_, ref ret) => write!(f, "fn () -> {:?}", ret),
+        }
+    }
+}
+
+impl Display for TypeVar {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "tv{}", self.0)
+    }
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Type::Array(ref ty, ref len) => write!(f, "[{};{}]", ty, len),
+            Type::Struct(ref name, ref fields, _) => {
+                write!(f, "{}<", name)?;
+
+                for (i, field) in fields.iter().enumerate() {
+                    if i + 1 == fields.len() {
+                        write!(f, "{}", field.ty)?;
+                    } else {
+                        write!(f, "{},", field.ty)?;
+                    }
+                }
+
+                write!(f, ">")
+            }
+
+            Type::Nil => write!(f, "nil"),
+
+            Type::App(ref tycon, ref types) => {
+                if let TyCon::Arrow = *tycon {
+                    write!(f, "fn (")?;
+
+                    for i in 0..types.len() - 1 {
+                        if i + 1 == types.len() - 1 {
+                            write!(f, "{}", types[i])?;
+                        } else {
+                            write!(f, "{},", types[i])?;
+                        }
+                    }
+
+                    write!(f, ") -> ")?;
+
+                    write!(f, "{}", types.last().unwrap())?;
+                }
+
+                write!(f, "{}", tycon)?;
+
+                for (i, ty) in types.iter().enumerate() {
+                    if i + 1 == types.len() {
+                        write!(f, "{}", ty)?;
+                    } else {
+                        write!(f, "{},", ty)?;
+                    }
+                }
+
+                write!(f, "")
+            }
+            Type::Var(ref v) => write!(f, "{}", v),
+            Type::Poly(ref vars, ref ret) => {
+                write!(f, "poly <")?;
+
+                for (i, var) in vars.iter().enumerate() {
+                    if i + 1 == vars.len() {
+                        write!(f, "{}", var)?;
+                    } else {
+                        write!(f, "{},", var)?;
+                    }
+                }
+
+                write!(f, ">")?;
+
+                write!(f, " {}", ret)
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ pub struct Struct {
     pub fields: Vec<Field>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Function {
     pub span: Span,
     pub name: Symbol,
@@ -26,19 +26,19 @@ pub struct Function {
     pub linkage: Linkage,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FunctionParam {
     pub name: Symbol,
     pub ty: Type,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TypedExpression {
     pub expr: Box<Expression>,
     pub ty: Type,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Statement {
     Block(Vec<Statement>),
     Break,
@@ -58,10 +58,9 @@ pub enum Statement {
     While(TypedExpression, Box<Statement>),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Array(Vec<TypedExpression>),
-    Assign2(Var, TypedExpression),
 
     Assign(Var, TypedExpression),
 
@@ -90,7 +89,7 @@ pub enum Expression {
     Var(Var),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Var {
     /// Field access i.e foo.bar;
     Field(Symbol, Symbol, Type),
