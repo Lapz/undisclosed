@@ -15,18 +15,22 @@ impl Mono {
         Self::default()
     }
     pub fn monomorphize_program(&mut self, mut program: t::Program, env: &mut Env) -> t::Program {
+
+        // Build up a list of generic functions
         for function in &program.functions {
             if function.generic {
                 self.gen_functions.push(function.name);
             }
         }
 
+        // Walk the ast store the types of the generic functions
         for function in &mut program.functions.iter_mut() {
             self.mono_body(&mut function.body, env)
         }
 
         let mut new_defs = vec![];
 
+        // Walk through the defs and generate all the new definitions 
         for function in program.functions.iter() {
             if self.new_defs.get(&function.name).is_some() {
                 let defs = self.new_defs.remove(&function.name).unwrap();
