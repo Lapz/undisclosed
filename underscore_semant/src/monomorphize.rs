@@ -15,7 +15,6 @@ impl Mono {
         Self::default()
     }
     pub fn monomorphize_program(&mut self, mut program: t::Program, env: &mut Env) -> t::Program {
-
         // Build up a list of generic functions
         for function in &program.functions {
             if function.generic {
@@ -30,7 +29,7 @@ impl Mono {
 
         let mut new_defs = vec![];
 
-        // Walk through the defs and generate all the new definitions 
+        // Walk through the defs and generate all the new definitions
         for function in program.functions.iter() {
             if self.new_defs.get(&function.name).is_some() {
                 let defs = self.new_defs.remove(&function.name).unwrap();
@@ -195,28 +194,42 @@ impl Mono {
     }
 
     fn gen_new_expr(&mut self, texpr: t::TypedExpression, env: &mut Env) -> t::TypedExpression {
-        match &*texpr.expr {
+        let t = *texpr.expr; // RUSTC Limitation see https://stackoverflow.com/questions/28466809/collaterally-moved-error-when-deconstructing-a-box-of-pairs
+        match t {
             t::Expression::Array(texprs) => t::TypedExpression {
                 expr: {
                     let mut vec = Vec::with_capacity(texprs.len());
 
                     for texpr in texprs {
-                      
-                        vec.push(self.gen_new_expr(texpr.clone(), env));
+                        vec.push(self.gen_new_expr(texpr, env));
                     }
 
                     Box::new(t::Expression::Array(vec))
                 },
                 ty: texpr.ty,
             },
-            // t::Expression::Assign(var,texpr) => {
-            //     t::Expression::Assign {
-
-            //     }
-            // }
+            t::Expression::Assign(var, value) => t::TypedExpression {
+                expr: Box::new(t::Expression::Assign(
+                    self.gen_new_var(var, env),
+                    self.gen_new_expr(value, env),
+                )),
+                ty: texpr.ty,
+            },
+            t::Expression::Binary(lhs, op, rhs) => t::TypedExpression {
+                expr: Box::new(t::Expression::Binary(
+                    self.gen_new_expr(lhs, env),
+                    op,
+                    self.gen_new_expr(rhs, env),
+                )),
+                ty: texpr.ty,
+            },
+            t::Expression::Cast(expr, ty) => t::TypedExpression {
+                expr: Box::new(t::Expression::Cast(self.gen_new_expr(expr, env), ty)),
+                ty: texpr.ty,
+            },
             t::Expression::Call(symbol, expressions) => {
                 if self.gen_functions.contains(&symbol) {
-                    let mut name = env.name(*symbol);
+                    let mut name = env.name(symbol);
 
                     for ty in expressions.iter() {
                         name.push_str(&format!("{}", ty.ty))
@@ -230,13 +243,77 @@ impl Mono {
                     }
                 } else {
                     t::TypedExpression {
-                        expr: Box::new(t::Expression::Call(*symbol, expressions.clone())),
+                        expr: Box::new(t::Expression::Call(symbol, expressions.clone())),
                         ty: texpr.ty,
                     }
                 }
             }
+            t::Expression::Closure(closure) => t::TypedExpression {
+                expr: Box::new(t::Expression::Closure(Box::new(t::Function {
+                    span: closure.span,
+                    name: closure.name,
+                    generic: closure.generic,
+                    params: closure.params.clone(),
+                    returns: closure.returns.clone(),
+                    linkage: closure.linkage,
+                    body: self.gen_new_body(closure.body, env),
+                }))),
+                ty: texpr.ty,
+            },
 
-            _ => texpr.clone(),
+            t::Expression::Field(sym1, sym2) => t::TypedExpression {
+                expr: Box::new(t::Expression::Field(sym1, sym2)),
+                ty: texpr.ty,
+            },
+
+            t::Expression::Grouping { expr } => t::TypedExpression {
+                expr: Box::new(t::Expression::Grouping {
+                    expr: self.gen_new_expr(expr, env),
+                }),
+                ty: texpr.ty,
+            },
+
+            t::Expression::Index(sym, expr) => t::TypedExpression {
+                expr: Box::new(t::Expression::Index(sym, self.gen_new_expr(expr, env))),
+                ty: texpr.ty,
+            },
+
+            t::Expression::Literal(literal) => t::TypedExpression {
+                expr: Box::new(t::Expression::Literal(literal)),
+                ty: texpr.ty,
+            },
+
+            t::Expression::StructLit(name, texprs) => t::TypedExpression {
+                expr: {
+                    let mut vec = Vec::with_capacity(texprs.len());
+
+                    for texpr in texprs {
+                        vec.push(self.gen_new_expr(texpr, env));
+                    }
+
+                    Box::new(t::Expression::StructLit(name, vec))
+                },
+                ty: texpr.ty,
+            },
+
+            t::Expression::Unary(op, expr) => t::TypedExpression {
+                expr: Box::new(t::Expression::Unary(op, self.gen_new_expr(expr, env))),
+                ty: texpr.ty,
+            },
+
+            t::Expression::Var(var) => t::TypedExpression {
+                expr: Box::new(t::Expression::Var(self.gen_new_var(var, env))),
+                ty: texpr.ty,
+            },
+        }
+    }
+
+    fn gen_new_var(&mut self, var: t::Var, env: &mut Env) -> t::Var {
+        match var {
+            t::Var::Field(_, _, _) | t::Var::Simple(_, _) => var,
+            t::Var::SubScript(symbol, texpr, ty) => {
+                t::Var::SubScript(symbol, self.gen_new_expr(texpr, env), ty)
+            }
         }
     }
 
