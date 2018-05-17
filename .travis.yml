@@ -21,7 +21,7 @@ before_script: ((cargo install cargo-travis && cargo install --version $GHP_UPLO
 script:
 - cargo clean
 - cargo build 
-- cargo test
+- cargo test --features=all -- --nocapture
 after_success: |
  if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
     bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
