@@ -1,18 +1,10 @@
-function s15(tv1) -> i32 {
-    t2 := t1
-    ret t2
-}
-function s16(str) -> str {
-    t4 := t3
-    ret t4
-}
-function s0(tv0) -> tv0 {
-    t6 := t5
-    ret t6
-}
-function s3() -> nil {
-    t9 := 10:i32
-    t8 := s15.call(t9)
-    t12 := [1,65]
-    t11 := s16.call(t12)
+function s0() -> nil {
+    t4 := 5:i32
+    t6 := 3:i32
+    t7 := 1:i32
+    t5 := t6 - t7
+    t2 := t4 - t5
+    t8 := 1:i32
+    t3 := - t8
+    t1 := t2 + t3
 }
