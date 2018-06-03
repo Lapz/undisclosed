@@ -1,4 +1,4 @@
 
-/target
-/rls
+/target/
+/rls/
 **/*.rs.bk
