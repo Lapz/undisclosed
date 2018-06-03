@@ -609,7 +609,7 @@ impl Infer {
                                 reporter.error(msg, lit.span);
                                 return Err(());
                             } else if !found {
-                                return Err(());
+                                return Err(()); ///Unkonw field 
                             }
 
                             Ok((
