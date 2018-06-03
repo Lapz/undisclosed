@@ -121,7 +121,7 @@ impl Codegen {
                                 Value::Const(4 * (*len as u64), Sign::Unsigned, Size::Bit64),
                             ));
 
-                            instructions.push(Instruction::BinOp(BinOp::Plus, HP, temp, HP));
+                            instructions.push(Instruction::BinOp(HP,BinOp::Plus,  temp, HP));
                         }
                         _ => self.gen_expression(expr, id_temp, instructions),
                     }
@@ -236,7 +236,7 @@ impl Codegen {
                         self.gen_expression(lhs, lhs_temp, instructions);
                         self.gen_expression(rhs, rhs_temp, instructions);
                         let op = gen_bin_op(op);
-                        instructions.push(Instruction::BinOp(op, lhs_temp, rhs_temp, temp));
+                        instructions.push(Instruction::BinOp(lhs_temp,op,  rhs_temp, temp));
                     }
 
                     _ => {
@@ -310,7 +310,7 @@ impl Codegen {
                 self.gen_expression(expr, new_temp, instructions);
                 let op = gen_un_op(op);
 
-                instructions.push(Instruction::UnOp(op, temp, new_temp))
+                instructions.push(Instruction::UnOp(temp, op ,new_temp))
             }
 
             t::Expression::Var(ref var) => {
@@ -340,9 +340,9 @@ impl Codegen {
                     Value::Const(4, Sign::Unsigned, Size::Bit64),
                 ));
 
-                instructions.push(Instruction::BinOp(BinOp::Mul, addr, temp, addr));
+                instructions.push(Instruction::BinOp(addr,BinOp::Mul, temp, addr));
 
-                instructions.push(Instruction::BinOp(BinOp::Plus, addr, base, addr));
+                instructions.push(Instruction::BinOp(addr,BinOp::Plus, base, addr));
 
                 addr
             }
@@ -391,8 +391,9 @@ impl Codegen {
                     self.gen_expression(lhs, lhs_temp, instructions);
                     self.gen_expression(rhs, rhs_temp, instructions);
                     instructions.push(Instruction::CJump(
+                         lhs_temp,
                         gen_cmp_op(op),
-                        lhs_temp,
+                       
                         rhs_temp,
                         ltrue,
                         lfalse,
@@ -402,7 +403,7 @@ impl Codegen {
                 ref e => unreachable!("{:?}", e),
             },
 
-            ref other => {
+            _ => {
                 let true_temp = Temp::new();
                 let expr_temp = Temp::new();
 
@@ -414,8 +415,9 @@ impl Codegen {
                 );
 
                 instructions.push(Instruction::CJump(
-                    CmpOp::EQ,
                     expr_temp,
+                    CmpOp::EQ,
+                    
                     true_temp,
                     ltrue,
                     lfalse,

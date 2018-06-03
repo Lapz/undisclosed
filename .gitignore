@@ -2,3 +2,4 @@
 /target/
 /rls/
 **/*.rs.bk
+*/.DS_Store

@@ -16,13 +16,13 @@ pub enum Instruction {
     Cast(Temp, Sign, Size), //TODO take into account sign
 
     /// Binary operation and store in Temp
-    BinOp(BinOp, Temp, Temp, Temp),
+    BinOp(Temp,BinOp, Temp, Temp),
 
     /// Unary Op store in Temp
-    UnOp(UnOp, Temp, Temp),
+    UnOp( Temp,UnOp, Temp),
 
     /// Evaluate l1, l2 compare using CmpOp and then got to L or R
-    CJump(CmpOp, Temp, Temp, Label, Label),
+    CJump(Temp, CmpOp, Temp, Label, Label),
     /// A Value
     Value(Value),
     /// Call a function with arguments
@@ -55,8 +55,8 @@ impl Instruction {
         match *self {
             Instruction::Store(ref temp, ref value) => format!("   {} := {}", temp, value),
             Instruction::Value(ref value) => format!("\n{}", value),
-            Instruction::BinOp(ref op, ref v1, ref v2, ref t) => {
-                format!("{} := {} {} {}", t, v1, op, v2)
+            Instruction::BinOp(ref t1, ref op, ref v1, ref v2) => {
+                format!("{} := {} {} {}", t1, op,v1, v2)
             }
 
             Instruction::Block(ref temp, ref temps) => {
@@ -78,7 +78,7 @@ impl Instruction {
             Instruction::Load(ref temp) => format!("\nload{}", temp),
 
             Instruction::Copy(ref t1, ref t2) => format!("\n{} := {}", t1, t2),
-            Instruction::UnOp(ref op, ref t1, ref t2) => format!("\n{} := {} {}", t1, op, t2),
+            Instruction::UnOp(ref t1, ref op, ref t2) => format!("\n{} := {} {}", t1, op, t2),
             Instruction::Cast(ref t1, ref sign, ref size) => {
                 format!("\nt1 := {}:{}{}", t1, sign, size)
             }
@@ -98,7 +98,7 @@ impl Instruction {
                 fmt_str
             }
             Instruction::Jump(ref label) => format!("\njump {}", symbols.name(*label)),
-            Instruction::CJump(ref op, ref t1, ref t2, ref ltrue, ref lfalse) => format!(
+            Instruction::CJump(ref t1, ref op ,ref t2, ref ltrue, ref lfalse) => format!(
                 "\nif {} {} {} then {} else {}",
                 t1,
                 op,
