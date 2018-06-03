@@ -509,16 +509,11 @@
 <span id="452">452</span>
 <span id="453">453</span>
 <span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">lowered</span> <span class="kw">as</span> <span class="ident">l</span>;
 <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">typed</span> <span class="kw">as</span> <span class="ident">t</span>;
-<span class="kw">use</span> <span class="ident">codegen</span>::{<span class="ident">ir</span>::<span class="kw-2">*</span>,
+<span class="kw">use</span> <span class="ident">ir</span>::{<span class="ident">ir</span>,
               <span class="ident">optimize</span>::<span class="ident">Optimizer</span>,
-              <span class="ident">temp</span>::{<span class="ident">new_label_pair</span>, <span class="ident">new_named_label</span>, <span class="ident">Label</span>, <span class="ident">Temp</span>}};
+              <span class="ident">ir</span>::{<span class="ident">new_label_pair</span>, <span class="ident">new_named_label</span>, <span class="ident">Label</span>, <span class="ident">Temp</span>}};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">u64</span>;
 <span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">Literal</span>, <span class="ident">Op</span>, <span class="ident">Sign</span>, <span class="ident">Size</span>, <span class="ident">UnaryOp</span>};
 <span class="kw">use</span> <span class="ident">types</span>::{<span class="ident">TyCon</span>, <span class="ident">Type</span>};
@@ -526,7 +521,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Codegen</span> {
-    <span class="kw">pub</span> <span class="ident">instructions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">instructions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ir</span>::<span class="ident">Instruction</span><span class="op">&gt;</span>,
     <span class="ident">loop_label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Label</span><span class="op">&gt;</span>,
     <span class="ident">loop_break_label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Label</span><span class="op">&gt;</span>,
     <span class="ident">symbols</span>: <span class="ident">Symbols</span><span class="op">&lt;</span><span class="ident">Temp</span><span class="op">&gt;</span>,
@@ -559,8 +554,8 @@
             .<span class="ident">expect</span>(<span class="string">&quot;Couldn&#39;t write to the file&quot;</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_program</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">program</span>: <span class="ident">t</span>::<span class="ident">Program</span>) <span class="op">-&gt;</span> <span class="ident">l</span>::<span class="ident">Program</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lowered</span> <span class="op">=</span> <span class="ident">l</span>::<span class="ident">Program</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_program</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">program</span>: <span class="ident">t</span>::<span class="ident">Program</span>) <span class="op">-&gt;</span> <span class="ident">ir</span>::<span class="ident">Program</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lowered</span> <span class="op">=</span> <span class="ident">ir</span>::<span class="ident">Program</span> {
             <span class="ident">functions</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
         };
 
@@ -571,11 +566,8 @@
             <span class="ident">Optimizer</span>::<span class="ident">strength_reduction</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">instructions</span>);
             <span class="ident">Optimizer</span>::<span class="ident">unused_labels</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro">vec</span><span class="macro">!</span>[], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">instructions</span>);
 
-            <span class="ident">lowered</span>.<span class="ident">functions</span>.<span class="ident">push</span>(<span class="ident">l</span>::<span class="ident">Function</span> {
-                <span class="ident">span</span>: <span class="ident">function</span>.<span class="ident">span</span>,
+            <span class="ident">lowered</span>.<span class="ident">functions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Function</span> {
                 <span class="ident">name</span>: <span class="ident">function</span>.<span class="ident">name</span>,
-                <span class="ident">param_types</span>: <span class="ident">function</span>.<span class="ident">params</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">param</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">ty</span>).<span class="ident">collect</span>(),
-                <span class="ident">returns</span>: <span class="ident">function</span>.<span class="ident">returns</span>,
                 <span class="ident">body</span>: <span class="ident">instructions</span>,
                 <span class="ident">linkage</span>: <span class="ident">function</span>.<span class="ident">linkage</span>,
             });
@@ -584,7 +576,7 @@
         <span class="ident">lowered</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">gen_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="ident">t</span>::<span class="ident">Function</span>, <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">gen_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="ident">t</span>::<span class="ident">Function</span>, <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ir</span>::<span class="ident">Instruction</span><span class="op">&gt;</span>) {
         <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">params</span> {
             <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">enter</span>(<span class="ident">param</span>.<span class="ident">name</span>, <span class="ident">Temp</span>::<span class="ident">new</span>());
         }
@@ -592,25 +584,25 @@
         <span class="self">self</span>.<span class="ident">gen_statement</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">body</span>, <span class="ident">instructions</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">gen_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">t</span>::<span class="ident">Statement</span>, <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">gen_statement</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">t</span>::<span class="ident">Statement</span>, <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ir</span>::<span class="ident">Instruction</span><span class="op">&gt;</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">statement</span> {
             <span class="ident">t</span>::<span class="ident">Statement</span>::<span class="ident">Block</span>(<span class="kw-2">ref</span> <span class="ident">statements</span>) <span class="op">=&gt;</span> {
                 <span class="comment">// let (start, end) = new_label_pair(&quot;start&quot;, &quot;end&quot;, &amp;mut self.symbols);</span>
-                <span class="comment">// instructions.push(Instruction::Label(start));</span>
+                <span class="comment">// instructions.push(ir::Instruction::Label(start));</span>
 
                 <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">begin_scope</span>();
                 <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="ident">statements</span> {
                     <span class="self">self</span>.<span class="ident">gen_statement</span>(<span class="ident">statement</span>, <span class="ident">instructions</span>)
                 }
                 <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">end_scope</span>();
-                <span class="comment">// instructions.push(Instruction::Label(end));</span>
+                <span class="comment">// instructions.push(ir::Instruction::Label(end));</span>
             }
 
-            <span class="ident">t</span>::<span class="ident">Statement</span>::<span class="ident">Break</span> <span class="op">=&gt;</span> <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Jump</span>(
+            <span class="ident">t</span>::<span class="ident">Statement</span>::<span class="ident">Break</span> <span class="op">=&gt;</span> <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Jump</span>(
                 <span class="self">self</span>.<span class="ident">loop_break_label</span>.<span class="ident">expect</span>(<span class="string">&quot;Using continue out side loop&quot;</span>),
             )),
 
-            <span class="ident">t</span>::<span class="ident">Statement</span>::<span class="ident">Continue</span> <span class="op">=&gt;</span> <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Jump</span>(
+            <span class="ident">t</span>::<span class="ident">Statement</span>::<span class="ident">Continue</span> <span class="op">=&gt;</span> <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Jump</span>(
                 <span class="self">self</span>.<span class="ident">loop_label</span>.<span class="ident">expect</span>(<span class="string">&quot;Using continue out side loop&quot;</span>),
             )),
             <span class="ident">t</span>::<span class="ident">Statement</span>::<span class="ident">Let</span> {
@@ -628,16 +620,16 @@
 
                     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ty</span> {
                         <span class="ident">Type</span>::<span class="ident">Array</span>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">len</span>) <span class="op">=&gt;</span> {
-                            <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Copy</span>(<span class="ident">HP</span>, <span class="ident">id_temp</span>));
+                            <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Copy</span>(<span class="ident">HP</span>, <span class="ident">id_temp</span>));
 
                             <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">Temp</span>::<span class="ident">new</span>();
 
-                            <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Store</span>(
+                            <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Store</span>(
                                 <span class="ident">temp</span>,
-                                <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="number">4</span> <span class="op">*</span> (<span class="kw-2">*</span><span class="ident">len</span> <span class="kw">as</span> <span class="ident">u64</span>), <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
+                                <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Const</span>(<span class="number">4</span> <span class="op">*</span> (<span class="kw-2">*</span><span class="ident">len</span> <span class="kw">as</span> <span class="ident">u64</span>), <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
                             ));
 
-                            <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">HP</span>,<span class="ident">BinOp</span>::<span class="ident">Plus</span>,  <span class="ident">temp</span>, <span class="ident">HP</span>));
+                            <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">HP</span>,<span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">Plus</span>,  <span class="ident">temp</span>, <span class="ident">HP</span>));
                         }
                         <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">expr</span>, <span class="ident">id_temp</span>, <span class="ident">instructions</span>),
                     }
@@ -658,23 +650,23 @@
 
                     <span class="self">self</span>.<span class="ident">gen_cond</span>(<span class="ident">cond</span>, <span class="ident">l1</span>, <span class="ident">l2</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l1</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l1</span>));
 
                     <span class="self">self</span>.<span class="ident">gen_statement</span>(<span class="ident">then</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="ident">l3</span>));
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l2</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="ident">l3</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l2</span>));
                     <span class="self">self</span>.<span class="ident">gen_statement</span>(<span class="ident">otherwise</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l3</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l3</span>));
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">gen_cond</span>(<span class="ident">cond</span>, <span class="ident">l1</span>, <span class="ident">l2</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l1</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l1</span>));
 
                     <span class="self">self</span>.<span class="ident">gen_statement</span>(<span class="ident">then</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l2</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">l2</span>));
                 }
             }
 
@@ -688,21 +680,21 @@
                 <span class="self">self</span>.<span class="ident">loop_break_label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>);
                 <span class="self">self</span>.<span class="ident">loop_label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">lbody</span>);
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">start</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">start</span>));
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">lbody</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">lbody</span>));
 
                 <span class="self">self</span>.<span class="ident">gen_cond</span>(<span class="ident">cond</span>, <span class="ident">ltrue</span>, <span class="ident">lfalse</span>, <span class="ident">instructions</span>);
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">ltrue</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">ltrue</span>));
 
                 <span class="self">self</span>.<span class="ident">gen_statement</span>(<span class="ident">body</span>, <span class="ident">instructions</span>);
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="ident">lbody</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="ident">lbody</span>));
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">lfalse</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">lfalse</span>));
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">end</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">end</span>));
             }
 
             <span class="ident">t</span>::<span class="ident">Statement</span>::<span class="ident">Return</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=&gt;</span> {
@@ -710,7 +702,7 @@
 
                 <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">expr</span>, <span class="ident">temp</span>, <span class="ident">instructions</span>);
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Return</span>(<span class="ident">temp</span>))
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Return</span>(<span class="ident">temp</span>))
             }
         }
     }
@@ -719,7 +711,7 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">t</span>::<span class="ident">TypedExpression</span>,
         <span class="ident">temp</span>: <span class="ident">Temp</span>,
-        <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&gt;</span>,
+        <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ir</span>::<span class="ident">Instruction</span><span class="op">&gt;</span>,
     ) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">expr</span> {
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Array</span>(<span class="kw-2">ref</span> <span class="ident">items</span>) <span class="op">=&gt;</span> {
@@ -732,14 +724,14 @@
                     <span class="ident">block</span>.<span class="ident">push</span>(<span class="ident">temp</span>);
                 }
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Block</span>(<span class="ident">temp</span>, <span class="ident">block</span>))
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Block</span>(<span class="ident">temp</span>, <span class="ident">block</span>))
             }
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">gen_var</span>(<span class="ident">name</span>, <span class="ident">instructions</span>);
 
                 <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">value</span>, <span class="ident">temp</span>, <span class="ident">instructions</span>);
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Copy</span>(<span class="ident">temp</span>, <span class="ident">temp</span>))
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Copy</span>(<span class="ident">temp</span>, <span class="ident">temp</span>))
                 <span class="comment">//  let temp = self.symbols.look(symbol)</span>
             }
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Binary</span>(<span class="kw-2">ref</span> <span class="ident">lhs</span>, <span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">rhs</span>) <span class="op">=&gt;</span> {
@@ -752,7 +744,7 @@
                         <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">lhs</span>, <span class="ident">lhs_temp</span>, <span class="ident">instructions</span>);
                         <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">rhs</span>, <span class="ident">rhs_temp</span>, <span class="ident">instructions</span>);
                         <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">gen_bin_op</span>(<span class="ident">op</span>);
-                        <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">lhs_temp</span>,<span class="ident">op</span>,  <span class="ident">rhs_temp</span>, <span class="ident">temp</span>));
+                        <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">lhs_temp</span>,<span class="ident">op</span>,  <span class="ident">rhs_temp</span>, <span class="ident">temp</span>));
                     }
 
                     <span class="kw">_</span> <span class="op">=&gt;</span> {
@@ -773,7 +765,7 @@
                     <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">temp</span>)
                 }
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Call</span>(<span class="ident">temp</span>, <span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">params</span>))
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Call</span>(<span class="ident">temp</span>, <span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">params</span>))
             }
 
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Cast</span>(<span class="kw-2">ref</span> <span class="ident">from</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> {
@@ -782,7 +774,7 @@
 
                 <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">ty</span> {
                     <span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Int</span>(<span class="ident">sign</span>, <span class="ident">size</span>), <span class="kw">_</span>) <span class="op">=&gt;</span> {
-                        <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Cast</span>(<span class="ident">temp</span>, <span class="ident">sign</span>, <span class="ident">size</span>))
+                        <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Cast</span>(<span class="ident">temp</span>, <span class="ident">sign</span>, <span class="ident">size</span>))
                     }
 
                     <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Can only cast to ints&quot;</span>),
@@ -791,34 +783,34 @@
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Grouping</span> { <span class="kw-2">ref</span> <span class="ident">expr</span> } <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">expr</span>, <span class="ident">temp</span>, <span class="ident">instructions</span>),
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Literal</span>(<span class="kw-2">ref</span> <span class="ident">literal</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">literal</span> {
-                    <span class="ident">Literal</span>::<span class="ident">Char</span>(<span class="kw-2">ref</span> <span class="ident">ch</span>) <span class="op">=&gt;</span> <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="kw-2">*</span><span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>),
+                   <span class="ident">Literal</span>::<span class="ident">Char</span>(<span class="kw-2">ref</span> <span class="ident">ch</span>) <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Const</span>(<span class="kw-2">*</span><span class="ident">ch</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>),
 
-                    <span class="ident">Literal</span>::<span class="ident">True</span>(<span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">|</span> <span class="ident">Literal</span>::<span class="ident">False</span>(<span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=&gt;</span> {
-                        <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="kw-2">*</span><span class="ident">b</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>)
+                   <span class="ident">Literal</span>::<span class="ident">True</span>(<span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">|</span><span class="ident">Literal</span>::<span class="ident">False</span>(<span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=&gt;</span> {
+                        <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Const</span>(<span class="kw-2">*</span><span class="ident">b</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>)
                     }
 
-                    <span class="ident">Literal</span>::<span class="ident">Nil</span> <span class="op">=&gt;</span> <span class="ident">Value</span>::<span class="ident">Mem</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">0x00000000</span>]),
+                   <span class="ident">Literal</span>::<span class="ident">Nil</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Mem</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">0x00000000</span>]),
 
                     <span class="ident">Literal</span>::<span class="ident">Number</span>(<span class="kw-2">ref</span> <span class="ident">number</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">number</span>.<span class="ident">ty</span> {
-                        <span class="prelude-val">Some</span>((<span class="ident">sign</span>, <span class="ident">size</span>)) <span class="op">=&gt;</span> <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="ident">number</span>.<span class="ident">value</span>, <span class="ident">sign</span>, <span class="ident">size</span>),
+                        <span class="prelude-val">Some</span>((<span class="ident">sign</span>, <span class="ident">size</span>)) <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Const</span>(<span class="ident">number</span>.<span class="ident">value</span>, <span class="ident">sign</span>, <span class="ident">size</span>),
                         <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">expr</span>.<span class="ident">ty</span> {
                             <span class="ident">Type</span>::<span class="ident">App</span>(<span class="ident">TyCon</span>::<span class="ident">Int</span>(<span class="ident">sign</span>, <span class="ident">size</span>), <span class="kw">_</span>) <span class="op">=&gt;</span> {
-                                <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="ident">number</span>.<span class="ident">value</span>, <span class="ident">sign</span>, <span class="ident">size</span>)
+                                <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Const</span>(<span class="ident">number</span>.<span class="ident">value</span>, <span class="ident">sign</span>, <span class="ident">size</span>)
                             }
-                            <span class="ident">Type</span>::<span class="ident">Var</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="ident">number</span>.<span class="ident">value</span>, <span class="ident">Sign</span>::<span class="ident">Signed</span>, <span class="ident">Size</span>::<span class="ident">Bit32</span>),
+                            <span class="ident">Type</span>::<span class="ident">Var</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Const</span>(<span class="ident">number</span>.<span class="ident">value</span>, <span class="ident">Sign</span>::<span class="ident">Signed</span>, <span class="ident">Size</span>::<span class="ident">Bit32</span>),
                             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
                         },
                     },
-                    <span class="ident">Literal</span>::<span class="ident">Str</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> {
+                   <span class="ident">Literal</span>::<span class="ident">Str</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=&gt;</span> {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
                         <span class="ident">bytes</span>.<span class="ident">push</span>(<span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u8</span>);
                         <span class="ident">bytes</span>.<span class="ident">extend</span>(<span class="ident">string</span>.<span class="ident">as_bytes</span>());
 
-                        <span class="ident">Value</span>::<span class="ident">Mem</span>(<span class="ident">bytes</span>)
+                        <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Mem</span>(<span class="ident">bytes</span>)
                     }
                 };
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Store</span>(<span class="ident">temp</span>, <span class="ident">value</span>))
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Store</span>(<span class="ident">temp</span>, <span class="ident">value</span>))
             }
 
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Unary</span>(<span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=&gt;</span> {
@@ -826,19 +818,19 @@
                 <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">expr</span>, <span class="ident">new_temp</span>, <span class="ident">instructions</span>);
                 <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">gen_un_op</span>(<span class="ident">op</span>);
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">UnOp</span>(<span class="ident">temp</span>, <span class="ident">op</span> ,<span class="ident">new_temp</span>))
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">UnOp</span>(<span class="ident">temp</span>, <span class="ident">op</span> ,<span class="ident">new_temp</span>))
             }
 
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Var</span>(<span class="kw-2">ref</span> <span class="ident">var</span>) <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">gen_var</span>(<span class="ident">var</span>, <span class="ident">instructions</span>);
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Copy</span>(<span class="ident">temp</span>, <span class="ident">t</span>))
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Copy</span>(<span class="ident">temp</span>, <span class="ident">t</span>))
             }
 
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">gen_var</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">var</span>: <span class="kw-2">&amp;</span><span class="ident">t</span>::<span class="ident">Var</span>, <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Temp</span> {
+    <span class="kw">fn</span> <span class="ident">gen_var</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">var</span>: <span class="kw-2">&amp;</span><span class="ident">t</span>::<span class="ident">Var</span>, <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ir</span>::<span class="ident">Instruction</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Temp</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">var</span> {
             <span class="ident">t</span>::<span class="ident">Var</span>::<span class="ident">Simple</span>(<span class="kw-2">ref</span> <span class="ident">sym</span>, <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">look</span>(<span class="kw-2">*</span><span class="ident">sym</span>).<span class="ident">unwrap</span>(),
 
@@ -851,14 +843,14 @@
 
                 <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">Temp</span>::<span class="ident">new</span>();
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Store</span>(
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Store</span>(
                     <span class="ident">temp</span>,
-                    <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="number">4</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
+                    <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Const</span>(<span class="number">4</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
                 ));
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">addr</span>,<span class="ident">BinOp</span>::<span class="ident">Mul</span>, <span class="ident">temp</span>, <span class="ident">addr</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">addr</span>,<span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">Mul</span>, <span class="ident">temp</span>, <span class="ident">addr</span>));
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">addr</span>,<span class="ident">BinOp</span>::<span class="ident">Plus</span>, <span class="ident">base</span>, <span class="ident">addr</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">addr</span>,<span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">Plus</span>, <span class="ident">base</span>, <span class="ident">addr</span>));
 
                 <span class="ident">addr</span>
             }
@@ -872,7 +864,7 @@
         <span class="ident">cond</span>: <span class="kw-2">&amp;</span><span class="ident">t</span>::<span class="ident">TypedExpression</span>,
         <span class="ident">ltrue</span>: <span class="ident">Label</span>,
         <span class="ident">lfalse</span>: <span class="ident">Label</span>,
-        <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&gt;</span>,
+        <span class="ident">instructions</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ir</span>::<span class="ident">Instruction</span><span class="op">&gt;</span>,
     ) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">cond</span>.<span class="ident">expr</span> {
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Binary</span>(<span class="kw-2">ref</span> <span class="ident">lhs</span>, <span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">rhs</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
@@ -883,22 +875,22 @@
 
                     <span class="self">self</span>.<span class="ident">gen_cond</span>(<span class="ident">lhs</span>, <span class="ident">lnext</span>, <span class="ident">lfalse</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="ident">lnext</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="ident">lnext</span>));
 
                     <span class="self">self</span>.<span class="ident">gen_cond</span>(<span class="ident">rhs</span>, <span class="ident">ltrue</span>, <span class="ident">lfalse</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">lnext</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">lnext</span>));
                 }
                 <span class="ident">Op</span>::<span class="ident">Or</span> <span class="op">=&gt;</span> {
                     <span class="kw">let</span> <span class="ident">lnext</span> <span class="op">=</span> <span class="ident">new_named_label</span>(<span class="string">&quot;next&quot;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">symbols</span>);
 
                     <span class="self">self</span>.<span class="ident">gen_cond</span>(<span class="ident">lhs</span>, <span class="ident">ltrue</span>, <span class="ident">lnext</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="ident">lnext</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="ident">lnext</span>));
 
                     <span class="self">self</span>.<span class="ident">gen_cond</span>(<span class="ident">rhs</span>, <span class="ident">ltrue</span>, <span class="ident">lfalse</span>, <span class="ident">instructions</span>);
 
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">lnext</span>));
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Label</span>(<span class="ident">lnext</span>));
                 }
 
                 <span class="ident">Op</span>::<span class="ident">LT</span> <span class="op">|</span> <span class="ident">Op</span>::<span class="ident">GT</span> <span class="op">|</span> <span class="ident">Op</span>::<span class="ident">GTE</span> <span class="op">|</span> <span class="ident">Op</span>::<span class="ident">LTE</span> <span class="op">|</span> <span class="ident">Op</span>::<span class="ident">Equal</span> <span class="op">=&gt;</span> {
@@ -906,7 +898,7 @@
                     <span class="kw">let</span> <span class="ident">rhs_temp</span> <span class="op">=</span> <span class="ident">Temp</span>::<span class="ident">new</span>();
                     <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">lhs</span>, <span class="ident">lhs_temp</span>, <span class="ident">instructions</span>);
                     <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">rhs</span>, <span class="ident">rhs_temp</span>, <span class="ident">instructions</span>);
-                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">CJump</span>(
+                    <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">CJump</span>(
                          <span class="ident">lhs_temp</span>,
                         <span class="ident">gen_cmp_op</span>(<span class="ident">op</span>),
                        
@@ -925,14 +917,14 @@
 
                 <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">cond</span>, <span class="ident">expr_temp</span>, <span class="ident">instructions</span>);
 
-                <span class="ident">Instruction</span>::<span class="ident">Store</span>(
+                <span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">Store</span>(
                     <span class="ident">true_temp</span>,
-                    <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="bool-val">true</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>),
+                    <span class="ident">ir</span>::<span class="ident">Value</span>::<span class="ident">Const</span>(<span class="bool-val">true</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit8</span>),
                 );
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">CJump</span>(
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">ir</span>::<span class="ident">Instruction</span>::<span class="ident">CJump</span>(
                     <span class="ident">expr_temp</span>,
-                    <span class="ident">CmpOp</span>::<span class="ident">EQ</span>,
+                    <span class="ident">ir</span>::<span class="ident">CmpOp</span>::<span class="ident">EQ</span>,
                     
                     <span class="ident">true_temp</span>,
                     <span class="ident">ltrue</span>,
@@ -943,33 +935,33 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">gen_bin_op</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">Op</span>) <span class="op">-&gt;</span> <span class="ident">BinOp</span> {
+<span class="kw">fn</span> <span class="ident">gen_bin_op</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">Op</span>) <span class="op">-&gt;</span> <span class="ident">ir</span>::<span class="ident">BinOp</span> {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
-        <span class="ident">Op</span>::<span class="ident">Plus</span> <span class="op">=&gt;</span> <span class="ident">BinOp</span>::<span class="ident">Plus</span>,
-        <span class="ident">Op</span>::<span class="ident">Minus</span> <span class="op">=&gt;</span> <span class="ident">BinOp</span>::<span class="ident">Minus</span>,
-        <span class="ident">Op</span>::<span class="ident">Star</span> <span class="op">=&gt;</span> <span class="ident">BinOp</span>::<span class="ident">Mul</span>,
-        <span class="ident">Op</span>::<span class="ident">Slash</span> <span class="op">=&gt;</span> <span class="ident">BinOp</span>::<span class="ident">Div</span>,
-        <span class="ident">Op</span>::<span class="ident">And</span> <span class="op">=&gt;</span> <span class="ident">BinOp</span>::<span class="ident">And</span>,
-        <span class="ident">Op</span>::<span class="ident">Or</span> <span class="op">=&gt;</span> <span class="ident">BinOp</span>::<span class="ident">Or</span>,
+        <span class="ident">Op</span>::<span class="ident">Plus</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">Plus</span>,
+        <span class="ident">Op</span>::<span class="ident">Minus</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">Minus</span>,
+        <span class="ident">Op</span>::<span class="ident">Star</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">Mul</span>,
+        <span class="ident">Op</span>::<span class="ident">Slash</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">Div</span>,
+        <span class="ident">Op</span>::<span class="ident">And</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">And</span>,
+        <span class="ident">Op</span>::<span class="ident">Or</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">BinOp</span>::<span class="ident">Or</span>,
         <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">gen_cmp_op</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">Op</span>) <span class="op">-&gt;</span> <span class="ident">CmpOp</span> {
+<span class="kw">fn</span> <span class="ident">gen_cmp_op</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">Op</span>) <span class="op">-&gt;</span> <span class="ident">ir</span>::<span class="ident">CmpOp</span> {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
-        <span class="ident">Op</span>::<span class="ident">LT</span> <span class="op">=&gt;</span> <span class="ident">CmpOp</span>::<span class="ident">LT</span>,
-        <span class="ident">Op</span>::<span class="ident">LTE</span> <span class="op">=&gt;</span> <span class="ident">CmpOp</span>::<span class="ident">LTE</span>,
-        <span class="ident">Op</span>::<span class="ident">GT</span> <span class="op">=&gt;</span> <span class="ident">CmpOp</span>::<span class="ident">GT</span>,
-        <span class="ident">Op</span>::<span class="ident">GTE</span> <span class="op">=&gt;</span> <span class="ident">CmpOp</span>::<span class="ident">GTE</span>,
-        <span class="ident">Op</span>::<span class="ident">NEq</span> <span class="op">=&gt;</span> <span class="ident">CmpOp</span>::<span class="ident">NE</span>,
-        <span class="ident">Op</span>::<span class="ident">Equal</span> <span class="op">=&gt;</span> <span class="ident">CmpOp</span>::<span class="ident">EQ</span>,
+        <span class="ident">Op</span>::<span class="ident">LT</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">CmpOp</span>::<span class="ident">LT</span>,
+        <span class="ident">Op</span>::<span class="ident">LTE</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">CmpOp</span>::<span class="ident">LTE</span>,
+        <span class="ident">Op</span>::<span class="ident">GT</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">CmpOp</span>::<span class="ident">GT</span>,
+        <span class="ident">Op</span>::<span class="ident">GTE</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">CmpOp</span>::<span class="ident">GTE</span>,
+        <span class="ident">Op</span>::<span class="ident">NEq</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">CmpOp</span>::<span class="ident">NE</span>,
+        <span class="ident">Op</span>::<span class="ident">Equal</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">CmpOp</span>::<span class="ident">EQ</span>,
         <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
     }
 }
-<span class="kw">fn</span> <span class="ident">gen_un_op</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">UnaryOp</span>) <span class="op">-&gt;</span> <span class="ident">UnOp</span> {
+<span class="kw">fn</span> <span class="ident">gen_un_op</span>(<span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="ident">UnaryOp</span>) <span class="op">-&gt;</span> <span class="ident">ir</span>::<span class="ident">UnOp</span> {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
-        <span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=&gt;</span> <span class="ident">UnOp</span>::<span class="ident">Minus</span>,
-        <span class="ident">UnaryOp</span>::<span class="ident">Bang</span> <span class="op">=&gt;</span> <span class="ident">UnOp</span>::<span class="ident">Bang</span>,
+        <span class="ident">UnaryOp</span>::<span class="ident">Minus</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">UnOp</span>::<span class="ident">Minus</span>,
+        <span class="ident">UnaryOp</span>::<span class="ident">Bang</span> <span class="op">=&gt;</span> <span class="ident">ir</span>::<span class="ident">UnOp</span>::<span class="ident">Bang</span>,
     }
 }
 </pre>
