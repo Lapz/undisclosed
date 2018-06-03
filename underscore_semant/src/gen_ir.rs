@@ -2,7 +2,7 @@ use ast::lowered as l;
 use ast::typed as t;
 use codegen::{ir::*,
               optimize::Optimizer,
-              temp::{new_label, new_label_pair, new_named_label, Label, Temp}};
+              temp::{new_label_pair, new_named_label, Label, Temp}};
 use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};

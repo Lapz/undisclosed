@@ -164,7 +164,6 @@ impl Index<Range<usize>> for Chunk {
 mod test {
 
     use chunk::Chunk;
-    use op::OpCode;
 
     #[test]
     fn it_work() {

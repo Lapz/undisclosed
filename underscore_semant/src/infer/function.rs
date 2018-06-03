@@ -1,7 +1,7 @@
 use super::{Infer, InferResult};
 use cast_check::*;
-use codegen::{temp,
-              translate::{Level, Translator}};
+// use codegen::{temp,
+//               translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry, VarType};
 use std::collections::HashMap;
 use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit,
@@ -609,7 +609,7 @@ impl Infer {
                                 reporter.error(msg, lit.span);
                                 return Err(());
                             } else if !found {
-                                return Err(()); ///Unkonw field 
+                                return Err(()); // Unknown field 
                             }
 
                             Ok((

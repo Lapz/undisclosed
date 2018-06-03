@@ -8,7 +8,7 @@ pub mod frame;
 pub mod ir;
 pub mod optimize;
 pub mod temp;
-pub mod translate;
+// pub mod translate;
 pub mod x86;
 
 #[cfg(test)]

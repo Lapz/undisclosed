@@ -85,10 +85,7 @@ pub enum VMError {
 }
 
 impl<'a> VM<'a> {
-    fn reset_stack(&mut self) {
-        self.stack_top = 0;
-    }
-
+    
     pub fn new(code: &'a mut Chunk) -> Self {
         VM {
             ip: 0,

@@ -19,7 +19,7 @@ mod unify;
 use ast::typed as t;
 pub use env::Env as TypeEnv;
 use env::Env;
-use escape::FindEscape;
+
 pub use gen_ir::Codegen;
 use monomorphize::Mono;
 use resolver::Resolver;

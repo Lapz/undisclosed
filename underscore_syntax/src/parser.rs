@@ -662,8 +662,9 @@ impl<'a, 'b> Parser<'a, 'b> {
 
             let len = match self.advance() {
                 Some(Spanned {
-                    ref span,
+                    
                     ref value,
+                    ..
                 }) => match value.token {
                     TokenType::Number(ref n) => n.value as usize,
 
