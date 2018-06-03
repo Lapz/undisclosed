@@ -10,10 +10,11 @@
     <title>lib.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle">
     <script src="../../storage.js"></script>
     
 
@@ -386,7 +387,7 @@
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">GetFileInformationByHandleEx</span>(
         <span class="ident">GetStdHandle</span>(<span class="ident">fd</span>),
         <span class="ident">FileNameInfo</span>,
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">name_info_bytes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> _ <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">name_info_bytes</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
         <span class="ident">name_info_bytes</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
     );
     <span class="kw">if</span> <span class="ident">res</span> <span class="op">==</span> <span class="number">0</span> {

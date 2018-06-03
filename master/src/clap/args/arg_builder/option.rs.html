@@ -10,10 +10,11 @@
     <title>option.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle">
     <script src="../../../../storage.js"></script>
     
 
@@ -376,7 +377,7 @@
         <span class="comment">// Write the values such as &lt;name1&gt; &lt;name2&gt;</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">vec</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">val_names</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">iter</span>().<span class="ident">peekable</span>();
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((_, <span class="ident">val</span>)) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
+            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">val</span>)) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;{}&gt;&quot;</span>, <span class="ident">val</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">it</span>.<span class="ident">peek</span>().<span class="ident">is_some</span>() {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">delim</span>)<span class="question-mark">?</span>;
@@ -388,7 +389,7 @@
             }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">num</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">num_vals</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">num</span>).<span class="ident">peekable</span>();
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(_) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
+            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;&lt;{}&gt;&quot;</span>, <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">it</span>.<span class="ident">peek</span>().<span class="ident">is_some</span>() {
                     <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">delim</span>)<span class="question-mark">?</span>;
@@ -456,7 +457,7 @@
     <span class="kw">fn</span> <span class="ident">longest_filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> { <span class="bool-val">true</span> }
     <span class="kw">fn</span> <span class="ident">aliases</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">str</span><span class="op">&gt;&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">aliases</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> {
-            <span class="kw">let</span> <span class="ident">vis_aliases</span>: <span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">aliases</span>
+            <span class="kw">let</span> <span class="ident">vis_aliases</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">aliases</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter_map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">n</span>, <span class="ident">v</span>)<span class="op">|</span> <span class="kw">if</span> <span class="ident">v</span> { <span class="prelude-val">Some</span>(<span class="ident">n</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> })
                 .<span class="ident">collect</span>();

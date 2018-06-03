@@ -10,10 +10,11 @@
     <title>ast.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle">
     <script src="../../storage.js"></script>
     
 
@@ -317,9 +318,26 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
-<span class="kw">use</span> <span class="ident">util</span>::<span class="ident">pos</span>::{<span class="ident">Span</span>, <span class="ident">Spanned</span>};
+<span class="kw">use</span> <span class="ident">util</span>::{<span class="ident">pos</span>::{<span class="ident">Span</span>, <span class="ident">Spanned</span>},
+           <span class="ident">symbol</span>::<span class="ident">Symbol</span>};
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Program</span> {
     <span class="kw">pub</span> <span class="ident">structs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Struct</span><span class="op">&gt;&gt;</span>,
@@ -333,12 +351,10 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Hash</span>, <span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ident</span>(<span class="kw">pub</span> <span class="ident">u32</span>);
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ItemName</span> {
-    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">type_params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">type_params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;&gt;</span>,
 }
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Struct</span> {
@@ -349,7 +365,7 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Field</span> {
-    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">ty</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;</span>,
 }
 
@@ -364,10 +380,10 @@
 }
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionParams</span> {
-    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">ty</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;</span>,
 }
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Linkage</span> {
     <span class="ident">Normal</span>,
     <span class="ident">External</span>,
@@ -375,8 +391,9 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Ty</span> {
     <span class="ident">Func</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>),
-    <span class="ident">Poly</span>(<span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span>),
-    <span class="ident">Simple</span>(<span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>),
+    <span class="ident">Poly</span>(<span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span>),
+    <span class="ident">Simple</span>(<span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>),
+    <span class="ident">Array</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span>, <span class="ident">usize</span>),
     <span class="ident">Nil</span>,
     <span class="ident">I8</span>,
     <span class="ident">I32</span>,
@@ -412,7 +429,8 @@
         <span class="ident">otherwise</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
     },
     <span class="ident">Let</span> {
-        <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+        <span class="ident">escapes</span>: <span class="ident">bool</span>,
+        <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
         <span class="ident">ty</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span>,
         <span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span>,
     },
@@ -424,6 +442,9 @@
 }
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Expression</span> {
+    <span class="ident">Array</span> {
+        <span class="ident">items</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span>,
+    },
     <span class="ident">Assign</span> {
         <span class="ident">name</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Var</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span>,
@@ -461,10 +482,10 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StructLitField</span> {
-    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">expr</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
 }
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Literal</span> {
     <span class="ident">Number</span>(<span class="ident">Number</span>),
     <span class="ident">True</span>(<span class="ident">bool</span>),
@@ -476,23 +497,23 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Var</span> {
     <span class="ident">Field</span> {
-        <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
-        <span class="ident">value</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+        <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
+        <span class="ident">value</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
     },
-    <span class="ident">Simple</span>(<span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>),
+    <span class="ident">Simple</span>(<span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>),
     <span class="ident">SubScript</span> {
         <span class="ident">expr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">target</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+        <span class="ident">target</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
     },
 }
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Call</span> {
     <span class="ident">Simple</span> {
-        <span class="ident">callee</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+        <span class="ident">callee</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
         <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span>,
     },
     <span class="ident">Instantiation</span> {
-        <span class="ident">callee</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+        <span class="ident">callee</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
         <span class="ident">tys</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
         <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;&gt;</span>,
     },
@@ -500,18 +521,18 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StructLit</span> {
     <span class="ident">Simple</span> {
-        <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+        <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
         <span class="ident">fields</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">StructLitField</span><span class="op">&gt;&gt;</span>,
     },
 
     <span class="ident">Instantiation</span> {
-        <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+        <span class="ident">ident</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
         <span class="ident">tys</span>: <span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">Ty</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
         <span class="ident">fields</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Spanned</span><span class="op">&lt;</span><span class="ident">StructLitField</span><span class="op">&gt;&gt;</span>,
     },
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Op</span> {
     <span class="ident">NEq</span>,
     <span class="ident">Equal</span>,
@@ -527,7 +548,7 @@
     <span class="ident">Or</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialOrd</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialOrd</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UnaryOp</span> {
     <span class="ident">Bang</span>,
     <span class="ident">Minus</span>,
@@ -578,6 +599,16 @@
             <span class="ident">Size</span>::<span class="ident">Bit8</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;8&quot;</span>),
             <span class="ident">Size</span>::<span class="ident">Bit32</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;32&quot;</span>),
             <span class="ident">Size</span>::<span class="ident">Bit64</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;64&quot;</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Size</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u32</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">Size</span>::<span class="ident">Bit8</span> <span class="op">=&gt;</span> <span class="number">1</span>,
+            <span class="ident">Size</span>::<span class="ident">Bit32</span> <span class="op">=&gt;</span> <span class="number">4</span>,
+            <span class="ident">Size</span>::<span class="ident">Bit64</span> <span class="op">=&gt;</span> <span class="number">8</span>,
         }
     }
 }

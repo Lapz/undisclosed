@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Infer",""],["TypeEnv",""]]});
+initSidebarItems({"struct":[["Codegen",""],["Infer",""],["TypeEnv",""]]});

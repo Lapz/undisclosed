@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["emitter","Error reporting that reports all compiler errors."],["pos","Source Code locations"],["symbol","This module provides a Table which keeps a track of the mappings between a `T` and a `String`"]]});
+initSidebarItems({"mod":[["emitter","Error reporting that reports all compiler errors."],["pos","Source Code locations"],["symbol","This module provides a Symbols which keeps a track of the mappings between a `Symbol` and a `String`"]]});

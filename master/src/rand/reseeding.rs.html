@@ -10,10 +10,11 @@
     <title>reseeding.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle">
     <script src="../../storage.js"></script>
     
 
@@ -446,8 +447,8 @@
         <span class="kw">let</span> <span class="ident">threshold</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">reseed</span>()  {
             <span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">e</span>.<span class="ident">kind</span> {
                 <span class="ident">ErrorKind</span>::<span class="ident">Transient</span> <span class="op">=&gt;</span> <span class="number">0</span>,
-                <span class="ident">kind</span> @ _ <span class="kw">if</span> <span class="ident">kind</span>.<span class="ident">should_retry</span>() <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">threshold</span> <span class="op">&gt;&gt;</span> <span class="number">8</span>,
-                _ <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">threshold</span>,
+                <span class="ident">kind</span> @ <span class="kw">_</span> <span class="kw">if</span> <span class="ident">kind</span>.<span class="ident">should_retry</span>() <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">threshold</span> <span class="op">&gt;&gt;</span> <span class="number">8</span>,
+                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">threshold</span>,
             };
             <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;Reseeding RNG delayed reseeding by {} bytes due to \
                     error from source: {}&quot;</span>, <span class="ident">delay</span>, <span class="ident">e</span>);
@@ -485,7 +486,7 @@
                                   <span class="comment">// size to test exactly.</span>
         <span class="ident">reseeding</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>);
         <span class="kw">let</span> <span class="ident">seq</span> <span class="op">=</span> <span class="ident">buf</span>;
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">10</span> {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10</span> {
             <span class="ident">reseeding</span>.<span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>);
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">buf</span>, <span class="ident">seq</span>);
         }

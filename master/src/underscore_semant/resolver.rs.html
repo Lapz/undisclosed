@@ -10,10 +10,11 @@
     <title>resolver.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle">
     <script src="../../storage.js"></script>
     
 
@@ -149,12 +150,12 @@
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">InferResult</span>;
 <span class="kw">use</span> <span class="ident">env</span>::<span class="ident">Env</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
-<span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">Function</span>, <span class="ident">Ident</span>, <span class="ident">Program</span>, <span class="ident">Struct</span>, <span class="ident">TyAlias</span>};
-<span class="kw">use</span> <span class="ident">util</span>::{<span class="ident">emitter</span>::<span class="ident">Reporter</span>, <span class="ident">pos</span>::<span class="ident">Spanned</span>};
+<span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">Function</span>, <span class="ident">Program</span>, <span class="ident">Struct</span>, <span class="ident">TyAlias</span>};
+<span class="kw">use</span> <span class="ident">util</span>::{<span class="ident">emitter</span>::<span class="ident">Reporter</span>, <span class="ident">pos</span>::<span class="ident">Spanned</span>, <span class="ident">symbol</span>::<span class="ident">Symbol</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Resolver</span> {
-    <span class="ident">values</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>,
+    <span class="ident">values</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Symbol</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Resolver</span> {

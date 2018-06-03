@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Frame` trait in crate `underscore_codegen`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Frame">
+
+    <title>underscore_codegen::frame::Frame - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css"
+          id="mainThemeStyle">
+    
+    <link rel="stylesheet" type="text/css" href="../../dark.css">
+    <link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle">
+    <script src="../../storage.js"></script>
+    
+
+    
+    
+</head>
+<body class="rustdoc trait">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        <div class="sidebar-menu">&#9776;</div>
+        
+        <p class='location'>Trait Frame</p><div class="sidebar-elems"><div class="block items"><a class="sidebar-title" href="#associated-types">Associated Types</a><div class="sidebar-links"><a href="#associatedtype.Access">Access</a><a href="#associatedtype.FP">FP</a></div><a class="sidebar-title" href="#associated-const">Associated Constants</a><div class="sidebar-links"><a href="#associatedconstant.WORD_SIZE">WORD_SIZE</a></div><a class="sidebar-title" href="#required-methods">Required Methods</a><div class="sidebar-links"><a href="#tymethod.new">new</a><a href="#tymethod.name">name</a><a href="#tymethod.formals">formals</a><a href="#tymethod.alloc_local">alloc_local</a><a href="#tymethod.exp">exp</a></div><a class="sidebar-title" href="#implementors">Implementors</a></div><p class='location'><a href='../index.html'>underscore_codegen</a>::<wbr><a href='index.html'>frame</a></p><script>window.sidebarCurrent = {name: 'Frame', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script></div>
+    </nav>
+
+    <div class="theme-picker">
+        <button id="theme-picker" aria-label="Pick another theme!">
+            <img src="../../brush.svg" width="18" alt="Pick another theme!">
+        </button>
+        <div id="theme-choices"></div>
+    </div>
+    <script src="../../theme.js"></script>
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content"><h1 class='fqn'><span class='in-band'>Trait <a href='../index.html'>underscore_codegen</a>::<wbr><a href='index.html'>frame</a>::<wbr><a class="trait" href=''>Frame</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/underscore_codegen/frame.rs.html#4-20' title='goto source code'>[src]</a></span></h1><div class="docblock type-decl"><pre class='rust trait'>pub trait Frame {
+    type <a href='#associatedtype.Access' class="type">Access</a>;
+    type <a href='#associatedtype.FP' class="type">FP</a>;
+
+    const <a href='#associatedconstant.WORD_SIZE' class="constant"><b>WORD_SIZE</b></a>: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
+
+    fn <a href='#tymethod.new' class='fnname'>new</a>(name: <a class="type" href="../../underscore_codegen/temp/type.Label.html" title="type underscore_codegen::temp::Label">Label</a>, formals: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;[</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; Self;
+<div class='item-spacer'></div>    fn <a href='#tymethod.name' class='fnname'>name</a>(&amp;self) -&gt; <a class="type" href="../../underscore_codegen/temp/type.Label.html" title="type underscore_codegen::temp::Label">Label</a>;
+<div class='item-spacer'></div>    fn <a href='#tymethod.formals' class='fnname'>formals</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Self::<a class="type" href="../../underscore_codegen/frame/trait.Frame.html#associatedtype.Access" title="type underscore_codegen::frame::Frame::Access">Access</a>&gt;;
+<div class='item-spacer'></div>    fn <a href='#tymethod.alloc_local' class='fnname'>alloc_local</a>(&amp;self, escapes: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Self::<a class="type" href="../../underscore_codegen/frame/trait.Frame.html#associatedtype.Access" title="type underscore_codegen::frame::Frame::Access">Access</a>;
+<div class='item-spacer'></div>    fn <a href='#tymethod.exp' class='fnname'>exp</a>(&amp;self, access: &amp;Self::<a class="type" href="../../underscore_codegen/frame/trait.Frame.html#associatedtype.Access" title="type underscore_codegen::frame::Frame::Access">Access</a>, ir: &amp;mut <a class="enum" href="../../underscore_codegen/ir/enum.Instruction.html" title="enum underscore_codegen::ir::Instruction">Instruction</a>) -&gt; <a class="enum" href="../../underscore_codegen/ir/enum.Instruction.html" title="enum underscore_codegen::ir::Instruction">Instruction</a>;
+}</pre></div>
+            <h2 id='associated-types' class='small-section-header'>
+              Associated Types<a href='#associated-types' class='anchor'></a>
+            </h2>
+            <div class='methods'>
+        <h3 id='associatedtype.Access' class='method'><span id='Access.t' class='invisible'><code>type <a href='#associatedtype.Access' class="type">Access</a></code></span></h3><h3 id='associatedtype.FP' class='method'><span id='FP.t' class='invisible'><code>type <a href='#associatedtype.FP' class="type">FP</a></code></span></h3></div>
+            <h2 id='associated-const' class='small-section-header'>
+              Associated Constants<a href='#associated-const' class='anchor'></a>
+            </h2>
+            <div class='methods'>
+        <h3 id='associatedconstant.WORD_SIZE' class='method'><span id='WORD_SIZE.v' class='invisible'><code>const <a href='#associatedconstant.WORD_SIZE' class="constant"><b>WORD_SIZE</b></a>: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a></code></span></h3></div>
+            <h2 id='required-methods' class='small-section-header'>
+              Required Methods<a href='#required-methods' class='anchor'></a>
+            </h2>
+            <div class='methods'>
+        <h3 id='tymethod.new' class='method'><span id='new.v' class='invisible'><code>fn <a href='#tymethod.new' class='fnname'>new</a>(name: <a class="type" href="../../underscore_codegen/temp/type.Label.html" title="type underscore_codegen::temp::Label">Label</a>, formals: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;[</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>) -&gt; Self</code></span></h3><h3 id='tymethod.name' class='method'><span id='name.v' class='invisible'><code>fn <a href='#tymethod.name' class='fnname'>name</a>(&amp;self) -&gt; <a class="type" href="../../underscore_codegen/temp/type.Label.html" title="type underscore_codegen::temp::Label">Label</a></code></span></h3><h3 id='tymethod.formals' class='method'><span id='formals.v' class='invisible'><code>fn <a href='#tymethod.formals' class='fnname'>formals</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;Self::<a class="type" href="../../underscore_codegen/frame/trait.Frame.html#associatedtype.Access" title="type underscore_codegen::frame::Frame::Access">Access</a>&gt;</code></span></h3><h3 id='tymethod.alloc_local' class='method'><span id='alloc_local.v' class='invisible'><code>fn <a href='#tymethod.alloc_local' class='fnname'>alloc_local</a>(&amp;self, escapes: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Self::<a class="type" href="../../underscore_codegen/frame/trait.Frame.html#associatedtype.Access" title="type underscore_codegen::frame::Frame::Access">Access</a></code></span></h3><h3 id='tymethod.exp' class='method'><span id='exp.v' class='invisible'><code>fn <a href='#tymethod.exp' class='fnname'>exp</a>(&amp;self, access: &amp;Self::<a class="type" href="../../underscore_codegen/frame/trait.Frame.html#associatedtype.Access" title="type underscore_codegen::frame::Frame::Access">Access</a>, ir: &amp;mut <a class="enum" href="../../underscore_codegen/ir/enum.Instruction.html" title="enum underscore_codegen::ir::Instruction">Instruction</a>) -&gt; <a class="enum" href="../../underscore_codegen/ir/enum.Instruction.html" title="enum underscore_codegen::ir::Instruction">Instruction</a></code></span></h3></div>
+        <h2 id='implementors' class='small-section-header'>
+          Implementors<a href='#implementors' class='anchor'></a>
+        </h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><table class='table-display'><tbody><tr><td><code>impl Frame for <a class="struct" href="../../underscore_codegen/x86/struct.x86.html" title="struct underscore_codegen::x86::x86">x86</a><span class="where fmt-newline">  type <a href='#associatedtype.Access' class="type">Access</a> = <a class="enum" href="../../underscore_codegen/x86/enum.Access.html" title="enum underscore_codegen::x86::Access">Access</a>;</span><span class="where fmt-newline">  type <a href='#associatedtype.FP' class="type">FP</a> = <a class="struct" href="../../underscore_codegen/temp/struct.Temp.html" title="struct underscore_codegen::temp::Temp">Temp</a>;</span></code><td><div class='out-of-band'><a class='srclink' href='../../src/underscore_codegen/x86.rs.html#11-59' title='goto source code'>[src]</a></div></td></tr></tbody></table></li>
+</ul><script type="text/javascript">window.inlined_types=new Set([]);</script><script type="text/javascript" async
+                         src="../../implementors/underscore_codegen/frame/trait.Frame.js">
+                 </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt><kbd>?</kbd></dt>
+                    <dd>Show this help dialog</dd>
+                    <dt><kbd>S</kbd></dt>
+                    <dd>Focus the search field</dd>
+                    <dt><kbd>↑</kbd></dt>
+                    <dd>Move up in search results</dd>
+                    <dt><kbd>↓</kbd></dt>
+                    <dd>Move down in search results</dd>
+                    <dt><kbd>↹</kbd></dt>
+                    <dd>Switch tab</dd>
+                    <dt><kbd>&#9166;</kbd></dt>
+                    <dd>Go to active search result</dd>
+                    <dt><kbd>+</kbd></dt>
+                    <dd>Expand all sections</dd>
+                    <dt><kbd>-</kbd></dt>
+                    <dd>Collapse all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "underscore_codegen";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

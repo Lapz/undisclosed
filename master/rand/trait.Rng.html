@@ -10,10 +10,11 @@
     <title>rand::Rng - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../dark.css">
-    <link rel="stylesheet" type="text/css" href="../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle">
     <script src="../storage.js"></script>
     
 
@@ -54,13 +55,11 @@
         </form>
     </nav>
 
-    <section id='main' class="content">
-<h1 class='fqn'><span class='in-band'>Trait <a href='index.html'>rand</a>::<wbr><a class="trait" href=''>Rng</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content"><h1 class='fqn'><span class='in-band'>Trait <a href='index.html'>rand</a>::<wbr><a class="trait" href=''>Rng</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/rand/lib.rs.html#330-595' title='goto source code'>[src]</a></span></h1>
-<pre class='rust trait'>pub trait Rng: <a class="trait" href="../rand/trait.RngCore.html" title="trait rand::RngCore">RngCore</a> {
+               </span><a class='srclink' href='../src/rand/lib.rs.html#330-595' title='goto source code'>[src]</a></span></h1><div class="docblock type-decl"><pre class='rust trait'>pub trait Rng: <a class="trait" href="../rand/trait.RngCore.html" title="trait rand::RngCore">RngCore</a> {
     fn <a href='#method.fill' class='fnname'>fill</a>&lt;T:&nbsp;<a class="trait" href="../rand/trait.AsByteSliceMut.html" title="trait rand::AsByteSliceMut">AsByteSliceMut</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(&amp;mut self, dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>T) { ... }
 <div class='item-spacer'></div>    fn <a href='#method.try_fill' class='fnname'>try_fill</a>&lt;T:&nbsp;<a class="trait" href="../rand/trait.AsByteSliceMut.html" title="trait rand::AsByteSliceMut">AsByteSliceMut</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dest: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;mut </a>T<br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.unit.html">()</a>, <a class="struct" href="../rand/struct.Error.html" title="struct rand::Error">Error</a>&gt; { ... }
 <div class='item-spacer'></div>    fn <a href='#method.sample' class='fnname'>sample</a>&lt;T, D:&nbsp;<a class="trait" href="../rand/distributions/trait.Distribution.html" title="trait rand::distributions::Distribution">Distribution</a>&lt;T&gt;&gt;(&amp;mut self, distr: D) -&gt; T { ... }
@@ -75,7 +74,7 @@
 <div class='item-spacer'></div>    fn <a href='#method.choose' class='fnname'>choose</a>&lt;'a, T&gt;(&amp;mut self, values: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;'a [T]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;'a </a>T&gt; { ... }
 <div class='item-spacer'></div>    fn <a href='#method.choose_mut' class='fnname'>choose_mut</a>&lt;'a, T&gt;(&amp;mut self, values: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;'a mut [T]</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;'a mut </a>T&gt; { ... }
 <div class='item-spacer'></div>    fn <a href='#method.shuffle' class='fnname'>shuffle</a>&lt;T&gt;(&amp;mut self, values: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;mut [T]</a>) { ... }
-}</pre><div class='docblock'><p>An automatically-implemented extension trait on <a href="https://docs.rs/rand_core/0.1/rand_core/trait.RngCore.html"><code>RngCore</code></a> providing high-level
+}</pre></div><div class='docblock'><p>An automatically-implemented extension trait on <a href="https://docs.rs/rand_core/0.1/rand_core/trait.RngCore.html"><code>RngCore</code></a> providing high-level
 generic methods for sampling values and other convenience methods.</p>
 <p>This is the primary trait to use when generating random values.</p>
 <h1 id="generic-usage" class="section-header"><a href="#generic-usage">Generic usage</a></h1>
@@ -271,8 +270,8 @@ which produces an unbiased permutation.</p>
           Implementors<a href='#implementors' class='anchor'></a>
         </h2>
         <ul class='item-list' id='implementors-list'>
-    <li><div class='out-of-band'><a class='srclink' href='../src/rand/lib.rs.html#597' title='goto source code'>[src]</a></div><code>impl&lt;R:&nbsp;<a class="trait" href="../rand/trait.RngCore.html" title="trait rand::RngCore">RngCore</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; Rng for R</code></li>
-</ul><script type="text/javascript" async
+    <li><table class='table-display'><tbody><tr><td><code>impl&lt;R:&nbsp;<a class="trait" href="../rand/trait.RngCore.html" title="trait rand::RngCore">RngCore</a> + ?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt; Rng for R</code><td><div class='out-of-band'><a class='srclink' href='../src/rand/lib.rs.html#597' title='goto source code'>[src]</a></div></td></tr></tbody></table></li>
+</ul><script type="text/javascript">window.inlined_types=new Set([]);</script><script type="text/javascript" async
                          src="../implementors/rand/trait.Rng.js">
                  </script></section>
     <section id='search' class="content hidden"></section>

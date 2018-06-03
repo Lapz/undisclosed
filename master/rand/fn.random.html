@@ -10,10 +10,11 @@
     <title>rand::random - Rust</title>
 
     <link rel="stylesheet" type="text/css" href="../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../dark.css">
-    <link rel="stylesheet" type="text/css" href="../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle">
     <script src="../storage.js"></script>
     
 
@@ -33,7 +34,7 @@
     <nav class="sidebar">
         <div class="sidebar-menu">&#9776;</div>
         <a href='../rand/index.html'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo' width='100'></a>
-        <p class='location'><a href='index.html'>rand</a></p><script>window.sidebarCurrent = {name: 'random', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+        <div class="sidebar-elems"><p class='location'><a href='index.html'>rand</a></p><script>window.sidebarCurrent = {name: 'random', ty: 'fn', relpath: ''};</script><script defer src="sidebar-items.js"></script></div>
     </nav>
 
     <div class="theme-picker">
@@ -54,13 +55,11 @@
         </form>
     </nav>
 
-    <section id='main' class="content">
-<h1 class='fqn'><span class='in-band'>Function <a href='index.html'>rand</a>::<wbr><a class="fn" href=''>random</a></span><span class='out-of-band'><span id='render-detail'>
+    <section id='main' class="content"><h1 class='fqn'><span class='in-band'>Function <a href='index.html'>rand</a>::<wbr><a class="fn" href=''>random</a></span><span class='out-of-band'><span id='render-detail'>
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/rand/thread_rng.rs.html#168-170' title='goto source code'>[src]</a></span></h1>
-<pre class='rust fn'>pub fn random&lt;T&gt;() -&gt; T <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;<a class="struct" href="../rand/distributions/struct.Uniform.html" title="struct rand::distributions::Uniform">Uniform</a>: <a class="trait" href="../rand/distributions/trait.Distribution.html" title="trait rand::distributions::Distribution">Distribution</a>&lt;T&gt;,&nbsp;</span></pre><div class='stability'><div class='stab deprecated'>Deprecated since 0.5.0<p>: removed in favor of thread_rng().gen()</p>
+               </span><a class='srclink' href='../src/rand/thread_rng.rs.html#168-170' title='goto source code'>[src]</a></span></h1><pre class='rust fn'>pub fn random&lt;T&gt;() -&gt; T <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;<a class="struct" href="../rand/distributions/struct.Uniform.html" title="struct rand::distributions::Uniform">Uniform</a>: <a class="trait" href="../rand/distributions/trait.Distribution.html" title="trait rand::distributions::Distribution">Distribution</a>&lt;T&gt;,&nbsp;</span></pre><div class='stability'><div class='stab deprecated'>Deprecated since 0.5.0<p>: removed in favor of thread_rng().gen()</p>
 </div></div><div class='docblock'><p>DEPRECATED: use <code>thread_rng().gen()</code> instead.</p>
 <p>Generates a random value using the thread-local random number generator.</p>
 <p>This is simply a shortcut for <code>thread_rng().gen()</code>. See <a href="fn.thread_rng.html"><code>thread_rng</code></a> for

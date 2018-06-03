@@ -10,10 +10,11 @@
     <title>tokens.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle">
     <script src="../../storage.js"></script>
     
 
@@ -256,7 +257,7 @@
     <span class="ident">LBRACE</span>,     <span class="comment">// {</span>
     <span class="ident">RBRACE</span>,     <span class="comment">// }</span>
     <span class="ident">COLONCOLON</span>, <span class="comment">// ::</span>
-    <span class="ident">BAR</span>,        <span class="comment">// | </span>
+    <span class="ident">BAR</span>,        <span class="comment">// |</span>
 
     <span class="comment">// Comparison</span>
     <span class="ident">LESSTHAN</span>,         <span class="comment">// &lt;</span>
@@ -330,8 +331,8 @@
             <span class="ident">TokenType</span>::<span class="ident">RBRACKET</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;]&quot;</span>),  <span class="comment">// ]</span>
             <span class="ident">TokenType</span>::<span class="ident">LBRACE</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{{&quot;</span>),   <span class="comment">// {</span>
             <span class="ident">TokenType</span>::<span class="ident">RBRACE</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;}}&quot;</span>),   <span class="comment">// }</span>
-            <span class="ident">TokenType</span>::<span class="ident">FRETURN</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;-&gt;&quot;</span>), <span class="comment">// -&gt; </span>
-            <span class="ident">TokenType</span>::<span class="ident">BAR</span><span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;|&quot;</span>), <span class="comment">// -&gt; </span>
+            <span class="ident">TokenType</span>::<span class="ident">FRETURN</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;-&gt;&quot;</span>),  <span class="comment">// -&gt;</span>
+            <span class="ident">TokenType</span>::<span class="ident">BAR</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;|&quot;</span>),       <span class="comment">// -&gt;</span>
             <span class="comment">// Keywords,</span>
             <span class="ident">TokenType</span>::<span class="ident">FUNCTION</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;fun&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">AS</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;as&quot;</span>),
@@ -342,8 +343,8 @@
             <span class="ident">TokenType</span>::<span class="ident">IF</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;if&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">ELSE</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;else&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">RETURN</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;return&quot;</span>),
-            <span class="ident">TokenType</span>::<span class="ident">TRUE</span>(_) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;true&quot;</span>),
-            <span class="ident">TokenType</span>::<span class="ident">FALSE</span>(_) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;false&quot;</span>),
+            <span class="ident">TokenType</span>::<span class="ident">TRUE</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;true&quot;</span>),
+            <span class="ident">TokenType</span>::<span class="ident">FALSE</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;false&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">AND</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;and&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">OR</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;or&quot;</span>),
             <span class="ident">TokenType</span>::<span class="ident">FOR</span> <span class="op">=&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;for&quot;</span>),

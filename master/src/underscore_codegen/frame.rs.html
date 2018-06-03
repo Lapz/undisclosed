@@ -10,10 +10,11 @@
     <title>frame.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle">
     <script src="../../storage.js"></script>
     
 
@@ -74,30 +75,26 @@
 <span id="18">18</span>
 <span id="19">19</span>
 <span id="20">20</span>
-<span id="21">21</span>
-<span id="22">22</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">temp</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">ir</span>::<span class="ident">Instruction</span>;
+<span class="kw">use</span> <span class="ident">temp</span>::<span class="ident">Label</span>;
 
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Frame</span> {
-    <span class="doccomment">/// Allocate a new frame</span>
+    <span class="kw">type</span> <span class="ident">Access</span>;
+
+    <span class="kw">type</span> <span class="ident">FP</span>;
+
+    <span class="kw">const</span> <span class="ident">WORD_SIZE</span>: <span class="ident">u32</span>;
+
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">Label</span>, <span class="ident">formals</span>: <span class="kw-2">&amp;</span>[<span class="ident">bool</span>]) <span class="op">-&gt;</span> <span class="self">Self</span>;
 
-    <span class="comment">// fn name(&amp;self) -&gt; Label;</span>
+    <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Label</span>;
 
-    <span class="kw">fn</span> <span class="ident">formals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>,) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Access</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">formals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Access</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">alloc_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">escape</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">Access</span>;
-}
+    <span class="kw">fn</span> <span class="ident">alloc_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">escapes</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Access</span>;
 
-<span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">FRAME_COUNT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
-
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Access</span> {
-    <span class="doccomment">/// Data that will be held in a register</span>
-    <span class="ident">Reg</span>(<span class="ident">Temp</span>), 
-    <span class="doccomment">/// A memory location at offset X from the frame pointer</span>
-    <span class="ident">Frame</span>(<span class="ident">u32</span>), 
+    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">access</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Access</span>, <span class="ident">ir</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Instruction</span>) <span class="op">-&gt;</span> <span class="ident">Instruction</span>;
 }
 </pre>
 </section>

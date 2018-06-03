@@ -10,10 +10,11 @@
     <title>chacha.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle">
     <script src="../../../storage.js"></script>
     
 
@@ -750,7 +751,7 @@
                 <span class="ident">rounds</span>: <span class="ident">usize</span>)
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">state</span>;
-            <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="ident">rounds</span> <span class="op">/</span> <span class="number">2</span> {
+            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">rounds</span> <span class="op">/</span> <span class="number">2</span> {
                 <span class="macro">double_round</span><span class="macro">!</span>(<span class="ident">tmp</span>);
             }
             <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">STATE_WORDS</span> {
@@ -860,7 +861,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">ChaChaRng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
 
         <span class="comment">// Skip block 0</span>
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> { <span class="ident">rng</span>.<span class="ident">next_u32</span>(); }
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> { <span class="ident">rng</span>.<span class="ident">next_u32</span>(); }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">16</span>];
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter_mut</span>() { <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>(); }
@@ -887,7 +888,7 @@
 
         <span class="comment">// Test block 2 by skipping block 0 and 1</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">ChaChaRng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">32</span> { <span class="ident">rng1</span>.<span class="ident">next_u32</span>(); }
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">32</span> { <span class="ident">rng1</span>.<span class="ident">next_u32</span>(); }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter_mut</span>() { <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span> <span class="ident">rng1</span>.<span class="ident">next_u32</span>(); }
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">results</span>, <span class="ident">expected</span>);
 
@@ -908,7 +909,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">results</span> <span class="op">=</span> [<span class="number">0u32</span>; <span class="number">16</span>];
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">results</span>.<span class="ident">iter_mut</span>() {
             <span class="kw-2">*</span><span class="ident">i</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">next_u32</span>();
-            <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
+            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
                 <span class="ident">rng</span>.<span class="ident">next_u32</span>();
             }
         }
@@ -972,7 +973,7 @@
         <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> [<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">2</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">3</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">4</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">5</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">6</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">7</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="ident">ChaChaRng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">clone</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">clone</span>();
-        <span class="kw">for</span> _ <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">16</span> {
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">rng</span>.<span class="ident">next_u64</span>(), <span class="ident">clone</span>.<span class="ident">next_u64</span>());
         }
     }

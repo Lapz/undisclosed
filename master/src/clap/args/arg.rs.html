@@ -10,10 +10,11 @@
     <title>arg.rs.html -- source</title>
 
     <link rel="stylesheet" type="text/css" href="../../../normalize.css">
-    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css"
+          id="mainThemeStyle">
     
     <link rel="stylesheet" type="text/css" href="../../../dark.css">
-    <link rel="stylesheet" type="text/css" href="../../../main.css" id="themeStyle">
+    <link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle">
     <script src="../../../storage.js"></script>
     
 
@@ -4240,7 +4241,7 @@
                 <span class="ident">als</span>.<span class="ident">push</span>((<span class="ident">n</span>, <span class="bool-val">false</span>));
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">n</span>, <span class="bool-val">false</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>());
+            <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">n</span>, <span class="bool-val">false</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
         }
         <span class="self">self</span>
     }
@@ -4298,7 +4299,7 @@
                 <span class="ident">als</span>.<span class="ident">push</span>((<span class="ident">n</span>, <span class="bool-val">true</span>));
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">n</span>, <span class="bool-val">true</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>());
+            <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">aliases</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">n</span>, <span class="bool-val">true</span>)).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
         }
         <span class="self">self</span>
     }
@@ -4828,7 +4829,7 @@
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">r_unless</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>());
+            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">r_unless</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
         }
         <span class="self">self</span>.<span class="ident">setb</span>(<span class="ident">ArgSettings</span>::<span class="ident">RequiredUnlessAll</span>);
         <span class="self">self</span>.<span class="ident">required</span>(<span class="bool-val">true</span>)
@@ -4904,7 +4905,7 @@
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">r_unless</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>());
+            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">r_unless</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
         }
         <span class="self">self</span>.<span class="ident">required</span>(<span class="bool-val">true</span>)
     }
@@ -5002,7 +5003,7 @@
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">blacklist</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>());
+            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">blacklist</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
         }
         <span class="self">self</span>
     }
@@ -5147,7 +5148,7 @@
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">overrides</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>());
+            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">overrides</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
         }
         <span class="self">self</span>
     }
@@ -6207,7 +6208,7 @@
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">possible_vals</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>());
+            <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">possible_vals</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
         }
         <span class="self">self</span>
     }
@@ -6403,7 +6404,7 @@
                 <span class="ident">vec</span>.<span class="ident">push</span>(<span class="ident">s</span>);
             }
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">groups</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>_<span class="op">&gt;&gt;</span>());
+            <span class="self">self</span>.<span class="ident">b</span>.<span class="ident">groups</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">names</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;&gt;</span>());
         }
         <span class="self">self</span>
     }
