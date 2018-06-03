@@ -39,6 +39,29 @@ impl Infer {
 
             (&Type::App(TyCon::Void, _), &Type::Struct(_, _, _)) => Ok(()),
             (&Type::Struct(_, _, _), &Type::App(TyCon::Void, _)) => Ok(()),
+            (&Type::Array(ref ty, ref len), &Type::Array(ref ty2, ref len2)) => {
+                if len != len2 {
+                    let msg = format!("Expected array with len `{}` found len `{}`", len, len2);
+                    reporter.error(msg, span);
+                    return Err(());
+                }
+
+                self.unify(ty, ty2, reporter, span, env)?;
+
+                Ok(())
+            }
+
+            (&Type::Array(ref ty, _), ref other) => {
+                self.unify(ty, other, reporter, span, env)?;
+
+                Ok(())
+            }
+
+            (ref other, &Type::Array(ref ty, _)) => {
+                self.unify(ty, other, reporter, span, env)?;
+
+                Ok(())
+            }
 
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
                 if tycon1 != tycon2 {
@@ -96,11 +119,23 @@ impl Infer {
             (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
                 Ok(())
             } else {
-                Err(())
+                let a = env.look_tvar(*v1);
+                let b = env.look_tvar(*v2);
+
+                if a != b {
+                    let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(env), rhs.print(env));
+                    reporter.error(msg, span);
+                    return Err(());
+                }
+                Ok(())
             },
 
+            (&Type::Var(_), &Type::App(TyCon::Int(_, _), _)) => Ok(()),
+
+            (&Type::App(TyCon::Int(_, _), _), &Type::Var(_)) => Ok(()),
+
             (&Type::Nil, &Type::Nil) => Ok(()),
-            (&Type::Nil,&Type::App(TyCon::Void,_)) => Ok(()),
+            (&Type::Nil, &Type::App(TyCon::Void, _)) => Ok(()),
             (t1, t2) => {
                 let msg = format!("Cannot unify `{}` vs `{}`", t1.print(env), t2.print(env));
                 reporter.error(msg, span);

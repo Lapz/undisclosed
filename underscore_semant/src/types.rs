@@ -1,6 +1,7 @@
 use env::Env;
 use std::fmt::{self, Display};
-use syntax::ast::{Ident, Sign, Size};
+use syntax::ast::{Sign, Size};
+use util::symbol::Symbol;
 
 static mut UNIQUE_COUNT: u32 = 0;
 
@@ -18,12 +19,13 @@ pub enum Type {
     App(TyCon, Vec<Type>),
     Var(TypeVar),
     Poly(Vec<TypeVar>, Box<Type>),
-    Struct(Ident, Vec<Field>, Unique), // Name, Fields, Unique
+    Struct(Symbol, Vec<Field>, Unique), // Name, Fields, Unique
+    Array(Box<Type>, usize),            // Type and length
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
-    pub name: Ident,
+    pub name: Symbol,
     pub ty: Type,
 }
 
@@ -66,6 +68,7 @@ impl Type {
 impl Type {
     pub fn print(&self, env: &Env) -> String {
         match *self {
+            Type::Array(ref ty, ref len) => format!("[{};{}]", ty.print(env), len),
             Type::Struct(ref name, ref fields, _) => {
                 let mut fmt_string = String::new();
                 fmt_string.push_str(&format!("{}<", env.name(*name)));
@@ -116,7 +119,7 @@ impl Type {
 
                 fmt_string
             }
-            Type::Var(ref v) => format!("{}", v.0 as u8 as char),
+            Type::Var(ref v) => format!("tvar{}", v.0),
             Type::Poly(ref vars, ref ret) => {
                 let mut fmt_string = String::new();
                 fmt_string.push_str("poly<");
@@ -149,6 +152,81 @@ impl Display for TyCon {
             TyCon::Arrow => write!(f, "->"),
             TyCon::Bool => write!(f, "bool"),
             TyCon::Fun(_, ref ret) => write!(f, "fn () -> {:?}", ret),
+        }
+    }
+}
+
+impl Display for TypeVar {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "tv{}", self.0)
+    }
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Type::Array(ref ty, ref len) => write!(f, "[{};{}]", ty, len),
+            Type::Struct(ref name, ref fields, _) => {
+                write!(f, "{}<", name)?;
+
+                for (i, field) in fields.iter().enumerate() {
+                    if i + 1 == fields.len() {
+                        write!(f, "{}", field.ty)?;
+                    } else {
+                        write!(f, "{},", field.ty)?;
+                    }
+                }
+
+                write!(f, ">")
+            }
+
+            Type::Nil => write!(f, "nil"),
+
+            Type::App(ref tycon, ref types) => {
+                if let TyCon::Arrow = *tycon {
+                    write!(f, "fn (")?;
+
+                    for i in 0..types.len() - 1 {
+                        if i + 1 == types.len() - 1 {
+                            write!(f, "{}", types[i])?;
+                        } else {
+                            write!(f, "{},", types[i])?;
+                        }
+                    }
+
+                    write!(f, ") -> ")?;
+
+                    write!(f, "{}", types.last().unwrap())?;
+                }
+
+                write!(f, "{}", tycon)?;
+
+                for (i, ty) in types.iter().enumerate() {
+                    if i + 1 == types.len() {
+                        write!(f, "{}", ty)?;
+                    } else {
+                        write!(f, "{},", ty)?;
+                    }
+                }
+
+                write!(f, "")
+            }
+            Type::Var(ref v) => write!(f, "{}", v),
+            Type::Poly(ref vars, ref ret) => {
+                write!(f, "poly <")?;
+
+                for (i, var) in vars.iter().enumerate() {
+                    if i + 1 == vars.len() {
+                        write!(f, "{}", var)?;
+                    } else {
+                        write!(f, "{},", var)?;
+                    }
+                }
+
+                write!(f, ">")?;
+
+                write!(f, " {}", ret)
+            }
         }
     }
 }

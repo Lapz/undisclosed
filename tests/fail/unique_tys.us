@@ -13,9 +13,9 @@ fn main() -> List {
     let list = List2 {
         head:10,
         body:nil
-    } ;
+    };
 
     return list;
 }
 
- // Expect :
+ // Expect : struct `List` != struct `List2`

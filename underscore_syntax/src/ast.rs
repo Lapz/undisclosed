@@ -1,5 +1,7 @@
 use std::fmt::{self, Display};
-use util::pos::{Span, Spanned};
+use util::{pos::{Span, Spanned},
+           symbol::Symbol};
+
 #[derive(Debug)]
 pub struct Program {
     pub structs: Vec<Spanned<Struct>>,
@@ -13,12 +15,10 @@ impl Program {
     }
 }
 
-#[derive(Hash, Debug, Copy, Clone, PartialEq, Eq, Default)]
-pub struct Ident(pub u32);
 #[derive(Debug)]
 pub struct ItemName {
-    pub name: Spanned<Ident>,
-    pub type_params: Vec<Spanned<Ident>>,
+    pub name: Spanned<Symbol>,
+    pub type_params: Vec<Spanned<Symbol>>,
 }
 #[derive(Debug)]
 pub struct Struct {
@@ -29,7 +29,7 @@ pub struct Struct {
 
 #[derive(Debug)]
 pub struct Field {
-    pub name: Spanned<Ident>,
+    pub name: Spanned<Symbol>,
     pub ty: Spanned<Ty>,
 }
 
@@ -44,10 +44,10 @@ pub struct Function {
 }
 #[derive(Debug)]
 pub struct FunctionParams {
-    pub name: Spanned<Ident>,
+    pub name: Spanned<Symbol>,
     pub ty: Spanned<Ty>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Linkage {
     Normal,
     External,
@@ -55,8 +55,9 @@ pub enum Linkage {
 #[derive(Debug)]
 pub enum Ty {
     Func(Vec<Spanned<Ty>>, Option<Box<Spanned<Ty>>>),
-    Poly(Spanned<Ident>, Vec<Spanned<Ty>>),
-    Simple(Spanned<Ident>),
+    Poly(Spanned<Symbol>, Vec<Spanned<Ty>>),
+    Simple(Spanned<Symbol>),
+    Array(Box<Spanned<Ty>>, usize),
     Nil,
     I8,
     I32,
@@ -92,7 +93,8 @@ pub enum Statement {
         otherwise: Option<Box<Spanned<Statement>>>,
     },
     Let {
-        ident: Spanned<Ident>,
+        escapes: bool,
+        ident: Spanned<Symbol>,
         ty: Option<Spanned<Ty>>,
         expr: Option<Spanned<Expression>>,
     },
@@ -104,6 +106,9 @@ pub enum Statement {
 }
 #[derive(Debug)]
 pub enum Expression {
+    Array {
+        items: Vec<Spanned<Expression>>,
+    },
     Assign {
         name: Spanned<Var>,
         value: Box<Spanned<Expression>>,
@@ -141,10 +146,10 @@ pub enum Expression {
 
 #[derive(Debug)]
 pub struct StructLitField {
-    pub ident: Spanned<Ident>,
+    pub ident: Spanned<Symbol>,
     pub expr: Spanned<Expression>,
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     Number(Number),
     True(bool),
@@ -156,23 +161,23 @@ pub enum Literal {
 #[derive(Debug)]
 pub enum Var {
     Field {
-        ident: Spanned<Ident>,
-        value: Spanned<Ident>,
+        ident: Spanned<Symbol>,
+        value: Spanned<Symbol>,
     },
-    Simple(Spanned<Ident>),
+    Simple(Spanned<Symbol>),
     SubScript {
         expr: Box<Spanned<Expression>>,
-        target: Spanned<Ident>,
+        target: Spanned<Symbol>,
     },
 }
 #[derive(Debug)]
 pub enum Call {
     Simple {
-        callee: Spanned<Ident>,
+        callee: Spanned<Symbol>,
         args: Vec<Spanned<Expression>>,
     },
     Instantiation {
-        callee: Spanned<Ident>,
+        callee: Spanned<Symbol>,
         tys: Spanned<Vec<Spanned<Ty>>>,
         args: Vec<Spanned<Expression>>,
     },
@@ -180,18 +185,18 @@ pub enum Call {
 #[derive(Debug)]
 pub enum StructLit {
     Simple {
-        ident: Spanned<Ident>,
+        ident: Spanned<Symbol>,
         fields: Vec<Spanned<StructLitField>>,
     },
 
     Instantiation {
-        ident: Spanned<Ident>,
+        ident: Spanned<Symbol>,
         tys: Spanned<Vec<Spanned<Ty>>>,
         fields: Vec<Spanned<StructLitField>>,
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Op {
     NEq,
     Equal,
@@ -207,7 +212,7 @@ pub enum Op {
     Or,
 }
 
-#[derive(Debug, PartialOrd, Clone, PartialEq, Hash)]
+#[derive(Debug, PartialOrd, Clone, Copy, PartialEq, Hash)]
 pub enum UnaryOp {
     Bang,
     Minus,
@@ -258,6 +263,16 @@ impl Display for Size {
             Size::Bit8 => write!(f, "8"),
             Size::Bit32 => write!(f, "32"),
             Size::Bit64 => write!(f, "64"),
+        }
+    }
+}
+
+impl Size {
+    pub fn size(&self) -> u32 {
+        match *self {
+            Size::Bit8 => 1,
+            Size::Bit32 => 4,
+            Size::Bit64 => 8,
         }
     }
 }

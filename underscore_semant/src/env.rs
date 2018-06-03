@@ -1,8 +1,9 @@
-use types::{TyCon, Type};
 
+use std::collections::HashMap;
 use std::rc::Rc;
-use syntax::ast::{Ident, Sign, Size};
-use util::symbol::{FactoryMap, Table};
+use syntax::ast::{Sign, Size};
+use types::{TyCon, Type, TypeVar};
+use util::symbol::{Symbol, SymbolMap, Symbols};
 
 #[derive(Debug, Clone)]
 pub enum Entry {
@@ -10,46 +11,49 @@ pub enum Entry {
     Ty(Type),
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum VarType {
+    /// A typedvariable mapped to a var
+    Int,
+    Other,
+}
+
 #[derive(Debug, Clone)]
-pub struct Env {
-    types: Table<Ident, Entry>,
-    vars: Table<Ident, Type>,
+pub enum VarEntry {
+    Var(Type),
+    Fun { ty: Type },
 }
 
-trait GetIdent {
-    fn ident(&mut self, name: &str) -> Ident;
-}
-
-impl GetIdent for Table<Ident, Type> {
-    fn ident(&mut self, name: &str) -> Ident {
-        for (key, value) in self.strings.mappings.borrow().iter() {
-            if value == name {
-                return *key;
-            }
+impl VarEntry {
+    pub fn get_ty(self) -> Type {
+        match self {
+            VarEntry::Var(ty) => ty,
+            VarEntry::Fun { ty, .. } => ty,
         }
-        let symbol = Ident(*self.strings.next.borrow());
-        self.strings
-            .mappings
-            .borrow_mut()
-            .insert(symbol, name.to_owned());
-        *self.strings.next.borrow_mut() += 1;
-        symbol
     }
 }
 
-impl Env {
-    pub fn new(strings: &Rc<FactoryMap<Ident>>) -> Self {
-        let mut types = Table::new(strings.clone());
-        let string_ident = types.ident("str");
-        let i8_ident = types.ident("i8");
-        let u8_ident = types.ident("u8");
-        let i32_ident = types.ident("i32");
-        let u32_ident = types.ident("u32");
-        let i64_ident = types.ident("i64");
-        let u64_ident = types.ident("u64");
+#[derive(Debug, Clone)]
+pub struct Env {
+    types: Symbols<Entry>,
+    tvars: HashMap<TypeVar, VarType>,
+    vars: Symbols<VarEntry>,
+    pub escapes: Symbols<(u32, bool)>,
+}
 
-        let nil_ident = types.ident("nil");
-        let bool_ident = types.ident("bool");
+impl Env {
+    pub fn new(strings: &Rc<SymbolMap<Symbol>>) -> Self {
+        let mut types = Symbols::new(strings.clone());
+        let string_ident = types.symbol("str");
+        let i8_ident = types.symbol("i8");
+        let u8_ident = types.symbol("u8");
+        let i32_ident = types.symbol("i32");
+        let u32_ident = types.symbol("u32");
+        let i64_ident = types.symbol("i64");
+        let u64_ident = types.symbol("u64");
+
+        let nil_ident = types.symbol("nil");
+        let bool_ident = types.symbol("bool");
 
         types.enter(
             i8_ident,
@@ -84,9 +88,16 @@ impl Env {
         types.enter(string_ident, Type::App(TyCon::String, vec![]));
 
         Env {
-            types: Table::new(Rc::clone(strings)),
-            vars: Table::new(Rc::clone(strings)),
+            types: Symbols::new(Rc::clone(strings)),
+            tvars: HashMap::new(),
+            vars: Symbols::new(Rc::clone(strings)),
+            escapes: Symbols::new(Rc::clone(strings)),
         }
+    }
+
+    pub fn symbol(&mut self, name: &str) -> Symbol {
+        self.types.symbol(name);
+        self.vars.symbol(name)
     }
 
     pub fn begin_scope(&mut self) {
@@ -99,27 +110,35 @@ impl Env {
         self.vars.end_scope();
     }
 
-    pub fn look_type(&self, ident: Ident) -> Option<&Entry> {
+    pub fn look_type(&self, ident: Symbol) -> Option<&Entry> {
         self.types.look(ident)
     }
 
-    pub fn replace_type(&mut self, ident: Ident, data: Entry) {
+    pub fn replace_type(&mut self, ident: Symbol, data: Entry) {
         self.types.replace(ident, data)
     }
 
-    pub fn look_var(&self, ident: Ident) -> Option<&Type> {
+    pub fn look_var(&self, ident: Symbol) -> Option<&VarEntry> {
         self.vars.look(ident)
     }
 
-    pub fn add_type(&mut self, ident: Ident, data: Entry) {
+    pub fn look_tvar(&self, ident: TypeVar) -> Option<&VarType> {
+        self.tvars.get(&ident)
+    }
+
+    pub fn add_type(&mut self, ident: Symbol, data: Entry) {
         self.types.enter(ident, data)
     }
 
-    pub fn add_var(&mut self, ident: Ident, data: Type) {
+    pub fn add_var(&mut self, ident: Symbol, data: VarEntry) {
         self.vars.enter(ident, data)
     }
 
-    pub fn name(&self, ident: Ident) -> String {
+    pub fn add_tvar(&mut self, ident: TypeVar, data: VarType) {
+        self.tvars.insert(ident, data);
+    }
+
+    pub fn name(&self, ident: Symbol) -> String {
         self.vars.name(ident)
     }
 }

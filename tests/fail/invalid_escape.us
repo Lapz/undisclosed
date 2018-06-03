@@ -1,0 +1,6 @@
+
+
+fn main() {
+    "a\a";
+}
+// Expect : Invalid escape
