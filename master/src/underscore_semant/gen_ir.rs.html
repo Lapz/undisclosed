@@ -511,6 +511,8 @@
 <span id="454">454</span>
 <span id="455">455</span>
 <span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">lowered</span> <span class="kw">as</span> <span class="ident">l</span>;
 <span class="kw">use</span> <span class="ident">ast</span>::<span class="ident">typed</span> <span class="kw">as</span> <span class="ident">t</span>;
@@ -635,7 +637,7 @@
                                 <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="number">4</span> <span class="op">*</span> (<span class="kw-2">*</span><span class="ident">len</span> <span class="kw">as</span> <span class="ident">u64</span>), <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
                             ));
 
-                            <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Plus</span>, <span class="ident">HP</span>, <span class="ident">temp</span>, <span class="ident">HP</span>));
+                            <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">HP</span>,<span class="ident">BinOp</span>::<span class="ident">Plus</span>,  <span class="ident">temp</span>, <span class="ident">HP</span>));
                         }
                         <span class="kw">_</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">expr</span>, <span class="ident">id_temp</span>, <span class="ident">instructions</span>),
                     }
@@ -750,7 +752,7 @@
                         <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">lhs</span>, <span class="ident">lhs_temp</span>, <span class="ident">instructions</span>);
                         <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">rhs</span>, <span class="ident">rhs_temp</span>, <span class="ident">instructions</span>);
                         <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">gen_bin_op</span>(<span class="ident">op</span>);
-                        <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">op</span>, <span class="ident">lhs_temp</span>, <span class="ident">rhs_temp</span>, <span class="ident">temp</span>));
+                        <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">lhs_temp</span>,<span class="ident">op</span>,  <span class="ident">rhs_temp</span>, <span class="ident">temp</span>));
                     }
 
                     <span class="kw">_</span> <span class="op">=&gt;</span> {
@@ -824,7 +826,7 @@
                 <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">expr</span>, <span class="ident">new_temp</span>, <span class="ident">instructions</span>);
                 <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">gen_un_op</span>(<span class="ident">op</span>);
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">UnOp</span>(<span class="ident">op</span>, <span class="ident">temp</span>, <span class="ident">new_temp</span>))
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">UnOp</span>(<span class="ident">temp</span>, <span class="ident">op</span> ,<span class="ident">new_temp</span>))
             }
 
             <span class="ident">t</span>::<span class="ident">Expression</span>::<span class="ident">Var</span>(<span class="kw-2">ref</span> <span class="ident">var</span>) <span class="op">=&gt;</span> {
@@ -854,9 +856,9 @@
                     <span class="ident">Value</span>::<span class="ident">Const</span>(<span class="number">4</span>, <span class="ident">Sign</span>::<span class="ident">Unsigned</span>, <span class="ident">Size</span>::<span class="ident">Bit64</span>),
                 ));
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Mul</span>, <span class="ident">addr</span>, <span class="ident">temp</span>, <span class="ident">addr</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">addr</span>,<span class="ident">BinOp</span>::<span class="ident">Mul</span>, <span class="ident">temp</span>, <span class="ident">addr</span>));
 
-                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">BinOp</span>::<span class="ident">Plus</span>, <span class="ident">addr</span>, <span class="ident">base</span>, <span class="ident">addr</span>));
+                <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="ident">addr</span>,<span class="ident">BinOp</span>::<span class="ident">Plus</span>, <span class="ident">base</span>, <span class="ident">addr</span>));
 
                 <span class="ident">addr</span>
             }
@@ -905,8 +907,9 @@
                     <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">lhs</span>, <span class="ident">lhs_temp</span>, <span class="ident">instructions</span>);
                     <span class="self">self</span>.<span class="ident">gen_expression</span>(<span class="ident">rhs</span>, <span class="ident">rhs_temp</span>, <span class="ident">instructions</span>);
                     <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">CJump</span>(
+                         <span class="ident">lhs_temp</span>,
                         <span class="ident">gen_cmp_op</span>(<span class="ident">op</span>),
-                        <span class="ident">lhs_temp</span>,
+                       
                         <span class="ident">rhs_temp</span>,
                         <span class="ident">ltrue</span>,
                         <span class="ident">lfalse</span>,
@@ -916,7 +919,7 @@
                 <span class="kw-2">ref</span> <span class="ident">e</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>),
             },
 
-            <span class="kw-2">ref</span> <span class="ident">other</span> <span class="op">=&gt;</span> {
+            <span class="kw">_</span> <span class="op">=&gt;</span> {
                 <span class="kw">let</span> <span class="ident">true_temp</span> <span class="op">=</span> <span class="ident">Temp</span>::<span class="ident">new</span>();
                 <span class="kw">let</span> <span class="ident">expr_temp</span> <span class="op">=</span> <span class="ident">Temp</span>::<span class="ident">new</span>();
 
@@ -928,8 +931,9 @@
                 );
 
                 <span class="ident">instructions</span>.<span class="ident">push</span>(<span class="ident">Instruction</span>::<span class="ident">CJump</span>(
-                    <span class="ident">CmpOp</span>::<span class="ident">EQ</span>,
                     <span class="ident">expr_temp</span>,
+                    <span class="ident">CmpOp</span>::<span class="ident">EQ</span>,
+                    
                     <span class="ident">true_temp</span>,
                     <span class="ident">ltrue</span>,
                     <span class="ident">lfalse</span>,

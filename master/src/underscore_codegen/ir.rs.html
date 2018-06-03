@@ -324,13 +324,13 @@
     <span class="ident">Cast</span>(<span class="ident">Temp</span>, <span class="ident">Sign</span>, <span class="ident">Size</span>), <span class="comment">//TODO take into account sign</span>
 
     <span class="doccomment">/// Binary operation and store in Temp</span>
-    <span class="ident">BinOp</span>(<span class="ident">BinOp</span>, <span class="ident">Temp</span>, <span class="ident">Temp</span>, <span class="ident">Temp</span>),
+    <span class="ident">BinOp</span>(<span class="ident">Temp</span>,<span class="ident">BinOp</span>, <span class="ident">Temp</span>, <span class="ident">Temp</span>),
 
     <span class="doccomment">/// Unary Op store in Temp</span>
-    <span class="ident">UnOp</span>(<span class="ident">UnOp</span>, <span class="ident">Temp</span>, <span class="ident">Temp</span>),
+    <span class="ident">UnOp</span>( <span class="ident">Temp</span>,<span class="ident">UnOp</span>, <span class="ident">Temp</span>),
 
     <span class="doccomment">/// Evaluate l1, l2 compare using CmpOp and then got to L or R</span>
-    <span class="ident">CJump</span>(<span class="ident">CmpOp</span>, <span class="ident">Temp</span>, <span class="ident">Temp</span>, <span class="ident">Label</span>, <span class="ident">Label</span>),
+    <span class="ident">CJump</span>(<span class="ident">Temp</span>, <span class="ident">CmpOp</span>, <span class="ident">Temp</span>, <span class="ident">Label</span>, <span class="ident">Label</span>),
     <span class="doccomment">/// A Value</span>
     <span class="ident">Value</span>(<span class="ident">Value</span>),
     <span class="doccomment">/// Call a function with arguments</span>
@@ -363,8 +363,8 @@
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Instruction</span>::<span class="ident">Store</span>(<span class="kw-2">ref</span> <span class="ident">temp</span>, <span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;   {} := {}&quot;</span>, <span class="ident">temp</span>, <span class="ident">value</span>),
             <span class="ident">Instruction</span>::<span class="ident">Value</span>(<span class="kw-2">ref</span> <span class="ident">value</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\n{}&quot;</span>, <span class="ident">value</span>),
-            <span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">v1</span>, <span class="kw-2">ref</span> <span class="ident">v2</span>, <span class="kw-2">ref</span> <span class="ident">t</span>) <span class="op">=&gt;</span> {
-                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} := {} {} {}&quot;</span>, <span class="ident">t</span>, <span class="ident">v1</span>, <span class="ident">op</span>, <span class="ident">v2</span>)
+            <span class="ident">Instruction</span>::<span class="ident">BinOp</span>(<span class="kw-2">ref</span> <span class="ident">t1</span>, <span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">v1</span>, <span class="kw-2">ref</span> <span class="ident">v2</span>) <span class="op">=&gt;</span> {
+                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} := {} {} {}&quot;</span>, <span class="ident">t1</span>, <span class="ident">op</span>,<span class="ident">v1</span>, <span class="ident">v2</span>)
             }
 
             <span class="ident">Instruction</span>::<span class="ident">Block</span>(<span class="kw-2">ref</span> <span class="ident">temp</span>, <span class="kw-2">ref</span> <span class="ident">temps</span>) <span class="op">=&gt;</span> {
@@ -386,7 +386,7 @@
             <span class="ident">Instruction</span>::<span class="ident">Load</span>(<span class="kw-2">ref</span> <span class="ident">temp</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\nload{}&quot;</span>, <span class="ident">temp</span>),
 
             <span class="ident">Instruction</span>::<span class="ident">Copy</span>(<span class="kw-2">ref</span> <span class="ident">t1</span>, <span class="kw-2">ref</span> <span class="ident">t2</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\n{} := {}&quot;</span>, <span class="ident">t1</span>, <span class="ident">t2</span>),
-            <span class="ident">Instruction</span>::<span class="ident">UnOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">t1</span>, <span class="kw-2">ref</span> <span class="ident">t2</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\n{} := {} {}&quot;</span>, <span class="ident">t1</span>, <span class="ident">op</span>, <span class="ident">t2</span>),
+            <span class="ident">Instruction</span>::<span class="ident">UnOp</span>(<span class="kw-2">ref</span> <span class="ident">t1</span>, <span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">t2</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\n{} := {} {}&quot;</span>, <span class="ident">t1</span>, <span class="ident">op</span>, <span class="ident">t2</span>),
             <span class="ident">Instruction</span>::<span class="ident">Cast</span>(<span class="kw-2">ref</span> <span class="ident">t1</span>, <span class="kw-2">ref</span> <span class="ident">sign</span>, <span class="kw-2">ref</span> <span class="ident">size</span>) <span class="op">=&gt;</span> {
                 <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\nt1 := {}:{}{}&quot;</span>, <span class="ident">t1</span>, <span class="ident">sign</span>, <span class="ident">size</span>)
             }
@@ -406,7 +406,7 @@
                 <span class="ident">fmt_str</span>
             }
             <span class="ident">Instruction</span>::<span class="ident">Jump</span>(<span class="kw-2">ref</span> <span class="ident">label</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;\njump {}&quot;</span>, <span class="ident">symbols</span>.<span class="ident">name</span>(<span class="kw-2">*</span><span class="ident">label</span>)),
-            <span class="ident">Instruction</span>::<span class="ident">CJump</span>(<span class="kw-2">ref</span> <span class="ident">op</span>, <span class="kw-2">ref</span> <span class="ident">t1</span>, <span class="kw-2">ref</span> <span class="ident">t2</span>, <span class="kw-2">ref</span> <span class="ident">ltrue</span>, <span class="kw-2">ref</span> <span class="ident">lfalse</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
+            <span class="ident">Instruction</span>::<span class="ident">CJump</span>(<span class="kw-2">ref</span> <span class="ident">t1</span>, <span class="kw-2">ref</span> <span class="ident">op</span> ,<span class="kw-2">ref</span> <span class="ident">t2</span>, <span class="kw-2">ref</span> <span class="ident">ltrue</span>, <span class="kw-2">ref</span> <span class="ident">lfalse</span>) <span class="op">=&gt;</span> <span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;\nif {} {} {} then {} else {}&quot;</span>,
                 <span class="ident">t1</span>,
                 <span class="ident">op</span>,
