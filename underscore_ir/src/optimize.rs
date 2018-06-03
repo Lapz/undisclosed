@@ -1,6 +1,4 @@
-use ir::Instruction;
-use temp::Label;
-
+use ir::{Instruction,Label};
 pub struct Optimizer {}
 
 impl Optimizer {

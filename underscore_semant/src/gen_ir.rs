@@ -1,8 +1,7 @@
-use ast::lowered as l;
 use ast::typed as t;
-use codegen::{ir::*,
+use ir::{ir,
               optimize::Optimizer,
-              temp::{new_label_pair, new_named_label, Label, Temp}};
+              ir::{new_label_pair, new_named_label, Label, Temp}};
 use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};
@@ -10,7 +9,7 @@ use util::symbol::Symbols;
 
 #[derive(Debug)]
 pub struct Codegen {
-    pub instructions: Vec<Instruction>,
+    pub instructions: Vec<ir::Instruction>,
     loop_label: Option<Label>,
     loop_break_label: Option<Label>,
     symbols: Symbols<Temp>,
@@ -43,8 +42,8 @@ impl Codegen {
             .expect("Couldn't write to the file");
     }
 
-    pub fn gen_program(&mut self, program: t::Program) -> l::Program {
-        let mut lowered = l::Program {
+    pub fn gen_program(&mut self, program: t::Program) -> ir::Program {
+        let mut lowered = ir::Program {
             functions: Vec::new(),
         };
 
@@ -55,11 +54,8 @@ impl Codegen {
             Optimizer::strength_reduction(&mut instructions);
             Optimizer::unused_labels(&mut vec![], &mut instructions);
 
-            lowered.functions.push(l::Function {
-                span: function.span,
+            lowered.functions.push(ir::Function {
                 name: function.name,
-                param_types: function.params.into_iter().map(|param| param.ty).collect(),
-                returns: function.returns,
                 body: instructions,
                 linkage: function.linkage,
             });
@@ -68,7 +64,7 @@ impl Codegen {
         lowered
     }
 
-    fn gen_function(&mut self, func: &t::Function, instructions: &mut Vec<Instruction>) {
+    fn gen_function(&mut self, func: &t::Function, instructions: &mut Vec<ir::Instruction>) {
         for param in &func.params {
             self.symbols.enter(param.name, Temp::new());
         }
@@ -76,25 +72,25 @@ impl Codegen {
         self.gen_statement(&func.body, instructions);
     }
 
-    fn gen_statement(&mut self, statement: &t::Statement, instructions: &mut Vec<Instruction>) {
+    fn gen_statement(&mut self, statement: &t::Statement, instructions: &mut Vec<ir::Instruction>) {
         match *statement {
             t::Statement::Block(ref statements) => {
                 // let (start, end) = new_label_pair("start", "end", &mut self.symbols);
-                // instructions.push(Instruction::Label(start));
+                // instructions.push(ir::Instruction::Label(start));
 
                 self.symbols.begin_scope();
                 for statement in statements {
                     self.gen_statement(statement, instructions)
                 }
                 self.symbols.end_scope();
-                // instructions.push(Instruction::Label(end));
+                // instructions.push(ir::Instruction::Label(end));
             }
 
-            t::Statement::Break => instructions.push(Instruction::Jump(
+            t::Statement::Break => instructions.push(ir::Instruction::Jump(
                 self.loop_break_label.expect("Using continue out side loop"),
             )),
 
-            t::Statement::Continue => instructions.push(Instruction::Jump(
+            t::Statement::Continue => instructions.push(ir::Instruction::Jump(
                 self.loop_label.expect("Using continue out side loop"),
             )),
             t::Statement::Let {
@@ -112,16 +108,16 @@ impl Codegen {
 
                     match *ty {
                         Type::Array(_, ref len) => {
-                            instructions.push(Instruction::Copy(HP, id_temp));
+                            instructions.push(ir::Instruction::Copy(HP, id_temp));
 
                             let temp = Temp::new();
 
-                            instructions.push(Instruction::Store(
+                            instructions.push(ir::Instruction::Store(
                                 temp,
-                                Value::Const(4 * (*len as u64), Sign::Unsigned, Size::Bit64),
+                                ir::Value::Const(4 * (*len as u64), Sign::Unsigned, Size::Bit64),
                             ));
 
-                            instructions.push(Instruction::BinOp(HP,BinOp::Plus,  temp, HP));
+                            instructions.push(ir::Instruction::BinOp(HP,ir::BinOp::Plus,  temp, HP));
                         }
                         _ => self.gen_expression(expr, id_temp, instructions),
                     }
@@ -142,23 +138,23 @@ impl Codegen {
 
                     self.gen_cond(cond, l1, l2, instructions);
 
-                    instructions.push(Instruction::Label(l1));
+                    instructions.push(ir::Instruction::Label(l1));
 
                     self.gen_statement(then, instructions);
 
-                    instructions.push(Instruction::Jump(l3));
-                    instructions.push(Instruction::Label(l2));
+                    instructions.push(ir::Instruction::Jump(l3));
+                    instructions.push(ir::Instruction::Label(l2));
                     self.gen_statement(otherwise, instructions);
 
-                    instructions.push(Instruction::Label(l3));
+                    instructions.push(ir::Instruction::Label(l3));
                 } else {
                     self.gen_cond(cond, l1, l2, instructions);
 
-                    instructions.push(Instruction::Label(l1));
+                    instructions.push(ir::Instruction::Label(l1));
 
                     self.gen_statement(then, instructions);
 
-                    instructions.push(Instruction::Label(l2));
+                    instructions.push(ir::Instruction::Label(l2));
                 }
             }
 
@@ -172,21 +168,21 @@ impl Codegen {
                 self.loop_break_label = Some(end);
                 self.loop_label = Some(lbody);
 
-                instructions.push(Instruction::Label(start));
+                instructions.push(ir::Instruction::Label(start));
 
-                instructions.push(Instruction::Label(lbody));
+                instructions.push(ir::Instruction::Label(lbody));
 
                 self.gen_cond(cond, ltrue, lfalse, instructions);
 
-                instructions.push(Instruction::Label(ltrue));
+                instructions.push(ir::Instruction::Label(ltrue));
 
                 self.gen_statement(body, instructions);
 
-                instructions.push(Instruction::Jump(lbody));
+                instructions.push(ir::Instruction::Jump(lbody));
 
-                instructions.push(Instruction::Label(lfalse));
+                instructions.push(ir::Instruction::Label(lfalse));
 
-                instructions.push(Instruction::Label(end));
+                instructions.push(ir::Instruction::Label(end));
             }
 
             t::Statement::Return(ref expr) => {
@@ -194,7 +190,7 @@ impl Codegen {
 
                 self.gen_expression(expr, temp, instructions);
 
-                instructions.push(Instruction::Return(temp))
+                instructions.push(ir::Instruction::Return(temp))
             }
         }
     }
@@ -203,7 +199,7 @@ impl Codegen {
         &mut self,
         expr: &t::TypedExpression,
         temp: Temp,
-        instructions: &mut Vec<Instruction>,
+        instructions: &mut Vec<ir::Instruction>,
     ) {
         match *expr.expr {
             t::Expression::Array(ref items) => {
@@ -216,14 +212,14 @@ impl Codegen {
                     block.push(temp);
                 }
 
-                instructions.push(Instruction::Block(temp, block))
+                instructions.push(ir::Instruction::Block(temp, block))
             }
             t::Expression::Assign(ref name, ref value) => {
                 let temp = self.gen_var(name, instructions);
 
                 self.gen_expression(value, temp, instructions);
 
-                instructions.push(Instruction::Copy(temp, temp))
+                instructions.push(ir::Instruction::Copy(temp, temp))
                 //  let temp = self.symbols.look(symbol)
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
@@ -236,7 +232,7 @@ impl Codegen {
                         self.gen_expression(lhs, lhs_temp, instructions);
                         self.gen_expression(rhs, rhs_temp, instructions);
                         let op = gen_bin_op(op);
-                        instructions.push(Instruction::BinOp(lhs_temp,op,  rhs_temp, temp));
+                        instructions.push(ir::Instruction::BinOp(lhs_temp,op,  rhs_temp, temp));
                     }
 
                     _ => {
@@ -257,7 +253,7 @@ impl Codegen {
                     params.push(temp)
                 }
 
-                instructions.push(Instruction::Call(temp, *name, params))
+                instructions.push(ir::Instruction::Call(temp, *name, params))
             }
 
             t::Expression::Cast(ref from, _) => {
@@ -266,7 +262,7 @@ impl Codegen {
 
                 match expr.ty {
                     Type::App(TyCon::Int(sign, size), _) => {
-                        instructions.push(Instruction::Cast(temp, sign, size))
+                        instructions.push(ir::Instruction::Cast(temp, sign, size))
                     }
 
                     _ => panic!("Can only cast to ints"),
@@ -275,34 +271,34 @@ impl Codegen {
             t::Expression::Grouping { ref expr } => self.gen_expression(expr, temp, instructions),
             t::Expression::Literal(ref literal) => {
                 let value = match *literal {
-                    Literal::Char(ref ch) => Value::Const(*ch as u64, Sign::Unsigned, Size::Bit8),
+                   Literal::Char(ref ch) => ir::Value::Const(*ch as u64, Sign::Unsigned, Size::Bit8),
 
-                    Literal::True(ref b) | Literal::False(ref b) => {
-                        Value::Const(*b as u64, Sign::Unsigned, Size::Bit8)
+                   Literal::True(ref b) |Literal::False(ref b) => {
+                        ir::Value::Const(*b as u64, Sign::Unsigned, Size::Bit8)
                     }
 
-                    Literal::Nil => Value::Mem(vec![0x00000000]),
+                   Literal::Nil => ir::Value::Mem(vec![0x00000000]),
 
                     Literal::Number(ref number) => match number.ty {
-                        Some((sign, size)) => Value::Const(number.value, sign, size),
+                        Some((sign, size)) => ir::Value::Const(number.value, sign, size),
                         None => match expr.ty {
                             Type::App(TyCon::Int(sign, size), _) => {
-                                Value::Const(number.value, sign, size)
+                                ir::Value::Const(number.value, sign, size)
                             }
-                            Type::Var(_) => Value::Const(number.value, Sign::Signed, Size::Bit32),
+                            Type::Var(_) => ir::Value::Const(number.value, Sign::Signed, Size::Bit32),
                             _ => unreachable!(),
                         },
                     },
-                    Literal::Str(ref string) => {
+                   Literal::Str(ref string) => {
                         let mut bytes = vec![];
                         bytes.push(string.len() as u8);
                         bytes.extend(string.as_bytes());
 
-                        Value::Mem(bytes)
+                        ir::Value::Mem(bytes)
                     }
                 };
 
-                instructions.push(Instruction::Store(temp, value))
+                instructions.push(ir::Instruction::Store(temp, value))
             }
 
             t::Expression::Unary(ref op, ref expr) => {
@@ -310,19 +306,19 @@ impl Codegen {
                 self.gen_expression(expr, new_temp, instructions);
                 let op = gen_un_op(op);
 
-                instructions.push(Instruction::UnOp(temp, op ,new_temp))
+                instructions.push(ir::Instruction::UnOp(temp, op ,new_temp))
             }
 
             t::Expression::Var(ref var) => {
                 let t = self.gen_var(var, instructions);
-                instructions.push(Instruction::Copy(temp, t))
+                instructions.push(ir::Instruction::Copy(temp, t))
             }
 
             _ => unimplemented!(),
         }
     }
 
-    fn gen_var(&mut self, var: &t::Var, instructions: &mut Vec<Instruction>) -> Temp {
+    fn gen_var(&mut self, var: &t::Var, instructions: &mut Vec<ir::Instruction>) -> Temp {
         match *var {
             t::Var::Simple(ref sym, _) => *self.symbols.look(*sym).unwrap(),
 
@@ -335,14 +331,14 @@ impl Codegen {
 
                 let temp = Temp::new();
 
-                instructions.push(Instruction::Store(
+                instructions.push(ir::Instruction::Store(
                     temp,
-                    Value::Const(4, Sign::Unsigned, Size::Bit64),
+                    ir::Value::Const(4, Sign::Unsigned, Size::Bit64),
                 ));
 
-                instructions.push(Instruction::BinOp(addr,BinOp::Mul, temp, addr));
+                instructions.push(ir::Instruction::BinOp(addr,ir::BinOp::Mul, temp, addr));
 
-                instructions.push(Instruction::BinOp(addr,BinOp::Plus, base, addr));
+                instructions.push(ir::Instruction::BinOp(addr,ir::BinOp::Plus, base, addr));
 
                 addr
             }
@@ -356,7 +352,7 @@ impl Codegen {
         cond: &t::TypedExpression,
         ltrue: Label,
         lfalse: Label,
-        instructions: &mut Vec<Instruction>,
+        instructions: &mut Vec<ir::Instruction>,
     ) {
         match *cond.expr {
             t::Expression::Binary(ref lhs, ref op, ref rhs) => match *op {
@@ -367,22 +363,22 @@ impl Codegen {
 
                     self.gen_cond(lhs, lnext, lfalse, instructions);
 
-                    instructions.push(Instruction::Jump(lnext));
+                    instructions.push(ir::Instruction::Jump(lnext));
 
                     self.gen_cond(rhs, ltrue, lfalse, instructions);
 
-                    instructions.push(Instruction::Label(lnext));
+                    instructions.push(ir::Instruction::Label(lnext));
                 }
                 Op::Or => {
                     let lnext = new_named_label("next", &mut self.symbols);
 
                     self.gen_cond(lhs, ltrue, lnext, instructions);
 
-                    instructions.push(Instruction::Jump(lnext));
+                    instructions.push(ir::Instruction::Jump(lnext));
 
                     self.gen_cond(rhs, ltrue, lfalse, instructions);
 
-                    instructions.push(Instruction::Label(lnext));
+                    instructions.push(ir::Instruction::Label(lnext));
                 }
 
                 Op::LT | Op::GT | Op::GTE | Op::LTE | Op::Equal => {
@@ -390,7 +386,7 @@ impl Codegen {
                     let rhs_temp = Temp::new();
                     self.gen_expression(lhs, lhs_temp, instructions);
                     self.gen_expression(rhs, rhs_temp, instructions);
-                    instructions.push(Instruction::CJump(
+                    instructions.push(ir::Instruction::CJump(
                          lhs_temp,
                         gen_cmp_op(op),
                        
@@ -409,14 +405,14 @@ impl Codegen {
 
                 self.gen_expression(cond, expr_temp, instructions);
 
-                Instruction::Store(
+                ir::Instruction::Store(
                     true_temp,
-                    Value::Const(true as u64, Sign::Unsigned, Size::Bit8),
+                    ir::Value::Const(true as u64, Sign::Unsigned, Size::Bit8),
                 );
 
-                instructions.push(Instruction::CJump(
+                instructions.push(ir::Instruction::CJump(
                     expr_temp,
-                    CmpOp::EQ,
+                    ir::CmpOp::EQ,
                     
                     true_temp,
                     ltrue,
@@ -427,32 +423,32 @@ impl Codegen {
     }
 }
 
-fn gen_bin_op(op: &Op) -> BinOp {
+fn gen_bin_op(op: &Op) -> ir::BinOp {
     match *op {
-        Op::Plus => BinOp::Plus,
-        Op::Minus => BinOp::Minus,
-        Op::Star => BinOp::Mul,
-        Op::Slash => BinOp::Div,
-        Op::And => BinOp::And,
-        Op::Or => BinOp::Or,
+        Op::Plus => ir::BinOp::Plus,
+        Op::Minus => ir::BinOp::Minus,
+        Op::Star => ir::BinOp::Mul,
+        Op::Slash => ir::BinOp::Div,
+        Op::And => ir::BinOp::And,
+        Op::Or => ir::BinOp::Or,
         _ => unreachable!(),
     }
 }
 
-fn gen_cmp_op(op: &Op) -> CmpOp {
+fn gen_cmp_op(op: &Op) -> ir::CmpOp {
     match *op {
-        Op::LT => CmpOp::LT,
-        Op::LTE => CmpOp::LTE,
-        Op::GT => CmpOp::GT,
-        Op::GTE => CmpOp::GTE,
-        Op::NEq => CmpOp::NE,
-        Op::Equal => CmpOp::EQ,
+        Op::LT => ir::CmpOp::LT,
+        Op::LTE => ir::CmpOp::LTE,
+        Op::GT => ir::CmpOp::GT,
+        Op::GTE => ir::CmpOp::GTE,
+        Op::NEq => ir::CmpOp::NE,
+        Op::Equal => ir::CmpOp::EQ,
         _ => unreachable!(),
     }
 }
-fn gen_un_op(op: &UnaryOp) -> UnOp {
+fn gen_un_op(op: &UnaryOp) -> ir::UnOp {
     match *op {
-        UnaryOp::Minus => UnOp::Minus,
-        UnaryOp::Bang => UnOp::Bang,
+        UnaryOp::Minus => ir::UnOp::Minus,
+        UnaryOp::Bang => ir::UnOp::Bang,
     }
 }

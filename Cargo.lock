@@ -167,16 +167,16 @@ dependencies = [
  "ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt-derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "underscore_codegen 0.1.0",
  "underscore_semant 0.1.0",
  "underscore_syntax 0.1.0",
  "underscore_util 0.1.0",
  "underscore_vm 0.1.0",
+ "underscore_x86 0.1.0",
  "walkdir 2.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "underscore_codegen"
+name = "underscore_ir"
 version = "0.1.0"
 dependencies = [
  "underscore_syntax 0.1.0",
@@ -187,7 +187,7 @@ dependencies = [
 name = "underscore_semant"
 version = "0.1.0"
 dependencies = [
- "underscore_codegen 0.1.0",
+ "underscore_ir 0.1.0",
  "underscore_syntax 0.1.0",
  "underscore_util 0.1.0",
 ]
@@ -210,6 +210,13 @@ dependencies = [
 [[package]]
 name = "underscore_vm"
 version = "0.1.0"
+
+[[package]]
+name = "underscore_x86"
+version = "0.1.0"
+dependencies = [
+ "underscore_ir 0.1.0",
+]
 
 [[package]]
 name = "unicode-width"

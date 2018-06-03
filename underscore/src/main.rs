@@ -1,7 +1,7 @@
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
-extern crate underscore_codegen;
+extern crate underscore_x86;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;

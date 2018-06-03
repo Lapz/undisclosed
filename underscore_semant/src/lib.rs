@@ -1,4 +1,4 @@
-extern crate underscore_codegen as codegen;
+extern crate underscore_ir as ir;
 extern crate underscore_syntax as syntax;
 extern crate underscore_util as util;
 

@@ -1,0 +1,7 @@
+[package]
+name = "underscore_x86"
+version = "0.1.0"
+authors = ["rowlandsonpratt <striderman34@gmail.com>"]
+
+[dependencies]
+underscore_ir = { path = "../underscore_ir"}
