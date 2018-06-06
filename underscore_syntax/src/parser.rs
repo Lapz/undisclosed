@@ -661,11 +661,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             self.consume(&TokenType::SEMICOLON, "Expected ';'")?;
 
             let len = match self.advance() {
-                Some(Spanned {
-                    
-                    ref value,
-                    ..
-                }) => match value.token {
+                Some(Spanned { ref value, .. }) => match value.token {
                     TokenType::Number(ref n) => n.value as usize,
 
                     _ => unimplemented!(),

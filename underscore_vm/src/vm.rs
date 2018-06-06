@@ -85,7 +85,6 @@ pub enum VMError {
 }
 
 impl<'a> VM<'a> {
-    
     pub fn new(code: &'a mut Chunk) -> Self {
         VM {
             ip: 0,

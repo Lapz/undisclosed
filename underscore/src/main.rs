@@ -1,10 +1,10 @@
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
-extern crate underscore_x86;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
+extern crate underscore_x86;
 #[macro_use]
 extern crate underscore_vm;
 
@@ -141,8 +141,8 @@ fn run(path: String, dump_file: Option<String>) {
 
     constant = chunk.add_constant(&[25, 0, 0, 0], 1);
 
-    chunk.write(2, 1);//Constant32
-    chunk.write(constant as u8, 1);//index
+    chunk.write(2, 1); //Constant32
+    chunk.write(constant as u8, 1); //index
 
     chunk.write(7, 1); // Multiply
     chunk.write(4, 1);
@@ -150,7 +150,7 @@ fn run(path: String, dump_file: Option<String>) {
     chunk.write(0, 2);
     chunk.write(4, 2);
 
-    println!("{:?}",chunk);
+    println!("{:?}", chunk);
 
     let mut vm = VM::new(&mut chunk);
 

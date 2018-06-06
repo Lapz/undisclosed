@@ -1,4 +1,4 @@
-use ir::ir::Instruction;
+use ir::Instruction;
 use std::fmt::{self, Display};
 use syntax::ast::Linkage;
 use types::Type;
