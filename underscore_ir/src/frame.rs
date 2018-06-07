@@ -1,4 +1,4 @@
-use ir::Instruction;
+
 use temp::Label;
 
 pub trait Frame {

@@ -157,11 +157,11 @@ fn run(path: String, dump_file: Option<String>) {
     vm.run().expect("Err");
     let mut codegen = Codegen::new(symbols);
 
-    let lowered = codegen.gen_program(ast);
+    // let lowered = codegen.gen_program(ast);
 
     let mut file = File::create("lowered.ir").expect("Couldn't create file");
-    file.write(format!("{}", lowered).as_bytes())
-        .expect("Couldn't write to the file");
+    // file.write(format!("{}", lowered).as_bytes())
+    //     .expect("Couldn't write to the file");
 }
 
 #[derive(StructOpt, Debug)]

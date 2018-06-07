@@ -15,15 +15,15 @@ impl Ctx {
     }
 }
 
-fn compile_function(function: &ir::Function, ctx: &mut Ctx) {
-    for instruction in &function.body {
-        compile_instruction(instruction, ctx)
-    }
-}
+// fn compile_function(function: &ir::Function, ctx: &mut Ctx) {
+//     for instruction in &function.body {
+//         compile_instruction(instruction, ctx)
+//     }
+// }
 
-fn compile_instruction(instruction: &ir::Instruction, ctx: &mut Ctx) {
-    //  match *instruction {
-    //      Instruction::
-    //  }
-}
-// fn
+// fn compile_instruction(instruction: &ir::Instruction, ctx: &mut Ctx) {
+//     //  match *instruction {
+//     //      Instruction::
+//     //  }
+// }
+// // fn

@@ -7,5 +7,5 @@ pub mod optimize;
 mod temp;
 
 pub use frame::Frame;
-pub use ir::{BinOp, CmpOp, Function, Instruction, Program, UnOp, Value};
+pub use ir::{BinOp, CmpOp, Function, Program, UnOp};
 pub use temp::{new_label, new_label_pair, new_named_label, Label, Temp};

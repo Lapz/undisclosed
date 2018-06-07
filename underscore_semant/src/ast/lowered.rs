@@ -1,4 +1,4 @@
-use ir::Instruction;
+
 use std::fmt::{self, Display};
 use syntax::ast::Linkage;
 use types::Type;
@@ -15,7 +15,7 @@ pub struct Function {
     pub name: Symbol,
     pub param_types: Vec<Type>,
     pub returns: Type,
-    pub body: Vec<Instruction>,
+    pub body: Vec<()>,
     pub linkage: Linkage,
 }
 impl Display for Program {
@@ -52,7 +52,7 @@ impl Display for Function {
         writeln!(f)?;
 
         for instruction in &self.body {
-            writeln!(f, "    {}", instruction)?;
+            writeln!(f, "    {:?}", instruction)?;
         }
 
         write!(f, "}}")
