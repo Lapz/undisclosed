@@ -1,6 +1,6 @@
 use ast::typed as t;
 use ir::{new_label_pair, new_named_label, optimize::Optimizer, BinOp, CmpOp, Function,
-        Label, Program, Temp, UnOp,};
+        Label, Program, Temp, UnOp,Ir,Expr,Stm};
 use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};
@@ -13,6 +13,19 @@ pub struct Codegen {
     loop_break_label: Option<Label>,
     symbols: Symbols<Temp>,
 }
+
+
+// pub fn un_expr(ir:Ir) -> Expr {
+//     match ir {
+//         Ir::Expr(expr) => expr,
+//         Ir::CExpr {ltrue,lfalse} => {
+//             let r = Temp::new();
+//             let t = 
+//             unimplemented!()
+//         },
+//         Ir::NExpr(s) => Expr::ESeq(Box::new(s),Box::new(Expr::Const(0,Sign::Unsigned,Size::Bit8)))
+//     }
+// }
 
 const HP: Temp = Temp(0);
 

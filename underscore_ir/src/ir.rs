@@ -72,6 +72,7 @@ pub enum Ir {
     }
 }
 
+
 impl Expr {
     pub fn print<T: Clone>(&self, symbols: &mut Symbols<T>) -> String {
         match *self {

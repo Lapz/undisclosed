@@ -1,4 +1,6 @@
-use ir::{Frame, Label, Temp};
+use frame::Frame;
+use ir::{Ir};
+use temp::{Label,Temp};
 
 #[derive(Debug, Clone)]
 pub struct x86 {
@@ -11,7 +13,7 @@ impl Frame for x86 {
 
     type FP = Temp;
 
-    const WORD_SIZE: u32 = 32;
+    const WORD_SIZE: u32 = 8;
 
     fn name(&self) -> Label {
         self.name
