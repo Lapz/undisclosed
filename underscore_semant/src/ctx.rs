@@ -79,11 +79,13 @@ impl<'a> CompileCtx<'a> {
     pub fn begin_scope(&mut self) {
         self.types.begin_scope();
         self.vars.begin_scope();
+        self.escapes.begin_scope();
     }
 
     pub fn end_scope(&mut self) {
         self.types.end_scope();
         self.vars.end_scope();
+        self.escapes.end_scope();
     }
 
     pub fn error<T: Into<String>>(&mut self, msg: T, span: Span) {
@@ -110,6 +112,10 @@ impl<'a> CompileCtx<'a> {
         self.tvars.get(&ident)
     }
 
+    pub fn look_escape(&self, ident: Symbol) -> Option<&(u32, bool)> {
+        self.escapes.look(ident)
+    }
+
     pub fn add_type(&mut self, ident: Symbol, data: Entry) {
         self.types.enter(ident, data)
     }
@@ -120,6 +126,10 @@ impl<'a> CompileCtx<'a> {
 
     pub fn add_tvar(&mut self, ident: TypeVar, data: VarType) {
         self.tvars.insert(ident, data);
+    }
+
+    pub fn add_escape(&mut self, ident: Symbol, data: (u32, bool)) {
+        self.escapes.enter(ident, data)
     }
 
     pub fn name(&self, ident: Symbol) -> String {

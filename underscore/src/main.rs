@@ -115,7 +115,7 @@ fn run(path: String, dump_file: Option<String>) {
 
     let symbols = Symbols::new(Rc::clone(&strings));
 
-    let ast = match infer.infer(&mut ast, &mut type_env, &mut reporter) {
+    let ast = match infer.infer(&mut ast, &strings, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
                 let mut file =

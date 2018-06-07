@@ -12,7 +12,7 @@ pub struct Symbol(pub u32);
 
 #[derive(Debug, Clone, Default)]
 /// Maps any T to a string
-pub struct SymbolMap<T: Copy + Eq + Hash + Default> {
+pub struct SymbolMap<T: Copy + Eq + Hash> {
     pub next: RefCell<u32>,
     pub mappings: RefCell<HashMap<T, String>>,
 }

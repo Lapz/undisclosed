@@ -1,18 +1,16 @@
-use env::Env;
+use ctx::CompileCtx;
 use std::collections::HashMap;
 
 use super::{Infer, InferResult};
 use types::{TyCon, Type};
-use util::emitter::Reporter;
 use util::pos::Span;
 impl Infer {
     pub fn unify(
         &self,
         lhs: &Type,
         rhs: &Type,
-        reporter: &mut Reporter,
         span: Span,
-        env: &mut Env,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         match (lhs, rhs) {
             (
@@ -22,16 +20,16 @@ impl Infer {
                 if unique1 != unique2 {
                     let msg = format!(
                         "struct `{}` != struct `{}`",
-                        env.name(*name1),
-                        env.name(*name2)
+                        ctx.name(*name1),
+                        ctx.name(*name2)
                     );
 
-                    reporter.error(msg, span);
+                    ctx.error(msg, span);
                     return Err(());
                 }
 
                 for (field1, field2) in fields1.iter().zip(fields2) {
-                    self.unify(&field1.ty, &field2.ty, reporter, span, env)?;
+                    self.unify(&field1.ty, &field2.ty, span, ctx)?;
                 }
 
                 Ok(())
@@ -42,36 +40,36 @@ impl Infer {
             (&Type::Array(ref ty, ref len), &Type::Array(ref ty2, ref len2)) => {
                 if len != len2 {
                     let msg = format!("Expected array with len `{}` found len `{}`", len, len2);
-                    reporter.error(msg, span);
+                    ctx.error(msg, span);
                     return Err(());
                 }
 
-                self.unify(ty, ty2, reporter, span, env)?;
+                self.unify(ty, ty2, span, ctx)?;
 
                 Ok(())
             }
 
             (&Type::Array(ref ty, _), ref other) => {
-                self.unify(ty, other, reporter, span, env)?;
+                self.unify(ty, other, span, ctx)?;
 
                 Ok(())
             }
 
             (ref other, &Type::Array(ref ty, _)) => {
-                self.unify(ty, other, reporter, span, env)?;
+                self.unify(ty, other, span, ctx)?;
 
                 Ok(())
             }
 
             (&Type::App(ref tycon1, ref types1), &Type::App(ref tycon2, ref types2)) => {
                 if tycon1 != tycon2 {
-                    let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(env), rhs.print(env));
-                    reporter.error(msg, span);
+                    let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(ctx), rhs.print(ctx));
+                    ctx.error(msg, span);
                     return Err(());
                 }
 
                 for (a, b) in types1.iter().zip(types2.iter()) {
-                    self.unify(a, b, reporter, span, env)?
+                    self.unify(a, b, span, ctx)?
                 }
                 Ok(())
             }
@@ -85,7 +83,7 @@ impl Infer {
 
                 let lhs = self.subst(ret, &mut mappings);
 
-                self.unify(&lhs, t, reporter, span, env)?;
+                self.unify(&lhs, t, span, ctx)?;
                 Ok(())
             }
 
@@ -98,7 +96,7 @@ impl Infer {
 
                 let lhs = self.subst(ret, &mut mappings);
 
-                self.unify(&lhs, t, reporter, span, env)?;
+                self.unify(&lhs, t, span, ctx)?;
                 Ok(())
             }
 
@@ -113,18 +111,18 @@ impl Infer {
                     mappings.insert(*var, Type::Var(*var));
                 }
 
-                self.unify(ret1, &self.subst(ret2, &mut mappings), reporter, span, env)
+                self.unify(ret1, &self.subst(ret2, &mut mappings), span, ctx)
             }
 
             (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
                 Ok(())
             } else {
-                let a = env.look_tvar(*v1);
-                let b = env.look_tvar(*v2);
+                let a = ctx.look_tvar(*v1);
+                let b = ctx.look_tvar(*v2);
 
                 if a != b {
-                    let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(env), rhs.print(env));
-                    reporter.error(msg, span);
+                    let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(ctx), rhs.print(ctx));
+                    ctx.error(msg, span);
                     return Err(());
                 }
                 Ok(())
@@ -137,8 +135,8 @@ impl Infer {
             (&Type::Nil, &Type::Nil) => Ok(()),
             (&Type::Nil, &Type::App(TyCon::Void, _)) => Ok(()),
             (t1, t2) => {
-                let msg = format!("Cannot unify `{}` vs `{}`", t1.print(env), t2.print(env));
-                reporter.error(msg, span);
+                let msg = format!("Cannot unify `{}` vs `{}`", t1.print(ctx), t2.print(ctx));
+                ctx.error(msg, span);
                 Err(())
             }
         }

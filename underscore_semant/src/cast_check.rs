@@ -1,8 +1,9 @@
 use super::InferResult;
-use env::{Env, VarType};
+use ctx::CompileCtx;
+use env::VarType;
 use types::{TyCon, Type};
 
-pub fn cast_check(env: &Env, expr: &Type, to: &Type) -> InferResult<()> {
+pub fn cast_check(expr: &Type, to: &Type, ctx: &CompileCtx) -> InferResult<()> {
     match *to {
         Type::App(ref tycon, _) => {
             check_tycon(tycon)?;
@@ -15,7 +16,7 @@ pub fn cast_check(env: &Env, expr: &Type, to: &Type) -> InferResult<()> {
         }
 
         Type::Var(ref tv) => {
-            if let Some(&VarType::Int) = env.look_tvar(*tv) {
+            if let Some(&VarType::Int) = ctx.look_tvar(*tv) {
 
             } else {
                 return Err(());

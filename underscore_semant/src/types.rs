@@ -1,4 +1,4 @@
-use env::Env;
+use ctx::CompileCtx;
 use std::fmt::{self, Display};
 use syntax::ast::{Sign, Size};
 use util::symbol::Symbol;
@@ -66,18 +66,18 @@ impl Type {
 }
 
 impl Type {
-    pub fn print(&self, env: &Env) -> String {
+    pub fn print(&self, ctx: &CompileCtx) -> String {
         match *self {
-            Type::Array(ref ty, ref len) => format!("[{};{}]", ty.print(env), len),
+            Type::Array(ref ty, ref len) => format!("[{};{}]", ty.print(ctx), len),
             Type::Struct(ref name, ref fields, _) => {
                 let mut fmt_string = String::new();
-                fmt_string.push_str(&format!("{}<", env.name(*name)));
+                fmt_string.push_str(&format!("{}<", ctx.name(*name)));
 
                 for (i, field) in fields.iter().enumerate() {
                     if i + 1 == fields.len() {
-                        fmt_string.push_str(&format!("{}", field.ty.print(env)));
+                        fmt_string.push_str(&format!("{}", field.ty.print(ctx)));
                     } else {
-                        fmt_string.push_str(&format!("{},", field.ty.print(env)));
+                        fmt_string.push_str(&format!("{},", field.ty.print(ctx)));
                     }
                 }
 
@@ -94,15 +94,15 @@ impl Type {
 
                     for i in 0..types.len() - 1 {
                         if i + 1 == types.len() - 1 {
-                            fmt_string.push_str(&format!("{}", types[i].print(env)));
+                            fmt_string.push_str(&format!("{}", types[i].print(ctx)));
                         } else {
-                            fmt_string.push_str(&format!("{},", types[i].print(env)));
+                            fmt_string.push_str(&format!("{},", types[i].print(ctx)));
                         }
                     }
 
                     fmt_string.push_str(") -> ");
 
-                    fmt_string.push_str(&format!("{}", types.last().unwrap().print(env)));
+                    fmt_string.push_str(&format!("{}", types.last().unwrap().print(ctx)));
 
                     return fmt_string;
                 }
@@ -111,9 +111,9 @@ impl Type {
 
                 for (i, ty) in types.iter().enumerate() {
                     if i + 1 == types.len() {
-                        fmt_string.push_str(&ty.print(env))
+                        fmt_string.push_str(&ty.print(ctx))
                     } else {
-                        fmt_string.push_str(&format!("{},", ty.print(env)))
+                        fmt_string.push_str(&format!("{},", ty.print(ctx)))
                     }
                 }
 
@@ -134,7 +134,7 @@ impl Type {
 
                 fmt_string.push('>');
 
-                fmt_string.push_str(&ret.print(env));
+                fmt_string.push_str(&ret.print(ctx));
 
                 fmt_string
             }

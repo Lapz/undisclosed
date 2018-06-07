@@ -1,18 +1,14 @@
 use super::{Infer, InferResult};
-use env::{Entry, Env};
+use ctx::CompileCtx;
+use env::Entry;
 use std::collections::HashMap;
 use std::mem;
 use syntax::ast::{Sign, Size, Ty as astType};
 use types::{TyCon, Type};
-use util::{emitter::Reporter, pos::Spanned};
+use util::pos::Spanned;
 
 impl Infer {
-    pub fn trans_ty(
-        &self,
-        ty: &Spanned<astType>,
-        env: &mut Env,
-        reporter: &mut Reporter,
-    ) -> InferResult<Type> {
+    pub fn trans_ty(&self, ty: &Spanned<astType>, ctx: &mut CompileCtx) -> InferResult<Type> {
         match ty.value {
             astType::Bool => Ok(Type::App(TyCon::Bool, vec![])),
             astType::Str => Ok(Type::App(TyCon::String, vec![])),
@@ -23,22 +19,21 @@ impl Infer {
             astType::I32 => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![])),
             astType::U64 => Ok(Type::App(TyCon::Int(Sign::Unsigned, Size::Bit64), vec![])),
             astType::I64 => Ok(Type::App(TyCon::Int(Sign::Signed, Size::Bit64), vec![])),
-            astType::Array(ref ty, ref len) => Ok(Type::Array(
-                Box::new(self.trans_ty(ty, env, reporter)?),
-                *len,
-            )),
+            astType::Array(ref ty, ref len) => {
+                Ok(Type::Array(Box::new(self.trans_ty(ty, ctx)?), *len))
+            }
             astType::Simple(ref ident) => {
-                if let Some(ty) = env.look_type(ident.value) {
+                if let Some(ty) = ctx.look_type(ident.value) {
                     match *ty {
                         Entry::Ty(ref ty) => match *ty {
                             Type::Poly(ref tvars, ref ret) => {
                                 if !tvars.is_empty() {
                                     let msg = format!(
                                         "Type `{}` is polymorphic,Type arguments missing",
-                                        env.name(ident.value)
+                                        ctx.name(ident.value)
                                     );
 
-                                    reporter.error(msg, ident.span);
+                                    ctx.error(msg, ident.span);
                                     return Err(());
                                 }
 
@@ -49,19 +44,19 @@ impl Infer {
                         _ => panic!(""),
                     }
                 } else {
-                    let msg = format!("Undefined Type `{}`", env.name(ident.value));
-                    reporter.error(msg, ident.span);
+                    let msg = format!("Undefined Type `{}`", ctx.name(ident.value));
+                    ctx.error(msg, ident.span);
                     Err(())
                 }
             }
 
             astType::Poly(ref ident, ref types) => {
                 //Concrete generics i.e List<i32>. List<bool>
-                let mut ty = if let Some(ty) = env.look_type(ident.value).cloned() {
+                let mut ty = if let Some(ty) = ctx.look_type(ident.value).cloned() {
                     ty
                 } else {
-                    let msg = format!("Undefined Type `{}`", env.name(ident.value));
-                    reporter.error(msg, ident.span);
+                    let msg = format!("Undefined Type `{}`", ctx.name(ident.value));
+                    ctx.error(msg, ident.span);
                     return Err(());
                 };
 
@@ -70,15 +65,15 @@ impl Infer {
                         Type::Struct(_, mut fields, unique) => {
                             if tvars.is_empty() {
                                 let msg =
-                                    format!("Type `{}` is not polymorphic", env.name(ident.value));
-                                reporter.error(msg, ident.span);
+                                    format!("Type `{}` is not polymorphic", ctx.name(ident.value));
+                                ctx.error(msg, ident.span);
                                 return Err(());
                             }
 
                             let mut mappings = HashMap::new();
 
                             for (tvar, ty) in tvars.iter().zip(types) {
-                                mappings.insert(*tvar, self.trans_ty(ty, env, reporter)?);
+                                mappings.insert(*tvar, self.trans_ty(ty, ctx)?);
                             } // First create the mappings
 
                             for field in &mut fields {
@@ -92,8 +87,8 @@ impl Infer {
                         _ => unreachable!(), // Polymorphic functions are not stored as types they are stored as vars
                     },
                     _ => {
-                        let msg = format!("Type `{}` is not polymorphic", env.name(ident.value));
-                        reporter.error(msg, ident.span);
+                        let msg = format!("Type `{}` is not polymorphic", ctx.name(ident.value));
+                        ctx.error(msg, ident.span);
                         Err(())
                     }
                 }
@@ -103,11 +98,11 @@ impl Infer {
                 let mut trans_types = Vec::new();
 
                 for ty in param_types {
-                    trans_types.push(self.trans_ty(ty, env, reporter)?)
+                    trans_types.push(self.trans_ty(ty, ctx)?)
                 }
 
                 let ret = if let Some(ref ret) = *returns {
-                    self.trans_ty(ret, env, reporter)?
+                    self.trans_ty(ret, ctx)?
                 } else {
                     Type::Nil
                 };

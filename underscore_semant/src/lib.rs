@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 extern crate underscore_ir as ir;
 extern crate underscore_syntax as syntax;
 extern crate underscore_util as util;
@@ -21,13 +23,17 @@ use ast::typed as t;
 pub use env::Env as TypeEnv;
 use env::Env;
 
+use ctx::CompileCtx;
 use escape::FindEscape;
 pub use gen_ir::Codegen;
 use monomorphize::Mono;
 use resolver::Resolver;
+use std::rc::Rc;
 use syntax::ast::Program;
 use types::Type;
-use util::emitter::Reporter;
+use util::{
+    emitter::Reporter, symbol::{Symbol, SymbolMap},
+};
 pub(crate) type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug)]
@@ -43,12 +49,12 @@ impl Infer {
     pub fn infer<'a>(
         &mut self,
         program: &mut Program,
-        env: &mut Env,
+        strings: &Rc<SymbolMap<Symbol>>,
         reporter: &mut Reporter,
     ) -> InferResult<t::Program> {
-        // println!("{:?}",program );
+        let mut ctx = CompileCtx::new(strings, reporter);
 
-        // FindEscape::new().find_escape(program, env);
+        FindEscape::new().find_escape(program, &mut ctx);
 
         let mut new_program = t::Program {
             functions: vec![],
@@ -56,29 +62,29 @@ impl Infer {
         };
 
         for alias in &program.type_alias {
-            self.infer_alias(alias, env, reporter)?
+            self.infer_alias(alias, &mut ctx)?
         }
 
         for struct_def in &program.structs {
             new_program
                 .structs
-                .push(self.infer_struct(struct_def, env, reporter)?)
+                .push(self.infer_struct(struct_def, &mut ctx)?)
         }
 
         for function in &program.functions {
             new_program
                 .functions
-                .push(self.infer_function(function, env, reporter)?);
+                .push(self.infer_function(function, &mut ctx)?);
         }
 
         let mut resolver = Resolver::new();
 
-        resolver.resolve_ast(program, reporter, env)?;
+        resolver.resolve_ast(program, &mut ctx)?;
 
-        let mut mono = Mono::new();
+        // let mut mono = Mono::new();
 
-        let mono_program = mono.monomorphize_program(new_program, env);
+        // let mono_program = mono.monomorphize_program(new_program, env);
 
-        Ok(mono_program)
+        unimplemented!()
     }
 }

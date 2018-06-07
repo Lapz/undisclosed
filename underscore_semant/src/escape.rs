@@ -1,8 +1,7 @@
 use super::InferResult;
+use ctx::CompileCtx;
 use syntax::ast::{Call, Expression, Function, Program, Statement, StructLit, Var};
-use util::{
-    pos::Spanned, symbol::{Symbol, Symbols},
-};
+use util::{pos::Spanned, symbol::Symbol};
 
 pub struct FindEscape {
     depth: u32,
@@ -12,13 +11,9 @@ impl FindEscape {
     pub fn new() -> Self {
         FindEscape { depth: 0 }
     }
-    pub fn find_escape(
-        &mut self,
-        program: &mut Program,
-        env: &mut Symbols<(u32, bool)>,
-    ) -> InferResult<()> {
+    pub fn find_escape(&mut self, program: &mut Program, ctx: &mut CompileCtx) -> InferResult<()> {
         for function in &mut program.functions {
-            self.escape_function(function, env)?;
+            self.escape_function(function, ctx)?;
         }
         Ok(())
     }
@@ -26,23 +21,23 @@ impl FindEscape {
     fn escape_function(
         &mut self,
         function: &mut Spanned<Function>,
-        env: &mut Symbols<(u32, bool)>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
-        self.escape_statement(&mut function.value.body, env)
+        self.escape_statement(&mut function.value.body, ctx)
     }
 
-    fn check_ident(&mut self, ident: Symbol, env: &mut Symbols<(u32, bool)>) -> InferResult<()> {
-        if env.look(ident).is_none() {
-            env.enter(ident, (self.depth, false));
+    fn check_ident(&mut self, ident: Symbol, ctx: &mut CompileCtx) -> InferResult<()> {
+        if ctx.look_escape(ident).is_none() {
+            ctx.add_escape(ident, (self.depth, false));
             return Ok(());
         }
 
-        let d = env.look(ident).unwrap().0;
+        let d = ctx.look_escape(ident).unwrap().0;
 
         if d == self.depth {
             Ok(())
         } else {
-            env.enter(ident, (self.depth, true));
+            ctx.add_escape(ident, (self.depth, true));
 
             Ok(())
         }
@@ -51,35 +46,35 @@ impl FindEscape {
     fn escape_statement(
         &mut self,
         statement: &mut Spanned<Statement>,
-        env: &mut Symbols<(u32, bool)>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         match statement.value {
             Statement::Block(ref mut statements) => {
-                env.begin_scope();
+                ctx.begin_scope();
                 self.depth += 1;
                 for statement in statements {
-                    self.escape_statement(statement, env)?;
+                    self.escape_statement(statement, ctx)?;
                 }
 
-                env.end_scope();
+                ctx.end_scope();
                 self.depth -= 1;
                 Ok(())
             }
 
             Statement::Break | Statement::Continue => Ok(()),
             Statement::Expr(ref mut expr) | Statement::Return(ref mut expr) => {
-                self.escape_expression(expr, env)
+                self.escape_expression(expr, ctx)
             }
-            Statement::For { ref mut body, .. } => self.escape_statement(body, env),
+            Statement::For { ref mut body, .. } => self.escape_statement(body, ctx),
             Statement::If {
                 ref mut then,
                 ref mut otherwise,
                 ..
             } => {
-                self.escape_statement(then, env)?;
+                self.escape_statement(then, ctx)?;
 
                 if let Some(ref mut otherwise) = *otherwise {
-                    self.escape_statement(otherwise, env)?;
+                    self.escape_statement(otherwise, ctx)?;
                 }
 
                 Ok(())
@@ -90,35 +85,35 @@ impl FindEscape {
                 ref ident,
                 ..
             } => {
-                if env.look(ident.value).is_none() {
-                    env.enter(ident.value, (self.depth, false));
+                if ctx.look_escape(ident.value).is_none() {
+                    ctx.add_escape(ident.value, (self.depth, false));
                     return Ok(());
                 }
 
-                let d = env.look(ident.value).unwrap().0;
+                let d = ctx.look_escape(ident.value).unwrap().0;
 
                 if d == self.depth {
                     Ok(())
                 } else {
-                    env.enter(ident.value, (self.depth, true));
+                    ctx.add_escape(ident.value, (self.depth, true));
 
                     *escapes = true;
                     Ok(())
                 }
             }
-            Statement::While { ref mut body, .. } => self.escape_statement(body, env),
+            Statement::While { ref mut body, .. } => self.escape_statement(body, ctx),
         }
     }
 
     fn escape_expression(
         &mut self,
         expr: &mut Spanned<Expression>,
-        env: &mut Symbols<(u32, bool)>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         match expr.value {
             Expression::Array { ref mut items } => {
                 for item in items {
-                    self.escape_expression(item, env)?;
+                    self.escape_expression(item, ctx)?;
                 }
 
                 Ok(())
@@ -127,8 +122,8 @@ impl FindEscape {
                 ref name,
                 ref mut value,
             } => {
-                self.escape_expression(value, env)?;
-                self.check_var(name, env)?;
+                self.escape_expression(value, ctx)?;
+                self.check_var(name, ctx)?;
 
                 Ok(())
             }
@@ -138,21 +133,21 @@ impl FindEscape {
                 ref mut rhs,
                 ..
             } => {
-                self.escape_expression(lhs, env)?;
-                self.escape_expression(rhs, env)?;
+                self.escape_expression(lhs, ctx)?;
+                self.escape_expression(rhs, ctx)?;
                 Ok(())
             }
 
-            Expression::Cast { ref mut from, .. } => self.escape_expression(from, env),
+            Expression::Cast { ref mut from, .. } => self.escape_expression(from, ctx),
             Expression::Call(ref mut call) => match call.value {
                 Call::Simple {
                     ref callee,
                     ref mut args,
                 } => {
-                    self.check_ident(callee.value, env)?;
+                    self.check_ident(callee.value, ctx)?;
 
                     for arg in args {
-                        self.escape_expression(arg, env)?;
+                        self.escape_expression(arg, ctx)?;
                     }
 
                     Ok(())
@@ -162,44 +157,44 @@ impl FindEscape {
                     ref mut args,
                     ..
                 } => {
-                    self.check_ident(callee.value, env)?;
+                    self.check_ident(callee.value, ctx)?;
 
                     for arg in args {
-                        self.escape_expression(arg, env)?;
+                        self.escape_expression(arg, ctx)?;
                     }
 
                     Ok(())
                 }
             },
-            Expression::Closure(ref mut closure) => self.escape_function(closure, env),
-            Expression::Grouping { ref mut expr } => self.escape_expression(expr, env),
+            Expression::Closure(ref mut closure) => self.escape_function(closure, ctx),
+            Expression::Grouping { ref mut expr } => self.escape_expression(expr, ctx),
             Expression::Literal(_) => Ok(()),
             Expression::StructLit(ref mut struct_lit) => match struct_lit.value {
                 StructLit::Simple { ref mut fields, .. } => {
                     for field in fields {
-                        self.escape_expression(&mut field.value.expr, env)?;
+                        self.escape_expression(&mut field.value.expr, ctx)?;
                     }
                     Ok(())
                 }
 
                 StructLit::Instantiation { ref mut fields, .. } => {
                     for field in fields {
-                        self.escape_expression(&mut field.value.expr, env)?;
+                        self.escape_expression(&mut field.value.expr, ctx)?;
                     }
                     Ok(())
                 }
             },
-            Expression::Unary { ref mut expr, .. } => self.escape_expression(expr, env),
-            Expression::Var(ref var) => self.check_var(var, env),
+            Expression::Unary { ref mut expr, .. } => self.escape_expression(expr, ctx),
+            Expression::Var(ref var) => self.check_var(var, ctx),
         }
     }
 
-    fn check_var(&mut self, var: &Spanned<Var>, env: &mut Symbols<(u32, bool)>) -> InferResult<()> {
+    fn check_var(&mut self, var: &Spanned<Var>, ctx: &mut CompileCtx) -> InferResult<()> {
         match var.value {
-            Var::Simple(ref ident) => self.check_ident(ident.value, env),
-            Var::Field { ref ident, .. } => self.check_ident(ident.value, env),
+            Var::Simple(ref ident) => self.check_ident(ident.value, ctx),
+            Var::Field { ref ident, .. } => self.check_ident(ident.value, ctx),
 
-            Var::SubScript { ref target, .. } => self.check_ident(target.value, env),
+            Var::SubScript { ref target, .. } => self.check_ident(target.value, ctx),
         }
     }
 }
