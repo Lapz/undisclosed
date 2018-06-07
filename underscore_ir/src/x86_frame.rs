@@ -1,6 +1,6 @@
 use frame::Frame;
-use ir::{Ir};
-use temp::{Label,Temp};
+use ir::Ir;
+use temp::{Label, Temp};
 
 #[derive(Debug, Clone)]
 pub struct x86 {

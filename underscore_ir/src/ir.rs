@@ -59,19 +59,14 @@ pub enum Stm {
     Seq(Box<Stm>, Box<Stm>),
 }
 
-
 pub enum Ir {
     /// An Expression
     Expr(Expr),
     /// An Expression with no result
     NExpr(Stm),
-    /// A conditional 
-    CExpr {
-        ltrue:Label,
-        lfalse:Label
-    }
+    /// A conditional
+    CExpr { ltrue: Label, lfalse: Label },
 }
-
 
 impl Expr {
     pub fn print<T: Clone>(&self, symbols: &mut Symbols<T>) -> String {
@@ -196,4 +191,3 @@ impl Display for UnOp {
         }
     }
 }
-

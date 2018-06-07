@@ -1,4 +1,3 @@
-
 use temp::Label;
 pub struct Optimizer {}
 

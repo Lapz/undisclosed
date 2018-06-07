@@ -5,6 +5,7 @@ extern crate underscore_util as util;
 mod ast;
 mod cast_check;
 mod cfg;
+mod ctx;
 mod env;
 mod escape;
 mod gen_cfg;
@@ -20,13 +21,13 @@ use ast::typed as t;
 pub use env::Env as TypeEnv;
 use env::Env;
 
+use escape::FindEscape;
 pub use gen_ir::Codegen;
 use monomorphize::Mono;
 use resolver::Resolver;
 use syntax::ast::Program;
 use types::Type;
 use util::emitter::Reporter;
-use escape::FindEscape;
 pub(crate) type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug)]
@@ -45,12 +46,9 @@ impl Infer {
         env: &mut Env,
         reporter: &mut Reporter,
     ) -> InferResult<t::Program> {
-
         // println!("{:?}",program );
 
         // FindEscape::new().find_escape(program, env);
-
-
 
         let mut new_program = t::Program {
             functions: vec![],

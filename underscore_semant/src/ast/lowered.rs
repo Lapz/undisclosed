@@ -1,4 +1,3 @@
-
 use std::fmt::{self, Display};
 use syntax::ast::Linkage;
 use types::Type;
