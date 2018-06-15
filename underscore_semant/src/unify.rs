@@ -4,13 +4,14 @@ use std::collections::HashMap;
 use super::{Infer, InferResult};
 use types::{TyCon, Type};
 use util::pos::Span;
+use ir::Frame;
 impl Infer {
-    pub fn unify(
+    pub fn unify<T:Frame+Clone>(
         &self,
         lhs: &Type,
         rhs: &Type,
         span: Span,
-        ctx: &mut CompileCtx,
+        ctx: &mut CompileCtx<T>,
     ) -> InferResult<()> {
         match (lhs, rhs) {
             (

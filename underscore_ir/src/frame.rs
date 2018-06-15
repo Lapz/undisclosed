@@ -1,6 +1,6 @@
 use temp::Label;
 
-pub trait Frame {
+pub trait Frame:Clone {
     type Access;
 
     type FP;

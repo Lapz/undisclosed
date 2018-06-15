@@ -11,13 +11,13 @@ use syntax::ast::{
 };
 use types::{Field, TyCon, Type, TypeVar};
 use util::pos::Spanned;
-
+use ir::Frame;
 impl Infer {
-    pub fn infer_function(
+    pub fn infer_function<T:Frame+Clone>(
         &mut self,
         function: &Spanned<Function>,
 
-        ctx: &mut CompileCtx,
+        ctx: &mut CompileCtx<T>,
     ) -> InferResult<t::Function> {
         let mut poly_tvs = Vec::with_capacity(function.value.name.value.type_params.len());
 
@@ -90,11 +90,11 @@ impl Infer {
             linkage: function.value.linkage,
         })
     }
-    pub fn infer_statement(
+    pub fn infer_statement<T:Frame+Clone>(
         &mut self,
         statement: &Spanned<Statement>,
 
-        ctx: &mut CompileCtx,
+        ctx: &mut CompileCtx<T>,
     ) -> InferResult<t::Statement> {
         match statement.value {
             Statement::Block(ref statements) => {
@@ -290,10 +290,10 @@ impl Infer {
 }
 
 impl Infer {
-    fn infer_expr(
+    fn infer_expr<T:Frame+Clone>(
         &self,
         expr: &Spanned<Expression>,
-        ctx: &mut CompileCtx,
+        ctx: &mut CompileCtx<T>,
     ) -> InferResult<t::TypedExpression> {
         let (typed, ty) = match expr.value {
             Expression::Array { ref items } => {
@@ -507,11 +507,11 @@ impl Infer {
         })
     }
 
-    fn infer_struct_lit(
+    fn infer_struct_lit<T:Frame+Clone>(
         &self,
         lit: &Spanned<StructLit>,
 
-        ctx: &mut CompileCtx,
+        ctx: &mut CompileCtx<T>,
     ) -> InferResult<(t::Expression, Type)> {
         match lit.value {
             StructLit::Simple {
@@ -711,7 +711,7 @@ impl Infer {
         }
     }
 
-    fn infer_literal(&self, literal: &Literal, ctx: &mut CompileCtx) -> Type {
+    fn infer_literal<T:Frame+Clone>(&self, literal: &Literal, ctx: &mut CompileCtx<T>) -> Type {
         match *literal {
             Literal::Char(_) => Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
 
@@ -734,7 +734,7 @@ impl Infer {
         }
     }
 
-    fn infer_var(&self, var: &Spanned<Var>, ctx: &mut CompileCtx) -> InferResult<(t::Var, Type)> {
+    fn infer_var<T:Frame+Clone>(&self, var: &Spanned<Var>, ctx: &mut CompileCtx<T>) -> InferResult<(t::Var, Type)> {
         match var.value {
             Var::Simple(ref ident) => {
                 if let Some(var) = ctx.look_var(ident.value).cloned() {
@@ -867,11 +867,11 @@ impl Infer {
         }
     }
 
-    fn infer_call(
+    fn infer_call<T:Frame+Clone>(
         &self,
         call: &Spanned<Call>,
 
-        ctx: &mut CompileCtx,
+        ctx: &mut CompileCtx<T>,
     ) -> InferResult<(t::Expression, Type)> {
         match call.value {
             Call::Simple {

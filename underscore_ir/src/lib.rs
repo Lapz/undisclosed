@@ -5,6 +5,7 @@ mod frame;
 pub mod ir;
 pub mod optimize;
 mod temp;
+mod translate;
 mod x86_frame;
 pub use frame::Frame;
 pub use ir::{BinOp, CmpOp, Expr, Function, Ir, Program, Stm, UnOp};

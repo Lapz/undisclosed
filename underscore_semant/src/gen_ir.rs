@@ -1,9 +1,8 @@
 use ast::typed as t;
 use ir::{
-    new_label_pair, new_named_label, optimize::Optimizer, BinOp, CmpOp, Expr, Function, Ir, Label,
-    Program, Stm, Temp, UnOp,
+    new_label_pair, new_named_label, optimize::Optimizer, BinOp, CmpOp, Expr, Frame, Function, Ir,
+    Label, Program, Stm, Temp, UnOp,
 };
-use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};
 use util::symbol::Symbols;
@@ -14,6 +13,43 @@ pub struct Codegen {
     loop_label: Option<Label>,
     loop_break_label: Option<Label>,
     symbols: Symbols<Temp>,
+}
+
+#[derive(Clone)]
+pub struct Level<T: Clone + Frame> {
+    parent: Option<Box<Level<T>>>,
+    frame: T,
+}
+
+pub type TranslateAccess<F: Frame+Clone> = (Level<F>, F::Access);
+
+pub fn new_level<T: Clone + Frame>(
+    parent: Level<T>,
+    name: Label,
+    formals: &mut Vec<bool>,
+) -> Level<T> {
+    formals.insert(0, true);
+    Level {
+        parent: Some(Box::new(parent)),
+        frame: Frame::new(name, formals),
+    }
+}
+
+pub fn formals<T: Frame + Clone>(level: Level<T>) -> Vec<TranslateAccess<T>> {
+    // match level {
+    //     Level::Top => vec![],
+    //     Level::Level { ref frame, .. } => unimplemented!(),
+    // }
+
+    unimplemented!()
+}
+
+pub fn alloc_local<T: Clone + Frame>(level: &mut Level<T>, escape: bool) -> TranslateAccess<T> {
+    (level.clone(), level.frame.alloc_local(escape))
+}
+
+pub fn simple_var<T: Clone + Frame>(access: TranslateAccess<T>) -> () {
+    unimplemented!()
 }
 
 // pub fn un_expr(ir:Ir) -> Expr {

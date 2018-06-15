@@ -1,15 +1,16 @@
 use super::{Infer, InferResult};
 use ast::typed as t;
 use ctx::CompileCtx;
-use env::{Entry, Env, VarType};
+use env::{Entry, VarType};
 use syntax::ast::Struct;
 use types::{Field, Type, TypeVar, Unique};
-use util::{emitter::Reporter, pos::Spanned};
+use util::{pos::Spanned};
+use ir::Frame;
 impl Infer {
-    pub fn infer_struct(
+    pub fn infer_struct<T:Frame+Clone>(
         &self,
         struct_def: &Spanned<Struct>,
-        ctx: &mut CompileCtx,
+        ctx: &mut CompileCtx<T>,
     ) -> InferResult<t::Struct> {
         let mut poly_tvs = Vec::with_capacity(struct_def.value.name.value.type_params.len());
         let mut type_params = Vec::with_capacity(struct_def.value.name.value.type_params.len());

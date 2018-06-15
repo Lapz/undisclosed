@@ -20,9 +20,6 @@ mod types;
 mod unify;
 
 use ast::typed as t;
-pub use env::Env as TypeEnv;
-use env::Env;
-
 use ctx::CompileCtx;
 use escape::FindEscape;
 pub use gen_ir::Codegen;
@@ -34,6 +31,7 @@ use types::Type;
 use util::{
     emitter::Reporter, symbol::{Symbol, SymbolMap},
 };
+use ir::Frame;
 pub(crate) type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug)]
@@ -46,7 +44,7 @@ impl Infer {
         Self { body: Type::Nil }
     }
 
-    pub fn infer<'a>(
+    pub fn infer<'a,T:Frame+Clone>(
         &mut self,
         program: &mut Program,
         strings: &Rc<SymbolMap<Symbol>>,

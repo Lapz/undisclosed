@@ -2,6 +2,7 @@ use ctx::CompileCtx;
 use std::fmt::{self, Display};
 use syntax::ast::{Sign, Size};
 use util::symbol::Symbol;
+use ir::Frame;
 
 static mut UNIQUE_COUNT: u32 = 0;
 
@@ -66,7 +67,7 @@ impl Type {
 }
 
 impl Type {
-    pub fn print(&self, ctx: &CompileCtx) -> String {
+    pub fn print<T:Frame+Clone>(&self, ctx: &CompileCtx<T>) -> String {
         match *self {
             Type::Array(ref ty, ref len) => format!("[{};{}]", ty.print(ctx), len),
             Type::Struct(ref name, ref fields, _) => {

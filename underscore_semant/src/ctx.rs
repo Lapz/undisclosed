@@ -6,17 +6,18 @@ use types::{TyCon, Type, TypeVar};
 use util::emitter::Reporter;
 use util::pos::Span;
 use util::symbol::{Symbol, SymbolMap, Symbols};
+use ir::Frame;
 
-#[derive(Debug)]
-pub struct CompileCtx<'a> {
+
+pub struct CompileCtx<'a,T:Frame+Clone> {
     types: Symbols<Entry>,
     tvars: HashMap<TypeVar, VarType>,
-    vars: Symbols<VarEntry>,
+    vars: Symbols<VarEntry<T>>,
     escapes: Symbols<(u32, bool)>,
     reporter: &'a mut Reporter,
 }
 
-impl<'a> CompileCtx<'a> {
+impl<'a,T:Frame+Clone> CompileCtx<'a,T> {
     pub fn new(strings: &Rc<SymbolMap<Symbol>>, reporter: &'a mut Reporter) -> Self {
         let mut types = Symbols::new(strings.clone());
         let string_ident = types.symbol("str");
@@ -88,7 +89,7 @@ impl<'a> CompileCtx<'a> {
         self.escapes.end_scope();
     }
 
-    pub fn error<T: Into<String>>(&mut self, msg: T, span: Span) {
+    pub fn error<M: Into<String>>(&mut self, msg: M, span: Span) {
         self.reporter.error(msg, span)
     }
 
@@ -104,7 +105,7 @@ impl<'a> CompileCtx<'a> {
         self.types.replace(ident, data)
     }
 
-    pub fn look_var(&self, ident: Symbol) -> Option<&VarEntry> {
+    pub fn look_var(&self, ident: Symbol) -> Option<&VarEntry<T>> {
         self.vars.look(ident)
     }
 
@@ -120,7 +121,7 @@ impl<'a> CompileCtx<'a> {
         self.types.enter(ident, data)
     }
 
-    pub fn add_var(&mut self, ident: Symbol, data: VarEntry) {
+    pub fn add_var(&mut self, ident: Symbol, data: VarEntry<T>) {
         self.vars.enter(ident, data)
     }
 
