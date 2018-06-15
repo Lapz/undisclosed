@@ -5,6 +5,11 @@ fn id<T>(v:T) -> T {
 fn main() {
     let x = id::<i32>(10);
     let y = id("A");
+
+    if true  {
+        x = 10;
+    }
+    
 }
 
 

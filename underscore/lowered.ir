@@ -1,0 +1,23 @@
+function s15() {
+    t2 := t1
+    ret t2
+}
+function s16() {
+    t4 := t3
+    ret t4
+}
+function s0() {
+    t6 := t5
+    ret t6
+}
+function s3() {
+    t9 := 10:i32
+    t8 := s15.call(t9)
+    t12 := [1,65]
+    t11 := s16.call(t12)
+    t14 := 1:u8
+    if t13 == t14  then s17 else s18
+    label s17
+    t8 := 10:i32
+    label s18
+}
