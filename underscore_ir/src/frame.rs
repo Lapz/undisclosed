@@ -1,7 +1,7 @@
 use temp::Label;
 
-pub trait Frame:Clone {
-    type Access;
+pub trait Frame: Clone {
+    type Access: Clone;
 
     type FP;
 
@@ -9,7 +9,7 @@ pub trait Frame:Clone {
 
     fn new(name: Label, formals: &[bool]) -> Self;
 
-    fn name(&self) -> Label;
+    fn name(&self) -> &Label;
 
     fn formals(&self) -> &[Self::Access];
 

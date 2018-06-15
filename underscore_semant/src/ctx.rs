@@ -1,4 +1,5 @@
 use env::{Entry, VarEntry, VarType};
+use ir::Frame;
 use std::collections::HashMap;
 use std::rc::Rc;
 use syntax::ast::{Sign, Size};
@@ -6,10 +7,8 @@ use types::{TyCon, Type, TypeVar};
 use util::emitter::Reporter;
 use util::pos::Span;
 use util::symbol::{Symbol, SymbolMap, Symbols};
-use ir::Frame;
 
-
-pub struct CompileCtx<'a,T:Frame+Clone> {
+pub struct CompileCtx<'a, T: Frame + Clone> {
     types: Symbols<Entry>,
     tvars: HashMap<TypeVar, VarType>,
     vars: Symbols<VarEntry<T>>,
@@ -17,7 +16,7 @@ pub struct CompileCtx<'a,T:Frame+Clone> {
     reporter: &'a mut Reporter,
 }
 
-impl<'a,T:Frame+Clone> CompileCtx<'a,T> {
+impl<'a, T: Frame + Clone> CompileCtx<'a, T> {
     pub fn new(strings: &Rc<SymbolMap<Symbol>>, reporter: &'a mut Reporter) -> Self {
         let mut types = Symbols::new(strings.clone());
         let string_ident = types.symbol("str");
@@ -69,6 +68,7 @@ impl<'a,T:Frame+Clone> CompileCtx<'a,T> {
             vars: Symbols::new(strings.clone()),
             escapes: Symbols::new(strings.clone()),
             reporter,
+           
         }
     }
 

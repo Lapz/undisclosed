@@ -1,8 +1,8 @@
 use super::InferResult;
 use ctx::CompileCtx;
+use ir::Frame;
 use syntax::ast::{Call, Expression, Function, Program, Statement, StructLit, Var};
 use util::{pos::Spanned, symbol::Symbol};
-use ir::Frame;
 
 pub struct FindEscape {
     depth: u32,
@@ -12,14 +12,18 @@ impl FindEscape {
     pub fn new() -> Self {
         FindEscape { depth: 0 }
     }
-    pub fn find_escape<T:Frame+Clone>(&mut self, program: &mut Program, ctx: &mut CompileCtx<T>) -> InferResult<()> {
+    pub fn find_escape<T: Frame + Clone>(
+        &mut self,
+        program: &mut Program,
+        ctx: &mut CompileCtx<T>,
+    ) -> InferResult<()> {
         for function in &mut program.functions {
             self.escape_function(function, ctx)?;
         }
         Ok(())
     }
 
-    fn escape_function<T:Frame+Clone>(
+    fn escape_function<T: Frame + Clone>(
         &mut self,
         function: &mut Spanned<Function>,
         ctx: &mut CompileCtx<T>,
@@ -27,7 +31,11 @@ impl FindEscape {
         self.escape_statement(&mut function.value.body, ctx)
     }
 
-    fn check_ident<T:Frame+Clone>(&mut self, ident: Symbol, ctx: &mut CompileCtx<T>) -> InferResult<()> {
+    fn check_ident<T: Frame + Clone>(
+        &mut self,
+        ident: Symbol,
+        ctx: &mut CompileCtx<T>,
+    ) -> InferResult<()> {
         if ctx.look_escape(ident).is_none() {
             ctx.add_escape(ident, (self.depth, false));
             return Ok(());
@@ -44,7 +52,7 @@ impl FindEscape {
         }
     }
 
-    fn escape_statement<T:Frame+Clone>(
+    fn escape_statement<T: Frame + Clone>(
         &mut self,
         statement: &mut Spanned<Statement>,
         ctx: &mut CompileCtx<T>,
@@ -106,7 +114,7 @@ impl FindEscape {
         }
     }
 
-    fn escape_expression<T:Frame+Clone>(
+    fn escape_expression<T: Frame + Clone>(
         &mut self,
         expr: &mut Spanned<Expression>,
         ctx: &mut CompileCtx<T>,
@@ -190,7 +198,11 @@ impl FindEscape {
         }
     }
 
-    fn check_var<T:Frame+Clone>(&mut self, var: &Spanned<Var>, ctx: &mut CompileCtx<T>) -> InferResult<()> {
+    fn check_var<T: Frame + Clone>(
+        &mut self,
+        var: &Spanned<Var>,
+        ctx: &mut CompileCtx<T>,
+    ) -> InferResult<()> {
         match var.value {
             Var::Simple(ref ident) => self.check_ident(ident.value, ctx),
             Var::Field { ref ident, .. } => self.check_ident(ident.value, ctx),

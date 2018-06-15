@@ -190,6 +190,7 @@ dependencies = [
  "underscore_ir 0.1.0",
  "underscore_syntax 0.1.0",
  "underscore_util 0.1.0",
+ "underscore_x86 0.1.0",
 ]
 
 [[package]]

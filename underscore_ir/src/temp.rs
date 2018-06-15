@@ -1,8 +1,7 @@
 use std::fmt::{self, Debug, Display};
 use util::symbol::{Symbol, Symbols};
 
-/// A Label represents an address in assembly language.
-pub type Label = Symbol;
+// pub type Label = Symbol;
 
 /// A Temporary address in assembly language.
 #[derive(Clone, Copy, PartialEq, PartialOrd, Hash, Eq)]
@@ -10,30 +9,26 @@ pub struct Temp(pub u32);
 
 static mut TEMP_COUNT: u32 = 1;
 static mut LABEL_COUNT: u32 = 0;
-pub fn new_label<T: Clone>(symbol: Symbol, symbols: &mut Symbols<T>) -> Symbol {
-    let name = symbols.name(symbol);
-    symbols.symbol(&format!("l_{}", name))
+
+/// A Label represents an address in assembly language.
+#[derive(Debug, Clone)]
+pub enum Label {
+    Int(u32),
+    Named(String),
 }
 
-pub fn new_named_label<T: Clone>(name: &str, symbols: &mut Symbols<T>) -> Symbol {
-    unsafe {
-        let label = symbols.symbol(&format!("l_{}_{}", name, LABEL_COUNT));
+impl Label {
+    pub fn new() -> Self {
+        unsafe {
+            let label = Label::Int(LABEL_COUNT);
 
-        LABEL_COUNT += 1;
-        label
+            LABEL_COUNT += 1;
+            label
+        }
     }
-}
 
-pub fn new_label_pair<T: Clone>(
-    name: &str,
-    name2: &str,
-    symbols: &mut Symbols<T>,
-) -> (Symbol, Symbol) {
-    unsafe {
-        let label1 = symbols.symbol(&format!("l_{}_{}", name, LABEL_COUNT));
-        let label2 = symbols.symbol(&format!("l_{}_{}", name2, LABEL_COUNT));
-        LABEL_COUNT += 1;
-        (label1, label2)
+    pub fn named(name: &str) -> Label {
+        Label::Named(name.into())
     }
 }
 
@@ -56,5 +51,14 @@ impl Debug for Temp {
 impl Display for Temp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "t{}", self.0)
+    }
+}
+
+impl Display for Label {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Label::Int(ref i) => write!(f, "l{}", i),
+            Label::Named(ref n) => write!(f, "l{}", n),
+        }
     }
 }

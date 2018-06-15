@@ -1,9 +1,9 @@
 use super::InferResult;
 use ctx::CompileCtx;
+use ir::Frame;
 use std::collections::HashSet;
 use syntax::ast::{Function, Program, Struct, TyAlias};
-use util::{ pos::Spanned, symbol::Symbol};
-use ir::Frame;
+use util::{pos::Spanned, symbol::Symbol};
 #[derive(Debug, Default)]
 pub struct Resolver {
     values: HashSet<Symbol>,
@@ -14,7 +14,11 @@ impl Resolver {
         Self::default()
     }
 
-    pub fn resolve_ast<T:Frame+Clone>(&mut self, program: &Program, ctx: &mut CompileCtx<T>) -> InferResult<()> {
+    pub fn resolve_ast<T: Frame + Clone>(
+        &mut self,
+        program: &Program,
+        ctx: &mut CompileCtx<T>,
+    ) -> InferResult<()> {
         for alias in &program.type_alias {
             self.resolve_alias(alias, ctx)?;
         }
@@ -30,7 +34,11 @@ impl Resolver {
         Ok(())
     }
 
-    fn resolve_alias<T:Frame+Clone>(&mut self, alias: &Spanned<TyAlias>, ctx: &mut CompileCtx<T>) -> InferResult<()> {
+    fn resolve_alias<T: Frame + Clone>(
+        &mut self,
+        alias: &Spanned<TyAlias>,
+        ctx: &mut CompileCtx<T>,
+    ) -> InferResult<()> {
         if !self.values.insert(alias.value.ident.value.name.value) {
             let msg = format!(
                 "`{} ` is defined twice",
@@ -43,7 +51,7 @@ impl Resolver {
         }
     }
 
-    fn resolve_functions<T:Frame+Clone>(
+    fn resolve_functions<T: Frame + Clone>(
         &mut self,
         function: &Spanned<Function>,
         ctx: &mut CompileCtx<T>,
@@ -60,7 +68,7 @@ impl Resolver {
         }
     }
 
-    fn resolve_structs<T:Frame+Clone>(
+    fn resolve_structs<T: Frame + Clone>(
         &mut self,
         struct_def: &Spanned<Struct>,
         ctx: &mut CompileCtx<T>,

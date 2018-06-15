@@ -3,6 +3,7 @@
 extern crate underscore_ir as ir;
 extern crate underscore_syntax as syntax;
 extern crate underscore_util as util;
+extern crate underscore_x86 as x86;
 
 mod ast;
 mod cast_check;
@@ -23,15 +24,16 @@ use ast::typed as t;
 use ctx::CompileCtx;
 use escape::FindEscape;
 pub use gen_ir::Codegen;
+use ir::Frame;
 use monomorphize::Mono;
 use resolver::Resolver;
 use std::rc::Rc;
 use syntax::ast::Program;
 use types::Type;
 use util::{
-    emitter::Reporter, symbol::{Symbol, SymbolMap},
+    emitter::Reporter,
+    symbol::{Symbol, SymbolMap},
 };
-use ir::Frame;
 pub(crate) type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug)]
@@ -44,13 +46,13 @@ impl Infer {
         Self { body: Type::Nil }
     }
 
-    pub fn infer<'a,T:Frame+Clone>(
+    pub fn infer<'a, T: Frame + Clone>(
         &mut self,
         program: &mut Program,
         strings: &Rc<SymbolMap<Symbol>>,
         reporter: &mut Reporter,
     ) -> InferResult<t::Program> {
-        let mut ctx = CompileCtx::new(strings, reporter);
+        let mut ctx = CompileCtx::<::x86::x86>::new(strings, reporter);
 
         FindEscape::new().find_escape(program, &mut ctx);
 
@@ -69,10 +71,12 @@ impl Infer {
                 .push(self.infer_struct(struct_def, &mut ctx)?)
         }
 
+        let mut level = ::ir::Level::top();
+
         for function in &program.functions {
             new_program
                 .functions
-                .push(self.infer_function(function, &mut ctx)?);
+                .push(self.infer_function(function, &mut level,&mut ctx)?);
         }
 
         let mut resolver = Resolver::new();

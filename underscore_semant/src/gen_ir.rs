@@ -1,6 +1,6 @@
 use ast::typed as t;
 use ir::{
-    new_label_pair, new_named_label, optimize::Optimizer, BinOp, CmpOp, Expr, Frame, Function, Ir,
+    optimize::Optimizer, BinOp, CmpOp, Expr, Frame, Function, Ir,Level,
     Label, Program, Stm, Temp, UnOp,
 };
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
@@ -15,13 +15,9 @@ pub struct Codegen {
     symbols: Symbols<Temp>,
 }
 
-#[derive(Clone)]
-pub struct Level<T: Clone + Frame> {
-    parent: Option<Box<Level<T>>>,
-    frame: T,
-}
 
-pub type TranslateAccess<F: Frame+Clone> = (Level<F>, F::Access);
+
+pub type TranslateAccess<F: Frame + Clone> = (Level<F>, F::Access);
 
 pub fn new_level<T: Clone + Frame>(
     parent: Level<T>,

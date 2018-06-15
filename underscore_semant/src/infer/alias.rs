@@ -1,13 +1,17 @@
 use super::{Infer, InferResult};
 use ctx::CompileCtx;
 use env::{Entry, VarType};
+use ir::Frame;
 use syntax::ast::TyAlias;
 use types::{Type, TypeVar};
 use util::pos::Spanned;
-use ir::Frame;
 
 impl Infer {
-    pub fn infer_alias<T:Frame+Clone>(&self, alias: &Spanned<TyAlias>, ctx: &mut CompileCtx<T>) -> InferResult<()> {
+    pub fn infer_alias<T: Frame + Clone>(
+        &self,
+        alias: &Spanned<TyAlias>,
+        ctx: &mut CompileCtx<T>,
+    ) -> InferResult<()> {
         if alias.value.ident.value.type_params.is_empty() {
             let ty = self.trans_ty(&alias.value.ty, ctx)?;
 

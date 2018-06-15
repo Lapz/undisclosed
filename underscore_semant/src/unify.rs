@@ -2,11 +2,11 @@ use ctx::CompileCtx;
 use std::collections::HashMap;
 
 use super::{Infer, InferResult};
+use ir::Frame;
 use types::{TyCon, Type};
 use util::pos::Span;
-use ir::Frame;
 impl Infer {
-    pub fn unify<T:Frame+Clone>(
+    pub fn unify<T: Frame + Clone>(
         &self,
         lhs: &Type,
         rhs: &Type,

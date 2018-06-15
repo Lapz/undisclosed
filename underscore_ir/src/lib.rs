@@ -6,7 +6,31 @@ pub mod ir;
 pub mod optimize;
 mod temp;
 mod translate;
-mod x86_frame;
+
 pub use frame::Frame;
 pub use ir::{BinOp, CmpOp, Expr, Function, Ir, Program, Stm, UnOp};
-pub use temp::{new_label, new_label_pair, new_named_label, Label, Temp};
+pub use temp::{Label, Temp};
+
+#[derive(Clone)]
+pub struct Level<T: Clone + Frame> {
+    pub parent: Option<Box<Level<T>>>,
+    pub frame: T,
+}
+
+impl<T: Clone + Frame> Level<T> {
+    pub fn top() -> Self {
+        Self {
+            parent: None,
+            frame: T::new(Label::new(), &vec![]),
+        }
+    }
+
+    pub fn new(parent: Level<T>, name: Label, formals: &mut Vec<bool>) -> Level<T> {
+        formals.insert(0, true);
+
+        Self {
+            parent: Some(Box::new(parent)),
+            frame: T::new(name, formals),
+        }
+    }
+}

@@ -4,19 +4,20 @@ extern crate structopt_derive;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
-extern crate underscore_x86;
+extern crate underscore_x86 as x86;
 #[macro_use]
 extern crate underscore_vm;
 
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-use underscore_semant::{Codegen, Infer, TypeEnv};
+use underscore_semant::{Codegen, Infer};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
 use underscore_vm::{Chunk, VM};
+
 
 fn main() {
     let opts = Cli::from_args();
@@ -111,11 +112,10 @@ fn run(path: String, dump_file: Option<String>) {
 
     let mut infer = Infer::new();
 
-    let mut type_env = TypeEnv::new(&Rc::clone(&strings));
 
     let symbols = Symbols::new(Rc::clone(&strings));
 
-    let ast = match infer.infer(&mut ast, &strings, &mut reporter) {
+    let ast = match infer.infer::<x86::x86>(&mut ast, &strings, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
                 let mut file =

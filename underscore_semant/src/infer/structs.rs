@@ -2,12 +2,12 @@ use super::{Infer, InferResult};
 use ast::typed as t;
 use ctx::CompileCtx;
 use env::{Entry, VarType};
+use ir::Frame;
 use syntax::ast::Struct;
 use types::{Field, Type, TypeVar, Unique};
-use util::{pos::Spanned};
-use ir::Frame;
+use util::pos::Spanned;
 impl Infer {
-    pub fn infer_struct<T:Frame+Clone>(
+    pub fn infer_struct<T: Frame + Clone>(
         &self,
         struct_def: &Spanned<Struct>,
         ctx: &mut CompileCtx<T>,
