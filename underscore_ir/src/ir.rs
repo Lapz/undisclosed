@@ -2,7 +2,6 @@ use std::fmt::{self, Display};
 use syntax::ast::Linkage;
 use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
-use util::symbol::Symbol;
 
 #[derive(Debug)]
 pub struct Program {
@@ -11,7 +10,7 @@ pub struct Program {
 
 #[derive(Debug)]
 pub struct Function {
-    pub name: Symbol,
+    pub name: Label,
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
 }
@@ -51,6 +50,71 @@ pub enum Instruction {
     Block(Temp, Vec<Value>),
 }
 
+
+impl Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Instruction::Store(ref temp, ref value) => write!(f,"{} := {}", temp, value),
+            Instruction::Value(ref value) => write!(f,"\n{}", value),
+            Instruction::BinOp(ref t1, ref op, ref v1, ref v2) => {
+                write!(f,"{} := {} {} {}", t1, op,v1, v2)
+            }
+
+            Instruction::Block(ref temp, ref temps) => {
+                let mut fmt_str = write!(f,"\n{} := [", temp);
+
+                for (i, temp) in temps.iter().enumerate() {
+                    if i + 1 == temps.len() {
+                        write!(f,"{}", temp).unwrap();
+                    } else {
+                        write!(f,"{},", temp);
+                    }
+                }
+
+                write!(f,"]");
+
+                fmt_str
+            }
+
+            Instruction::Load(ref temp) => write!(f,"\nload{}", temp),
+
+            Instruction::Copy(ref t1, ref t2) => write!(f,"\n{} := {}", t1, t2),
+            Instruction::UnOp(ref t1, ref op, ref t2) => write!(f,"\n{} := {} {}", t1, op, t2),
+            Instruction::Cast(ref t1, ref sign, ref size) => {
+                write!(f,"\nt1 := {}:{}{}", t1, sign, size)
+            }
+            Instruction::Call(ref t1, ref label, ref temps) => {
+                let mut fmt_str = write!(f,"\n{} := {}.call(", t1, label);
+
+                for (i, temp) in temps.iter().enumerate() {
+                    if i + 1 == temps.len() {
+                       write!(f,"{}", temp);
+                    } else {
+                       write!(f,"{},", temp);
+                    }
+                }
+
+                write!(f,")")
+            }
+            Instruction::Jump(ref label) => write!(f,"\njump {}", label),
+            Instruction::CJump(ref t1, ref op ,ref t2, ref ltrue, ref lfalse) => write!(f,
+                "\nif {} {} {} then {} else {}",
+                t1,
+                op,
+                t2,
+                ltrue,
+                lfalse
+            ),
+            Instruction::Label(ref label) => write!(f,"\nlabel {}",label),
+            Instruction::Return(ref ret) => write!(f,"\nret {}", ret),
+        }
+    }
+}
+
+
+
+
+
 #[derive(Debug)]
 pub enum Value {
     /// Integer Constant
@@ -62,6 +126,20 @@ pub enum Value {
     //  Contents of a word of memory at address
     Mem(Vec<u8>),
 }
+
+
+
+impl Display for Value {
+    fn fmt(&self,f:&mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Value::Const(ref v,sn,si) => write!(f,"{}{}{}",v,sn,si),
+            Value::Name(ref l) => write!(f,"{}",l),
+            Value::Temp(ref temp) => write!(f,"{}",temp),
+            Value::Mem(ref bytes) => write!(f,"{:?}",bytes)
+        }
+    }
+}
+
 
 #[derive(Debug)]
 pub enum BinOp {

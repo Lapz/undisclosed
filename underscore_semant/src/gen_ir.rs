@@ -24,5 +24,26 @@ impl Codegen {
             loop_break_label: None,
             instructions: vec![],
         }
-}
+    }
+
+     pub fn dump_to_file(&mut self, path: String) {
+        use std::fs::File;
+        use std::io::Write;
+      
+
+        let mut file = File::create(path).expect("Couldn't create file");
+        
+        for instruction in &self.instructions {
+
+            write!(file,"{}",instruction).expect("Couldn't write to the file");
+
+            // file.write(format!("{}",instruction)).expect("Couldn't write to the file");
+        
+           
+        }
+
+         write!(file,"\n{:?}",self.instructions).expect("Couldn't write to the file");
+
+       
+     }
 }

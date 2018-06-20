@@ -1,5 +1,4 @@
 use std::fmt::{self, Debug, Display};
-use util::symbol::{Symbol, Symbols};
 
 // pub type Label = Symbol;
 
