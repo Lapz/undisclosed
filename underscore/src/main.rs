@@ -111,9 +111,7 @@ fn run(path: String, dump_file: Option<String>) {
 
     let mut infer = Infer::new();
 
-    let symbols = Symbols::new(Rc::clone(&strings));
-
-    let ast = match infer.infer(&mut ast, &strings, &mut reporter) {
+    let ir = match infer.infer(&mut ast, &strings, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
                 let mut file =
@@ -153,13 +151,12 @@ fn run(path: String, dump_file: Option<String>) {
     let mut vm = VM::new(&mut chunk);
 
     vm.run().expect("Err");
-    let mut codegen = Codegen::new(symbols);
-
-    // let lowered = codegen.gen_program(ast);
 
     let mut file = File::create("lowered.ir").expect("Couldn't create file");
+
+    write!(file, "{}", ir).expect("Couldn't write to the file");
     // file.write(format!("{}", lowered).as_bytes())
-    //     .expect("Couldn't write to the file");
+    //
 }
 
 #[derive(StructOpt, Debug)]

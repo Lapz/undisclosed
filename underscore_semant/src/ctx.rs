@@ -12,6 +12,7 @@ pub struct CompileCtx<'a> {
     tvars: HashMap<TypeVar, VarType>,
     vars: Symbols<VarEntry>,
     escapes: Symbols<(u32, bool)>,
+    temps: Symbols<::ir::Temp>,
     reporter: &'a mut Reporter,
 }
 
@@ -66,6 +67,7 @@ impl<'a> CompileCtx<'a> {
             tvars: HashMap::new(),
             vars: Symbols::new(strings.clone()),
             escapes: Symbols::new(strings.clone()),
+            temps: Symbols::new(strings.clone()),
             reporter,
         }
     }
@@ -79,12 +81,14 @@ impl<'a> CompileCtx<'a> {
         self.types.begin_scope();
         self.vars.begin_scope();
         self.escapes.begin_scope();
+        self.temps.begin_scope();
     }
 
     pub fn end_scope(&mut self) {
         self.types.end_scope();
         self.vars.end_scope();
         self.escapes.end_scope();
+        self.temps.end_scope();
     }
 
     pub fn error<M: Into<String>>(&mut self, msg: M, span: Span) {
@@ -115,8 +119,16 @@ impl<'a> CompileCtx<'a> {
         self.escapes.look(ident)
     }
 
+    pub fn look_temp(&self, ident: Symbol) -> Option<&::ir::Temp> {
+        self.temps.look(ident)
+    }
+
     pub fn add_type(&mut self, ident: Symbol, data: Entry) {
         self.types.enter(ident, data)
+    }
+
+    pub fn add_temp(&mut self, ident: Symbol, data: ::ir::Temp) {
+        self.temps.enter(ident, data)
     }
 
     pub fn add_var(&mut self, ident: Symbol, data: VarEntry) {

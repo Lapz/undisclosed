@@ -50,10 +50,8 @@ impl Infer {
         program: &mut Program,
         strings: &Rc<SymbolMap<Symbol>>,
         reporter: &mut Reporter,
-    ) -> InferResult<t::Program> {
+    ) -> InferResult<::ir::ir::Program> {
         let mut ctx = CompileCtx::new(strings, reporter);
-
-        FindEscape::new().find_escape(program, &mut ctx);
 
         let mut new_program = t::Program {
             functions: vec![],
@@ -80,10 +78,14 @@ impl Infer {
 
         resolver.resolve_ast(program, &mut ctx)?;
 
-        // let mut mono = Mono::new();
+        let mut mono = Mono::new();
 
-        // let mono_program = mono.monomorphize_program(new_program, env);
+        let mono_program = mono.monomorphize_program(new_program, &mut ctx);
 
-        unimplemented!()
+        let mut codegen = Codegen::new();
+
+        let ir = codegen.gen_program(mono_program, &mut ctx);
+
+        Ok(ir)
     }
 }

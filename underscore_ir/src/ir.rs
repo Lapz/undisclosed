@@ -47,20 +47,20 @@ pub enum Instruction {
     Load(Value),
 
     /// Block
-    Block(Temp, Vec<Value>),
+    Block(Temp, Vec<Temp>),
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Instruction::Store(ref temp, ref value) => write!(f, "{} := {}", temp, value),
-            Instruction::Value(ref value) => write!(f, "\n{}", value),
+            Instruction::Value(ref value) => write!(f, "{}", value),
             Instruction::BinOp(ref t1, ref op, ref v1, ref v2) => {
                 write!(f, "{} := {} {} {}", t1, op, v1, v2)
             }
 
             Instruction::Block(ref temp, ref temps) => {
-                write!(f, "\n{} := [", temp)?;
+                write!(f, "{} := [", temp)?;
 
                 for (i, temp) in temps.iter().enumerate() {
                     if i + 1 == temps.len() {
@@ -73,15 +73,15 @@ impl Display for Instruction {
                 write!(f, "]")
             }
 
-            Instruction::Load(ref temp) => write!(f, "\nload{}", temp),
+            Instruction::Load(ref temp) => write!(f, "load{}", temp),
 
-            Instruction::Copy(ref t1, ref t2) => write!(f, "\n{} := {}", t1, t2),
-            Instruction::UnOp(ref t1, ref op, ref t2) => write!(f, "\n{} := {} {}", t1, op, t2),
+            Instruction::Copy(ref t1, ref t2) => write!(f, "{} := {}", t1, t2),
+            Instruction::UnOp(ref t1, ref op, ref t2) => write!(f, "{} := {} {}", t1, op, t2),
             Instruction::Cast(ref t1, ref sign, ref size) => {
-                write!(f, "\nt1 := {}:{}{}", t1, sign, size)
+                write!(f, "t1 := {}:{}{}", t1, sign, size)
             }
             Instruction::Call(ref t1, ref label, ref temps) => {
-                write!(f, "\n{} := {}.call(", t1, label)?;
+                write!(f, "{} := {}.call(", t1, label)?;
 
                 for (i, temp) in temps.iter().enumerate() {
                     if i + 1 == temps.len() {
@@ -93,14 +93,12 @@ impl Display for Instruction {
 
                 write!(f, ")")
             }
-            Instruction::Jump(ref label) => write!(f, "\njump {}", label),
-            Instruction::CJump(ref t1, ref op, ref t2, ref ltrue, ref lfalse) => write!(
-                f,
-                "\nif {} {} {} then {} else {}",
-                t1, op, t2, ltrue, lfalse
-            ),
-            Instruction::Label(ref label) => write!(f, "\nlabel {}", label),
-            Instruction::Return(ref ret) => write!(f, "\nret {}", ret),
+            Instruction::Jump(ref label) => write!(f, "jump {}", label),
+            Instruction::CJump(ref t1, ref op, ref t2, ref ltrue, ref lfalse) => {
+                write!(f, "if {} {} {} then {} else {}", t1, op, t2, ltrue, lfalse)
+            }
+            Instruction::Label(ref label) => write!(f, "label {}", label),
+            Instruction::Return(ref ret) => write!(f, "ret {}", ret),
         }
     }
 }
@@ -178,7 +176,7 @@ impl Display for Function {
         writeln!(f)?;
 
         for instruction in &self.body {
-            writeln!(f, "    {:?}", instruction)?;
+            writeln!(f, "    {}", instruction)?;
         }
 
         write!(f, "}}")

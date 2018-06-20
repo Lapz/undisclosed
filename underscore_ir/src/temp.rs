@@ -10,24 +10,17 @@ static mut TEMP_COUNT: u32 = 1;
 static mut LABEL_COUNT: u32 = 0;
 
 /// A Label represents an address in assembly language.
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum Label {
-    Int(u32),
-    Named(String),
-}
+#[derive(Debug, Clone, PartialEq, PartialOrd, Copy)]
+pub struct Label(pub u32);
 
 impl Label {
     pub fn new() -> Self {
         unsafe {
-            let label = Label::Int(LABEL_COUNT);
+            let label = Label(LABEL_COUNT);
 
             LABEL_COUNT += 1;
             label
         }
-    }
-
-    pub fn named(name: &str) -> Label {
-        Label::Named(name.into())
     }
 }
 
@@ -55,9 +48,6 @@ impl Display for Temp {
 
 impl Display for Label {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Label::Int(ref i) => write!(f, "l{}", i),
-            Label::Named(ref n) => write!(f, "l{}", n),
-        }
+        write!(f, "l{}", self.0)
     }
 }
