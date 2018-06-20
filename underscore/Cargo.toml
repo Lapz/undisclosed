@@ -11,11 +11,6 @@ underscore_util =  {path="../underscore_util"}
 underscore_semant = {path ="../underscore_semant"}
 underscore_x86 = {path ="../underscore_x86"}
 
-
-
-[dependencies.underscore_vm]
-path = "../underscore_vm"
-features = ["debug"]
 [[test]]
 name ="underscore_test"
 path ="../tests/underscore_test.rs"

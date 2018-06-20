@@ -11,4 +11,4 @@ rust:
 script:
 - cargo clean
 - cargo build 
-- cargo test --features=all -- --nocapture
+- cargo test -- --nocapture
