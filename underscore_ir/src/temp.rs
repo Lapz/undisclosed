@@ -11,7 +11,7 @@ static mut TEMP_COUNT: u32 = 1;
 static mut LABEL_COUNT: u32 = 0;
 
 /// A Label represents an address in assembly language.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Label {
     Int(u32),
     Named(String),

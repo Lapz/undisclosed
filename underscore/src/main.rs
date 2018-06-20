@@ -18,7 +18,6 @@ use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
 use underscore_vm::{Chunk, VM};
 
-
 fn main() {
     let opts = Cli::from_args();
 
@@ -112,10 +111,9 @@ fn run(path: String, dump_file: Option<String>) {
 
     let mut infer = Infer::new();
 
-
     let symbols = Symbols::new(Rc::clone(&strings));
 
-    let ast = match infer.infer::<x86::x86>(&mut ast, &strings, &mut reporter) {
+    let ast = match infer.infer(&mut ast, &strings, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
                 let mut file =

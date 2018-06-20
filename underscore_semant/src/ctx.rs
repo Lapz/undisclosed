@@ -1,5 +1,4 @@
 use env::{Entry, VarEntry, VarType};
-use ir::Frame;
 use std::collections::HashMap;
 use std::rc::Rc;
 use syntax::ast::{Sign, Size};
@@ -8,15 +7,15 @@ use util::emitter::Reporter;
 use util::pos::Span;
 use util::symbol::{Symbol, SymbolMap, Symbols};
 
-pub struct CompileCtx<'a, T: Frame + Clone> {
+pub struct CompileCtx<'a> {
     types: Symbols<Entry>,
     tvars: HashMap<TypeVar, VarType>,
-    vars: Symbols<VarEntry<T>>,
+    vars: Symbols<VarEntry>,
     escapes: Symbols<(u32, bool)>,
     reporter: &'a mut Reporter,
 }
 
-impl<'a, T: Frame + Clone> CompileCtx<'a, T> {
+impl<'a> CompileCtx<'a> {
     pub fn new(strings: &Rc<SymbolMap<Symbol>>, reporter: &'a mut Reporter) -> Self {
         let mut types = Symbols::new(strings.clone());
         let string_ident = types.symbol("str");
@@ -68,7 +67,6 @@ impl<'a, T: Frame + Clone> CompileCtx<'a, T> {
             vars: Symbols::new(strings.clone()),
             escapes: Symbols::new(strings.clone()),
             reporter,
-           
         }
     }
 
@@ -105,7 +103,7 @@ impl<'a, T: Frame + Clone> CompileCtx<'a, T> {
         self.types.replace(ident, data)
     }
 
-    pub fn look_var(&self, ident: Symbol) -> Option<&VarEntry<T>> {
+    pub fn look_var(&self, ident: Symbol) -> Option<&VarEntry> {
         self.vars.look(ident)
     }
 
@@ -121,7 +119,7 @@ impl<'a, T: Frame + Clone> CompileCtx<'a, T> {
         self.types.enter(ident, data)
     }
 
-    pub fn add_var(&mut self, ident: Symbol, data: VarEntry<T>) {
+    pub fn add_var(&mut self, ident: Symbol, data: VarEntry) {
         self.vars.enter(ident, data)
     }
 

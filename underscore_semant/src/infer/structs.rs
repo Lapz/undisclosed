@@ -7,10 +7,10 @@ use syntax::ast::Struct;
 use types::{Field, Type, TypeVar, Unique};
 use util::pos::Spanned;
 impl Infer {
-    pub fn infer_struct<T: Frame + Clone>(
+    pub fn infer_struct(
         &self,
         struct_def: &Spanned<Struct>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<t::Struct> {
         let mut poly_tvs = Vec::with_capacity(struct_def.value.name.value.type_params.len());
         let mut type_params = Vec::with_capacity(struct_def.value.name.value.type_params.len());

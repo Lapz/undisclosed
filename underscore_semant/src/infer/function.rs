@@ -5,8 +5,6 @@ use cast_check::*;
 use ast::typed as t;
 use ctx::CompileCtx;
 use env::{Entry, VarEntry, VarType};
-use ir::Frame;
-use ir::Level;
 use std::collections::HashMap;
 use syntax::ast::{
     Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit, UnaryOp, Var,
@@ -14,11 +12,10 @@ use syntax::ast::{
 use types::{Field, TyCon, Type, TypeVar};
 use util::pos::Spanned;
 impl Infer {
-    pub fn infer_function<T: Frame + Clone>(
+    pub fn infer_function(
         &mut self,
         function: &Spanned<Function>,
-        level: &mut Level<T>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<t::Function> {
         let mut poly_tvs = Vec::with_capacity(function.value.name.value.type_params.len());
 
@@ -48,7 +45,6 @@ impl Infer {
             })
         }
 
-    
         for param in &function.value.params.value {
             if let Some(ref escape) = ctx.look_escape(param.value.name.value) {
                 formals.push(escape.1)
@@ -59,9 +55,7 @@ impl Infer {
 
         param_tys.push(returns.clone()); // Return is the last value
 
-        let label = ::ir::Label::new();
-        let mut level = ::ir::Level::new(level.clone(), ::ir::Label::new(), &mut formals);
-
+    
         ctx.add_var(
             function.value.name.value.name.value,
             VarEntry::Fun {
@@ -69,21 +63,20 @@ impl Infer {
                     poly_tvs,
                     Box::new(Type::App(TyCon::Arrow, param_tys.clone())),
                 ),
-                label,
-                level:level.clone(),
+               
             },
         );
 
         ctx.begin_scope();
 
         for (param, ident) in param_tys.into_iter().zip(&function.value.params.value) {
-
-            let (_,escape) = ctx.look_escape(ident.value.name.value).unwrap_or(&(0,false));
-
-            ctx.add_var(ident.value.name.value, VarEntry::Var(::gen_ir::alloc_local(&mut level, *escape),param) )
+            ctx.add_var(
+                ident.value.name.value,
+                VarEntry::Var(param),
+            )
         }
 
-        let body = self.infer_statement(&function.value.body,&mut level, ctx)?;
+        let body = self.infer_statement(&function.value.body, ctx)?;
 
         self.unify(&returns, &self.body, function.value.body.span, ctx)?;
 
@@ -100,11 +93,11 @@ impl Infer {
             linkage: function.value.linkage,
         })
     }
-    pub fn infer_statement<T: Frame + Clone>(
+    pub fn infer_statement(
         &mut self,
         statement: &Spanned<Statement>,
-        level:&mut Level<T>,
-        ctx: &mut CompileCtx<T>,
+       
+        ctx: &mut CompileCtx,
     ) -> InferResult<t::Statement> {
         match statement.value {
             Statement::Block(ref statements) => {
@@ -120,7 +113,7 @@ impl Infer {
                 let mut new_statements = Vec::with_capacity(statements.len());
 
                 for statement in statements {
-                    new_statements.push(self.infer_statement(statement,level, ctx)?);
+                    new_statements.push(self.infer_statement(statement, ctx)?);
                 }
 
                 ctx.end_scope();
@@ -141,17 +134,17 @@ impl Infer {
                 ref body,
             } => {
                 if init.is_none() && cond.is_none() && incr.is_none() {
-                    let body = self.infer_statement(body,level, ctx)?;
+                    let body = self.infer_statement(body, ctx)?;
                     return Ok(body);
                 }
 
                 let mut block = vec![];
 
                 if let Some(ref init) = *init {
-                    block.push(self.infer_statement(init, level,ctx)?);
+                    block.push(self.infer_statement(init, ctx)?);
                 }
 
-                let mut while_block = vec![self.infer_statement(body,level, ctx)?];
+                let mut while_block = vec![self.infer_statement(body, ctx)?];
 
                 if let Some(ref incr) = *incr {
                     let ty = self.infer_expr(incr, ctx)?;
@@ -209,11 +202,11 @@ impl Infer {
                     ctx,
                 )?;
 
-                let then_tyexpr = Box::new(self.infer_statement(then,level, ctx)?);
+                let then_tyexpr = Box::new(self.infer_statement(then, ctx)?);
                 let mut otherwise_tyexpr = None;
 
                 if let Some(ref otherwise) = *otherwise {
-                    let tyexpr = Box::new(self.infer_statement(otherwise, level,ctx)?);
+                    let tyexpr = Box::new(self.infer_statement(otherwise, ctx)?);
 
                     otherwise_tyexpr = Some(tyexpr)
                 }
@@ -239,7 +232,7 @@ impl Infer {
 
                 Ok(t::Statement::While(
                     expr,
-                    Box::new(self.infer_statement(body, level,ctx)?),
+                    Box::new(self.infer_statement(body, ctx)?),
                 ))
             }
 
@@ -249,9 +242,7 @@ impl Infer {
                 ref expr,
                 ref escapes,
             } => {
-
-
-                let access = ::gen_ir::alloc_local(level, *escapes);
+               
 
                 if let Some(ref expr) = *expr {
                     let expr_tyexpr = self.infer_expr(expr, ctx)?;
@@ -261,7 +252,7 @@ impl Infer {
 
                         self.unify(&expr_tyexpr.ty, &t, ty.span, ctx)?;
 
-                        ctx.add_var(ident.value, VarEntry::Var(access,t.clone()));
+                        ctx.add_var(ident.value, VarEntry::Var(t.clone()));
 
                         return Ok(t::Statement::Let {
                             ident: ident.value,
@@ -270,7 +261,7 @@ impl Infer {
                         });
                     }
 
-                    ctx.add_var(ident.value, VarEntry::Var(access,expr_tyexpr.ty.clone()));
+                    ctx.add_var(ident.value, VarEntry::Var( expr_tyexpr.ty.clone()));
 
                     Ok(t::Statement::Let {
                         ident: ident.value,
@@ -281,7 +272,7 @@ impl Infer {
                     if let Some(ref ty) = *ty {
                         let ty = self.trans_ty(ty, ctx)?;
 
-                        ctx.add_var(ident.value, VarEntry::Var(access,ty.clone()));
+                        ctx.add_var(ident.value, VarEntry::Var( ty.clone()));
 
                         return Ok(t::Statement::Let {
                             ident: ident.value,
@@ -290,7 +281,7 @@ impl Infer {
                         });
                     }
 
-                    ctx.add_var(ident.value, VarEntry::Var(access,Type::Nil));
+                    ctx.add_var(ident.value, VarEntry::Var( Type::Nil));
 
                     Ok(t::Statement::Let {
                         ident: ident.value,
@@ -304,10 +295,10 @@ impl Infer {
 }
 
 impl Infer {
-    fn infer_expr<T: Frame + Clone>(
+    fn infer_expr(
         &self,
         expr: &Spanned<Expression>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<t::TypedExpression> {
         let (typed, ty) = match expr.value {
             Expression::Array { ref items } => {
@@ -444,7 +435,7 @@ impl Infer {
             //
             //                param_tys.push(self.trans_statement(
             //                    &closure.value.body,
-            //                    level,
+            //                   
             //                    ctx,
             //                    ctx
             //
@@ -521,11 +512,11 @@ impl Infer {
         })
     }
 
-    fn infer_struct_lit<T: Frame + Clone>(
+    fn infer_struct_lit(
         &self,
         lit: &Spanned<StructLit>,
 
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<(t::Expression, Type)> {
         match lit.value {
             StructLit::Simple {
@@ -725,7 +716,7 @@ impl Infer {
         }
     }
 
-    fn infer_literal<T: Frame + Clone>(&self, literal: &Literal, ctx: &mut CompileCtx<T>) -> Type {
+    fn infer_literal(&self, literal: &Literal, ctx: &mut CompileCtx) -> Type {
         match *literal {
             Literal::Char(_) => Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
 
@@ -748,10 +739,10 @@ impl Infer {
         }
     }
 
-    fn infer_var<T: Frame + Clone>(
+    fn infer_var(
         &self,
         var: &Spanned<Var>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<(t::Var, Type)> {
         match var.value {
             Var::Simple(ref ident) => {
@@ -885,11 +876,11 @@ impl Infer {
         }
     }
 
-    fn infer_call<T: Frame + Clone>(
+    fn infer_call(
         &self,
         call: &Spanned<Call>,
 
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<(t::Expression, Type)> {
         match call.value {
             Call::Simple {

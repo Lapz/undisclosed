@@ -12,10 +12,10 @@ impl FindEscape {
     pub fn new() -> Self {
         FindEscape { depth: 0 }
     }
-    pub fn find_escape<T: Frame + Clone>(
+    pub fn find_escape(
         &mut self,
         program: &mut Program,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         for function in &mut program.functions {
             self.escape_function(function, ctx)?;
@@ -23,18 +23,18 @@ impl FindEscape {
         Ok(())
     }
 
-    fn escape_function<T: Frame + Clone>(
+    fn escape_function(
         &mut self,
         function: &mut Spanned<Function>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         self.escape_statement(&mut function.value.body, ctx)
     }
 
-    fn check_ident<T: Frame + Clone>(
+    fn check_ident(
         &mut self,
         ident: Symbol,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         if ctx.look_escape(ident).is_none() {
             ctx.add_escape(ident, (self.depth, false));
@@ -52,10 +52,10 @@ impl FindEscape {
         }
     }
 
-    fn escape_statement<T: Frame + Clone>(
+    fn escape_statement(
         &mut self,
         statement: &mut Spanned<Statement>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         match statement.value {
             Statement::Block(ref mut statements) => {
@@ -114,10 +114,10 @@ impl FindEscape {
         }
     }
 
-    fn escape_expression<T: Frame + Clone>(
+    fn escape_expression(
         &mut self,
         expr: &mut Spanned<Expression>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         match expr.value {
             Expression::Array { ref mut items } => {
@@ -198,10 +198,10 @@ impl FindEscape {
         }
     }
 
-    fn check_var<T: Frame + Clone>(
+    fn check_var(
         &mut self,
         var: &Spanned<Var>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         match var.value {
             Var::Simple(ref ident) => self.check_ident(ident.value, ctx),

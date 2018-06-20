@@ -7,10 +7,10 @@ use types::{Type, TypeVar};
 use util::pos::Spanned;
 
 impl Infer {
-    pub fn infer_alias<T: Frame + Clone>(
+    pub fn infer_alias(
         &self,
         alias: &Spanned<TyAlias>,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         if alias.value.ident.value.type_params.is_empty() {
             let ty = self.trans_ty(&alias.value.ty, ctx)?;

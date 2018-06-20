@@ -4,10 +4,10 @@ use env::VarType;
 use ir::Frame;
 use types::{TyCon, Type};
 
-pub fn cast_check<T: Frame + Clone>(
+pub fn cast_check(
     expr: &Type,
     to: &Type,
-    ctx: &CompileCtx<T>,
+    ctx: &CompileCtx,
 ) -> InferResult<()> {
     match *to {
         Type::App(ref tycon, _) => {

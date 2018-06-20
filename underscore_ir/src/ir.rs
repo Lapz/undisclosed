@@ -1,8 +1,8 @@
-use std::fmt::{self, Debug, Display};
+use std::fmt::{self, Display};
 use syntax::ast::Linkage;
 use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
-use util::symbol::{Symbol, Symbols};
+use util::symbol::Symbol;
 
 #[derive(Debug)]
 pub struct Program {
@@ -12,92 +12,55 @@ pub struct Program {
 #[derive(Debug)]
 pub struct Function {
     pub name: Symbol,
-    pub body: Vec<()>,
+    pub body: Vec<Instruction>,
     pub linkage: Linkage,
 }
 
 #[derive(Debug)]
-pub enum Expr {
-    /// Binary operation
-    BinOp {
-        lhs: Box<Expr>,
-        op: BinOp,
-        rhs: Box<Expr>,
-    },
+pub enum Instruction {
+    /// Store a value into a register
+    Store(Temp, Value),
+    /// Copy the contents of x into y
+    /// i.e x = y
+    Copy(Temp, Value),
+    /// Jump to a label
+    Jump(Label),
+    /// CAST the expresion to a different type treating it a
+    Cast(Temp, Sign, Size), //TODO take into account sign
+
+    /// Binary operation and store in Temp
+    BinOp(Temp, BinOp, Value, Value),
+
+    /// Unary Op store in Temp
+    UnOp(Temp, UnOp, Value),
+
+    /// Evaluate l1, l2 compare using CmpOp and then got to L or R
+    CJump(Temp, CmpOp, Temp, Label, Label),
+    /// A Value
+    Value(Value),
+    /// Call a function with arguments
+    Call(Temp, Label, Vec<Temp>),
+    /// Empty Label
+    Label(Label),
+    /// Return
+    Return(Value),
+    /// Load
+    Load(Value),
+
+    /// Block
+    Block(Temp, Vec<Value>),
+}
+
+#[derive(Debug)]
+pub enum Value {
     /// Integer Constant
     Const(u64, Sign, Size),
     /// A named variable
     Name(Label),
     /// A Temporary similar to a register
     Temp(Temp),
-    /// Contents of a word of memory at address
-    Mem(Box<Expr>),
-    /// Call a function with arguments
-    Call(Box<Expr>, Vec<Expr>),
-    /// Evaluate S for side effects and then e for the result
-    ESeq(Box<Stm>, Box<Expr>),
-}
-#[derive(Debug)]
-pub enum Stm {
-    /// Evaluate l1, l2 compare using CmpOp and then got to L or R
-    CJump {
-        lhs: Expr,
-        op: CmpOp,
-        rhs: Expr,
-        ltrue: Label,
-        lfalse: Label,
-    },
-    /// An Expression
-    Exp(Expr),
-    /// Jump to a label
-    Jump(Label),
-    /// Empty Label
-    Label(Label),
-
-    Move(Expr, Expr),
-    /// Block
-    Seq(Box<Stm>, Box<Stm>),
-}
-
-pub enum Ir {
-    /// An Expression
-    Expr(Expr),
-    /// An Expression with no result
-    NExpr(Stm),
-    /// A conditional
-    CExpr { ltrue: Label, lfalse: Label },
-}
-
-impl Expr {
-    pub fn print<T: Clone>(&self, symbols: &mut Symbols<T>) -> String {
-        match *self {
-            Expr::BinOp {
-                ref lhs,
-                ref op,
-                ref rhs,
-            } => format!("{} {} {}", lhs.print(symbols), op, rhs.print(symbols)),
-            Expr::Const(ref v, ref sign, ref size) => format!("{}:{}{}", v, sign, size),
-            Expr::Name(ref n) => format!("{}", n),
-            Expr::Temp(ref t) => format!("{}", t),
-            Expr::Mem(ref expr) => expr.print(symbols),
-            Expr::Call(ref callee, ref exprs) => {
-                let mut fmt_str = format!("{}.call(", callee.print(symbols));
-
-                for (i, expr) in exprs.iter().enumerate() {
-                    if i + 1 == exprs.len() {
-                        fmt_str.push_str(&format!("{}", expr.print(symbols)))
-                    } else {
-                        fmt_str.push_str(&format!("{},", expr.print(symbols)));
-                    }
-                }
-
-                fmt_str.push_str(")");
-
-                fmt_str
-            }
-            Expr::ESeq(_, ref expr) => expr.print(symbols),
-        }
-    }
+    //  Contents of a word of memory at address
+    Mem(Vec<u8>),
 }
 
 #[derive(Debug)]

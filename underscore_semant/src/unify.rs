@@ -6,12 +6,12 @@ use ir::Frame;
 use types::{TyCon, Type};
 use util::pos::Span;
 impl Infer {
-    pub fn unify<T: Frame + Clone>(
+    pub fn unify(
         &self,
         lhs: &Type,
         rhs: &Type,
         span: Span,
-        ctx: &mut CompileCtx<T>,
+        ctx: &mut CompileCtx,
     ) -> InferResult<()> {
         match (lhs, rhs) {
             (

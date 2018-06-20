@@ -1,5 +1,3 @@
-use gen_ir::TranslateAccess;
-use ir::{Frame, Label, Level};
 use types::{TyCon, Type};
 #[derive(Debug, Clone)]
 
@@ -16,19 +14,15 @@ pub enum VarType {
 }
 
 #[derive(Clone)]
-pub enum VarEntry<T: Frame + Clone> {
-    Var(TranslateAccess<T>, Type),
-    Fun {
-        ty: Type,
-        level: Level<T>,
-        label: Label,
-    },
+pub enum VarEntry {
+    Var(Type),
+     Fun { ty: Type },
 }
 
-impl<T: Frame + Clone> VarEntry<T> {
+impl VarEntry {
     pub fn get_ty(self) -> Type {
         match self {
-            VarEntry::Var(_, ty) => ty,
+            VarEntry::Var(ty) => ty,
             VarEntry::Fun { ty, .. } => ty,
         }
     }
