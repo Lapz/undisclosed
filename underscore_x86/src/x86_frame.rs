@@ -4,12 +4,12 @@ use ir::{Frame, Label, Temp};
 pub struct x86 {
     name: Label,
     formals: Vec<Access>,
+    fp:Temp,
 }
 
 impl Frame for x86 {
     type Access = Access;
 
-    type FP = Temp;
 
     const WORD_SIZE: u32 = 32;
 
@@ -17,10 +17,15 @@ impl Frame for x86 {
         self.name
     }
 
+    fn fp(&self) -> Temp {
+        self.fp
+    }
+
     fn new(name: Label, formals: &[bool]) -> Self {
         let mut frame = x86 {
             name,
             formals: vec![],
+            fp:Temp::new(),
         };
 
         let mut access_formals = Vec::new();

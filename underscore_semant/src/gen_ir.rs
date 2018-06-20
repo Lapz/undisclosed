@@ -14,6 +14,62 @@ pub struct Codegen {
     symbols: Symbols<Temp>,
 }
 
+
+
+pub type TranslateAccess<F: Frame + Clone> = (Level<F>, F::Access);
+
+pub fn new_level<T: Clone + Frame>(
+    parent: Level<T>,
+    name: Label,
+    formals: &mut Vec<bool>,
+) -> Level<T> {
+    formals.insert(0, true);
+    Level {
+        parent: Some(Box::new(parent)),
+        frame: Frame::new(name, formals),
+    }
+}
+
+pub fn formals<T: Frame + Clone>(level: Level<T>) -> Vec<TranslateAccess<T>> {
+    // match level {
+    //     Level::Top => vec![],
+    //     Level::Level { ref frame, .. } => unimplemented!(),
+    // }
+
+    unimplemented!()
+}
+
+pub fn alloc_local<T: Clone + Frame>(level: &mut Level<T>, escape: bool) -> TranslateAccess<T> {
+    (level.clone(), level.frame.alloc_local(escape))
+}
+
+pub fn simple_var<T: Clone + Frame>(access: TranslateAccess<T>,level:Level<T>) -> () {
+
+    let fp = access.0.fp();
+
+
+    // Expr::Mem(Box::new(
+    //     Expr::BinOp {
+    //         lhs:Expr::Temp(),
+    //         op:BinOp::Plus,
+    //         rhs:Expr::
+    //     }
+    // ));
+    unimplemented!()
+}
+
+// pub fn un_expr(ir:Ir) -> Expr {
+//     match ir {
+//         Ir::Expr(expr) => expr,
+//         Ir::CExpr {ltrue,lfalse} => {
+//             let r = Temp::new();
+//             let t =
+//             unimplemented!()
+//         },
+//         Ir::NExpr(s) => Expr::ESeq(Box::new(s),Box::new(Expr::Const(0,Sign::Unsigned,Size::Bit8)))
+//     }
+// }
+
 const HP: Temp = Temp(0);
 
 impl Codegen {

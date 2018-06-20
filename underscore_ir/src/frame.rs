@@ -1,10 +1,9 @@
-
-use temp::Label;
+use temp::{Label,Temp};
 
 pub trait Frame {
     type Access;
 
-    type FP;
+    
 
     const WORD_SIZE: u32;
 
@@ -15,4 +14,6 @@ pub trait Frame {
     fn formals(&self) -> &[Self::Access];
 
     fn alloc_local(&self, escapes: bool) -> Self::Access;
+
+    fn fp(&self) -> Temp;
 }
