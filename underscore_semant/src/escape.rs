@@ -12,11 +12,7 @@ impl FindEscape {
     pub fn new() -> Self {
         FindEscape { depth: 0 }
     }
-    pub fn find_escape(
-        &mut self,
-        program: &mut Program,
-        ctx: &mut CompileCtx,
-    ) -> InferResult<()> {
+    pub fn find_escape(&mut self, program: &mut Program, ctx: &mut CompileCtx) -> InferResult<()> {
         for function in &mut program.functions {
             self.escape_function(function, ctx)?;
         }
@@ -31,11 +27,7 @@ impl FindEscape {
         self.escape_statement(&mut function.value.body, ctx)
     }
 
-    fn check_ident(
-        &mut self,
-        ident: Symbol,
-        ctx: &mut CompileCtx,
-    ) -> InferResult<()> {
+    fn check_ident(&mut self, ident: Symbol, ctx: &mut CompileCtx) -> InferResult<()> {
         if ctx.look_escape(ident).is_none() {
             ctx.add_escape(ident, (self.depth, false));
             return Ok(());
@@ -198,11 +190,7 @@ impl FindEscape {
         }
     }
 
-    fn check_var(
-        &mut self,
-        var: &Spanned<Var>,
-        ctx: &mut CompileCtx,
-    ) -> InferResult<()> {
+    fn check_var(&mut self, var: &Spanned<Var>, ctx: &mut CompileCtx) -> InferResult<()> {
         match var.value {
             Var::Simple(ref ident) => self.check_ident(ident.value, ctx),
             Var::Field { ref ident, .. } => self.check_ident(ident.value, ctx),

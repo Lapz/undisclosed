@@ -73,7 +73,7 @@ impl Infer {
         for function in &program.functions {
             new_program
                 .functions
-                .push(self.infer_function(function,&mut ctx)?);
+                .push(self.infer_function(function, &mut ctx)?);
         }
 
         let mut resolver = Resolver::new();

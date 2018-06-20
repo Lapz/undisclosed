@@ -14,11 +14,7 @@ impl Resolver {
         Self::default()
     }
 
-    pub fn resolve_ast(
-        &mut self,
-        program: &Program,
-        ctx: &mut CompileCtx,
-    ) -> InferResult<()> {
+    pub fn resolve_ast(&mut self, program: &Program, ctx: &mut CompileCtx) -> InferResult<()> {
         for alias in &program.type_alias {
             self.resolve_alias(alias, ctx)?;
         }
@@ -34,11 +30,7 @@ impl Resolver {
         Ok(())
     }
 
-    fn resolve_alias(
-        &mut self,
-        alias: &Spanned<TyAlias>,
-        ctx: &mut CompileCtx,
-    ) -> InferResult<()> {
+    fn resolve_alias(&mut self, alias: &Spanned<TyAlias>, ctx: &mut CompileCtx) -> InferResult<()> {
         if !self.values.insert(alias.value.ident.value.name.value) {
             let msg = format!(
                 "`{} ` is defined twice",

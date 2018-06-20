@@ -50,70 +50,60 @@ pub enum Instruction {
     Block(Temp, Vec<Value>),
 }
 
-
 impl Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Instruction::Store(ref temp, ref value) => write!(f,"{} := {}", temp, value),
-            Instruction::Value(ref value) => write!(f,"\n{}", value),
+            Instruction::Store(ref temp, ref value) => write!(f, "{} := {}", temp, value),
+            Instruction::Value(ref value) => write!(f, "\n{}", value),
             Instruction::BinOp(ref t1, ref op, ref v1, ref v2) => {
-                write!(f,"{} := {} {} {}", t1, op,v1, v2)
+                write!(f, "{} := {} {} {}", t1, op, v1, v2)
             }
 
             Instruction::Block(ref temp, ref temps) => {
-                let mut fmt_str = write!(f,"\n{} := [", temp);
+                write!(f, "\n{} := [", temp)?;
 
                 for (i, temp) in temps.iter().enumerate() {
                     if i + 1 == temps.len() {
-                        write!(f,"{}", temp).unwrap();
+                        write!(f, "{}", temp)?
                     } else {
-                        write!(f,"{},", temp);
+                        write!(f, "{},", temp)?
                     }
                 }
 
-                write!(f,"]");
-
-                fmt_str
+                write!(f, "]")
             }
 
-            Instruction::Load(ref temp) => write!(f,"\nload{}", temp),
+            Instruction::Load(ref temp) => write!(f, "\nload{}", temp),
 
-            Instruction::Copy(ref t1, ref t2) => write!(f,"\n{} := {}", t1, t2),
-            Instruction::UnOp(ref t1, ref op, ref t2) => write!(f,"\n{} := {} {}", t1, op, t2),
+            Instruction::Copy(ref t1, ref t2) => write!(f, "\n{} := {}", t1, t2),
+            Instruction::UnOp(ref t1, ref op, ref t2) => write!(f, "\n{} := {} {}", t1, op, t2),
             Instruction::Cast(ref t1, ref sign, ref size) => {
-                write!(f,"\nt1 := {}:{}{}", t1, sign, size)
+                write!(f, "\nt1 := {}:{}{}", t1, sign, size)
             }
             Instruction::Call(ref t1, ref label, ref temps) => {
-                let mut fmt_str = write!(f,"\n{} := {}.call(", t1, label);
+                write!(f, "\n{} := {}.call(", t1, label)?;
 
                 for (i, temp) in temps.iter().enumerate() {
                     if i + 1 == temps.len() {
-                       write!(f,"{}", temp);
+                        write!(f, "{}", temp)?
                     } else {
-                       write!(f,"{},", temp);
+                        write!(f, "{},", temp)?
                     }
                 }
 
-                write!(f,")")
+                write!(f, ")")
             }
-            Instruction::Jump(ref label) => write!(f,"\njump {}", label),
-            Instruction::CJump(ref t1, ref op ,ref t2, ref ltrue, ref lfalse) => write!(f,
+            Instruction::Jump(ref label) => write!(f, "\njump {}", label),
+            Instruction::CJump(ref t1, ref op, ref t2, ref ltrue, ref lfalse) => write!(
+                f,
                 "\nif {} {} {} then {} else {}",
-                t1,
-                op,
-                t2,
-                ltrue,
-                lfalse
+                t1, op, t2, ltrue, lfalse
             ),
-            Instruction::Label(ref label) => write!(f,"\nlabel {}",label),
-            Instruction::Return(ref ret) => write!(f,"\nret {}", ret),
+            Instruction::Label(ref label) => write!(f, "\nlabel {}", label),
+            Instruction::Return(ref ret) => write!(f, "\nret {}", ret),
         }
     }
 }
-
-
-
-
 
 #[derive(Debug)]
 pub enum Value {
@@ -127,19 +117,16 @@ pub enum Value {
     Mem(Vec<u8>),
 }
 
-
-
 impl Display for Value {
-    fn fmt(&self,f:&mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Value::Const(ref v,sn,si) => write!(f,"{}{}{}",v,sn,si),
-            Value::Name(ref l) => write!(f,"{}",l),
-            Value::Temp(ref temp) => write!(f,"{}",temp),
-            Value::Mem(ref bytes) => write!(f,"{:?}",bytes)
+            Value::Const(ref v, sn, si) => write!(f, "{}{}{}", v, sn, si),
+            Value::Name(ref l) => write!(f, "{}", l),
+            Value::Temp(ref temp) => write!(f, "{}", temp),
+            Value::Mem(ref bytes) => write!(f, "{:?}", bytes),
         }
     }
 }
-
 
 #[derive(Debug)]
 pub enum BinOp {

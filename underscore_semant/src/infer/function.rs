@@ -55,7 +55,6 @@ impl Infer {
 
         param_tys.push(returns.clone()); // Return is the last value
 
-    
         ctx.add_var(
             function.value.name.value.name.value,
             VarEntry::Fun {
@@ -63,17 +62,13 @@ impl Infer {
                     poly_tvs,
                     Box::new(Type::App(TyCon::Arrow, param_tys.clone())),
                 ),
-               
             },
         );
 
         ctx.begin_scope();
 
         for (param, ident) in param_tys.into_iter().zip(&function.value.params.value) {
-            ctx.add_var(
-                ident.value.name.value,
-                VarEntry::Var(param),
-            )
+            ctx.add_var(ident.value.name.value, VarEntry::Var(param))
         }
 
         let body = self.infer_statement(&function.value.body, ctx)?;
@@ -96,7 +91,7 @@ impl Infer {
     pub fn infer_statement(
         &mut self,
         statement: &Spanned<Statement>,
-       
+
         ctx: &mut CompileCtx,
     ) -> InferResult<t::Statement> {
         match statement.value {
@@ -242,8 +237,6 @@ impl Infer {
                 ref expr,
                 ref escapes,
             } => {
-               
-
                 if let Some(ref expr) = *expr {
                     let expr_tyexpr = self.infer_expr(expr, ctx)?;
 
@@ -261,7 +254,7 @@ impl Infer {
                         });
                     }
 
-                    ctx.add_var(ident.value, VarEntry::Var( expr_tyexpr.ty.clone()));
+                    ctx.add_var(ident.value, VarEntry::Var(expr_tyexpr.ty.clone()));
 
                     Ok(t::Statement::Let {
                         ident: ident.value,
@@ -272,7 +265,7 @@ impl Infer {
                     if let Some(ref ty) = *ty {
                         let ty = self.trans_ty(ty, ctx)?;
 
-                        ctx.add_var(ident.value, VarEntry::Var( ty.clone()));
+                        ctx.add_var(ident.value, VarEntry::Var(ty.clone()));
 
                         return Ok(t::Statement::Let {
                             ident: ident.value,
@@ -281,7 +274,7 @@ impl Infer {
                         });
                     }
 
-                    ctx.add_var(ident.value, VarEntry::Var( Type::Nil));
+                    ctx.add_var(ident.value, VarEntry::Var(Type::Nil));
 
                     Ok(t::Statement::Let {
                         ident: ident.value,
@@ -435,7 +428,7 @@ impl Infer {
             //
             //                param_tys.push(self.trans_statement(
             //                    &closure.value.body,
-            //                   
+            //
             //                    ctx,
             //                    ctx
             //
@@ -739,11 +732,7 @@ impl Infer {
         }
     }
 
-    fn infer_var(
-        &self,
-        var: &Spanned<Var>,
-        ctx: &mut CompileCtx,
-    ) -> InferResult<(t::Var, Type)> {
+    fn infer_var(&self, var: &Spanned<Var>, ctx: &mut CompileCtx) -> InferResult<(t::Var, Type)> {
         match var.value {
             Var::Simple(ref ident) => {
                 if let Some(var) = ctx.look_var(ident.value).cloned() {

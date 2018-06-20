@@ -1,5 +1,5 @@
-use ir::Instruction;
-use temp::Label;
+// use ir::Instruction;
+// use temp::Label;
 pub struct Optimizer {}
 
 impl Optimizer {

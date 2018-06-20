@@ -1,14 +1,9 @@
 use super::InferResult;
 use ctx::CompileCtx;
 use env::VarType;
-use ir::Frame;
 use types::{TyCon, Type};
 
-pub fn cast_check(
-    expr: &Type,
-    to: &Type,
-    ctx: &CompileCtx,
-) -> InferResult<()> {
+pub fn cast_check(expr: &Type, to: &Type, ctx: &CompileCtx) -> InferResult<()> {
     match *to {
         Type::App(ref tycon, _) => {
             check_tycon(tycon)?;

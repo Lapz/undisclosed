@@ -8,11 +8,7 @@ use syntax::ast::{Sign, Size, Ty as astType};
 use types::{TyCon, Type};
 use util::pos::Spanned;
 impl Infer {
-    pub fn trans_ty(
-        &self,
-        ty: &Spanned<astType>,
-        ctx: &mut CompileCtx,
-    ) -> InferResult<Type> {
+    pub fn trans_ty(&self, ty: &Spanned<astType>, ctx: &mut CompileCtx) -> InferResult<Type> {
         match ty.value {
             astType::Bool => Ok(Type::App(TyCon::Bool, vec![])),
             astType::Str => Ok(Type::App(TyCon::String, vec![])),

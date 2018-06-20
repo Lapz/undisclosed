@@ -16,7 +16,7 @@ pub enum VarType {
 #[derive(Clone)]
 pub enum VarEntry {
     Var(Type),
-     Fun { ty: Type },
+    Fun { ty: Type },
 }
 
 impl VarEntry {
