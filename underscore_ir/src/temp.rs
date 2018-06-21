@@ -1,5 +1,5 @@
 use std::fmt::{self, Debug, Display};
-
+use util::symbol::Symbol;
 // pub type Label = Symbol;
 
 /// A Temporary address in assembly language.
@@ -11,16 +11,23 @@ static mut LABEL_COUNT: u32 = 0;
 
 /// A Label represents an address in assembly language.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Copy)]
-pub struct Label(pub u32);
+pub enum Label {
+    Named(Symbol),
+    Int(u32),
+}
 
 impl Label {
     pub fn new() -> Self {
         unsafe {
-            let label = Label(LABEL_COUNT);
+            let label = Label::Int(LABEL_COUNT);
 
             LABEL_COUNT += 1;
             label
         }
+    }
+
+    pub fn named(symbol: Symbol) -> Self {
+        Label::Named(symbol)
     }
 }
 
@@ -48,6 +55,9 @@ impl Display for Temp {
 
 impl Display for Label {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "l{}", self.0)
+        match *self {
+            Label::Int(ref i) => write!(f, "l{}", i),
+            Label::Named(ref i) => write!(f, "l{}", i),
+        }
     }
 }

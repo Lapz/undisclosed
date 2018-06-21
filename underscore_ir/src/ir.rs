@@ -1,8 +1,8 @@
+use std::collections::HashMap;
 use std::fmt::{self, Display};
 use syntax::ast::Linkage;
 use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
-use std::collections::HashMap;
 #[derive(Debug)]
 pub struct Program {
     pub functions: Vec<Function>,
@@ -13,10 +13,10 @@ pub struct Function {
     pub name: Label,
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
-    pub locals:HashMap<Temp,i32>,
+    pub locals: HashMap<Temp, i32>,
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum Instruction {
     /// Store a value into a register
     Store(Temp, Value),
@@ -29,7 +29,7 @@ pub enum Instruction {
     Cast(Temp, Sign, Size), //TODO take into account sign
 
     /// Binary operation and store in Temp
-    BinOp(Temp, BinOp, Value, Value),
+    BinOp(Temp, BinOp, Box<Instruction>, Box<Instruction>),
 
     /// Unary Op store in Temp
     UnOp(Temp, UnOp, Value),
@@ -104,7 +104,7 @@ impl Display for Instruction {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum Value {
     /// Integer Constant
     Const(u64, Sign, Size),
@@ -127,7 +127,7 @@ impl Display for Value {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum BinOp {
     Plus,
     Minus,
@@ -137,13 +137,13 @@ pub enum BinOp {
     Or,
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum UnOp {
     Bang,
     Minus,
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum CmpOp {
     LT,
     GT,

@@ -1,6 +1,7 @@
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
+extern crate underscore_ir as ir;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
@@ -127,11 +128,15 @@ fn run(path: String, dump_file: Option<String>) {
 
     let mut file = File::create("lowered.ir").expect("Couldn't create file");
 
-    write!(file, "{:#?}", ir).expect("Couldn't write to the file");
+    write!(file, "{}", ir).expect("Couldn't write to the file");
 
     let mut compiler = Compiler::new();
 
     compiler.compile(ir);
+
+    // let cfg = ir::construct_cfg(ir);
+
+    //   write!(file, "{:#?}", cfg).expect("Couldn't write to the file");
     // file.write(format!("{}", lowered).as_bytes())
     //
 }

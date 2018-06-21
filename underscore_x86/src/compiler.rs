@@ -2,6 +2,7 @@ use ir;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
+use ir::ir::Value;
 
 pub struct Compiler {
     file: File,
@@ -35,66 +36,95 @@ impl Compiler {
         self.write(&format!("\t{}:\n", function.name));
         // self.emit_func_prologue();
 
+        let locals = &function.locals;
+
         for instruction in function.body.iter() {
-            self.compile_instruction(instruction);
+            self.compile_instruction(instruction,locals);
         }
+        // self.write("\tpopq %rbp\n");
 
-
-        self.write("ret");
+        self.write("\tret");
     }
 
     pub fn emit_func_prologue(&mut self) {
         self.write("\tpushq   %rbp\n\tmovq %rsp, %rbp\n")
     }
 
-    pub fn compile_instruction(&mut self, instruction: &ir::ir::Instruction) {
-        // use ir::ir::{Instruction, Value};
+    pub fn compile_instruction(&mut self, instruction: &ir::ir::Instruction,locals:&HashMap<ir::Temp,i32>) {
+        use ir::ir::{Instruction, Value};
 
-        // match *instruction {
-        //     Instruction::Label(ref label) => self.write(&format!("\t{}:\n", label)),
-        //     Instruction::Store(ref temp, ref value) => match *value {
-        //         Value::Const(ref i, _, _) => self.write(&format!("\tmovl ${},%eax\n", i)),
+        println!("{:?}",locals);
 
-        //         _ => unimplemented!(),
-        //     },
+        match *instruction {
+            Instruction::Label(ref label) => self.write(&format!("\t{}:\n", label)),
+            Instruction::Store(ref temp, ref value) => {
+                // println!("{:?}");
+                if let Some(ref offset) =  locals.get(temp) {
+                    self.compile_value(value,locals);
+                    write!(&mut self.file,"\tmovq %rax, {}(%rbp)\n",offset).unwrap();
+                }else {
+                    self.compile_value(value,locals);
+                }
+            },
 
-        //     Instruction::BinOp(_, ref op, ref v1, ref v2) => {
-        //         use ir::ir::BinOp;
-        //         match *op {
-        //             BinOp::Plus => {
-        //                 match (v1, v2) {
-        //                     (&Value::Const(ref i1, _, _), &Value::Const(i2, _, _)) => {
-        //                         write!(self.file, "\t addl {},{}\n", i1, i2).unwrap();
-        //                     }
-        //                     (&Value::Temp(ref t), &Value::Const(ref i, _, _))
-        //                     | (&Value::Const(ref i, _, _), &Value::Temp(ref t)) => {
-        //                         let offset = self.offsets.get(t).cloned().unwrap();
+            Instruction::BinOp(_, ref op, ref v1, ref v2) => {
+                use ir::ir::BinOp;
+                match *op {
+                    BinOp::Plus => {
+                        self.compile_instruction(v1,locals);
+                        self.write("\tpushq %rax\n");
+                        self.compile_instruction(v2,locals);
+                        self.write("\tpopq %rdx\n");
+                        self.write("\taddq %rdx,%rax\n")
+                    }
 
-        //                         write!(self.file, "\t addl {},{}\n", offset, i).unwrap();
-        //                     },
+                    BinOp::Minus => {
+                        self.compile_instruction(v1,locals);
+                        self.write("\tpushq %rax\n");
+                        self.compile_instruction(v2,locals);
+                        self.write("\tpopq %rdx\n");
+                        self.write("\tsubq %rdx,%rax\n")
+                    },
+                    BinOp::Mul => {
+                        self.compile_instruction(v1,locals);
+                        self.write("\tpushq %rax\n");
+                        self.compile_instruction(v2,locals);
+                        self.write("\tpopq %rdx\n");
+                        self.write("\timulq %rdx,%rax\n")
+                    },
+                    BinOp::Div => {
+                         self.compile_instruction(v1,locals);
+                        self.write("\tpushq %rax\n");
+                        self.compile_instruction(v2,locals);
+                        self.write("\tpopq %rdx\n");
+                        self.write("\tmovq %rdx, %rbx\n");
+                        self.write("\tcqto\n");
+                        self.write("\tidivq %rbx\n");
+                        
+                    },
 
-        //                     (&)
+                    _ => unimplemented!(),
+                }
+            }
 
-        //                     _ => unimplemented!("{:?},{:?}",v1,v2),
-        //                 }
-        //             }
-
-        //             BinOp::Minus => self.write("\tsubl %eax,%eax\n"),
-        //             BinOp::Mul => self.write("\timull %eax, %eax\n"),
-        //             BinOp::Div => self.write("\ti %eax, %eax\n"),
-
-        //             _ => unimplemented!(),
-        //         }
-        //     }
-
-        //     // Instruction::V
-        //     _ => unimplemented!(),
-        // }
+            Instruction::Value(ref value) => self.compile_value(value, locals),
+            _ => unimplemented!(),
+        }
     }
 
-    pub fn compile_value(&mut self, v1: &ir::ir::Value) {
-        
+    pub fn compile_value(&mut self, value:&Value,locals:&HashMap<ir::Temp,i32>) {
+        match *value {
+           Value::Const(ref i,_,_) => write!(&mut self.file,"\tmovq ${}, %rax\n",i).unwrap(),
+           Value::Temp(ref temp) => {
+            //    if let Some(ref offset) =  locals.get(temp) {
+                   
+            //         write!(&mut self.file,"\tmovq %rax, {}(%rbp)\n",offset).unwrap();
+            //     }
+           }
+            _ => unimplemented!()
+        }
     }
+
 
     // pub fn compile_function()
 }
