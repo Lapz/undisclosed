@@ -1,8 +1,8 @@
 use ast::typed as t;
+use ctx::CompileCtx;
 use std::collections::HashMap;
 use types::Type;
 use util::symbol::Symbol;
-use ctx::CompileCtx;
 
 #[derive(Debug, Default)]
 pub struct Mono {
@@ -14,7 +14,11 @@ impl Mono {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn monomorphize_program(&mut self, mut program: t::Program, ctx:&mut CompileCtx) -> t::Program {
+    pub fn monomorphize_program(
+        &mut self,
+        mut program: t::Program,
+        ctx: &mut CompileCtx,
+    ) -> t::Program {
         // Build up a list of generic functions
         for function in &program.functions {
             if function.generic {
@@ -75,7 +79,7 @@ impl Mono {
     }
 
     /// Find of generic calls in the body
-    fn mono_body(&mut self, body: &t::Statement, ctx:&mut CompileCtx) {
+    fn mono_body(&mut self, body: &t::Statement, ctx: &mut CompileCtx) {
         match body {
             t::Statement::Block(ref statements) => {
                 for mut statement in statements {
@@ -114,7 +118,7 @@ impl Mono {
         }
     }
 
-    fn mono_expr(&mut self, texpr: &t::TypedExpression, ctx:&mut CompileCtx) {
+    fn mono_expr(&mut self, texpr: &t::TypedExpression, ctx: &mut CompileCtx) {
         match *texpr.expr {
             t::Expression::Array(ref texprs) => {
                 for texpr in texprs {
@@ -193,7 +197,11 @@ impl Mono {
         }
     }
 
-    fn gen_new_expr(&mut self, texpr: t::TypedExpression, ctx:&mut CompileCtx) -> t::TypedExpression {
+    fn gen_new_expr(
+        &mut self,
+        texpr: t::TypedExpression,
+        ctx: &mut CompileCtx,
+    ) -> t::TypedExpression {
         let t = *texpr.expr; // RUSTC Limitation see https://stackoverflow.com/questions/28466809/collaterally-moved-error-when-deconstructing-a-box-of-pairs
         match t {
             t::Expression::Array(texprs) => t::TypedExpression {
@@ -308,7 +316,7 @@ impl Mono {
         }
     }
 
-    fn gen_new_var(&mut self, var: t::Var, ctx:&mut CompileCtx) -> t::Var {
+    fn gen_new_var(&mut self, var: t::Var, ctx: &mut CompileCtx) -> t::Var {
         match var {
             t::Var::Field(_, _, _) | t::Var::Simple(_, _) => var,
             t::Var::SubScript(symbol, texpr, ty) => {
@@ -317,7 +325,7 @@ impl Mono {
         }
     }
 
-    fn gen_new_body(&mut self, body: t::Statement, ctx:&mut CompileCtx) -> t::Statement {
+    fn gen_new_body(&mut self, body: t::Statement, ctx: &mut CompileCtx) -> t::Statement {
         match body {
             t::Statement::Block(statements) => {
                 let mut new_block = Vec::new();

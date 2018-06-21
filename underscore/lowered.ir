@@ -1,3 +1,38 @@
-function l0() {
-    t1 := [0]
+Program {
+    functions: [
+        Function {
+            name: Label(
+                0
+            ),
+            body: [
+                Store(
+                    t2,
+                    Const(
+                        10,
+                        Signed,
+                        Bit32
+                    )
+                ),
+                Store(
+                    t3,
+                    Const(
+                        10,
+                        Signed,
+                        Bit32
+                    )
+                ),
+                BinOp(
+                    t1,
+                    Plus,
+                    Temp(
+                        t2
+                    ),
+                    Temp(
+                        t3
+                    )
+                )
+            ],
+            linkage: Normal
+        }
+    ]
 }

@@ -2,7 +2,7 @@ use std::fmt::{self, Display};
 use syntax::ast::Linkage;
 use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
-
+use std::collections::HashMap;
 #[derive(Debug)]
 pub struct Program {
     pub functions: Vec<Function>,
@@ -13,6 +13,7 @@ pub struct Function {
     pub name: Label,
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
+    pub locals:HashMap<Temp,i32>,
 }
 
 #[derive(Debug)]

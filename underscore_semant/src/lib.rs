@@ -31,7 +31,8 @@ use std::rc::Rc;
 use syntax::ast::Program;
 use types::Type;
 use util::{
-    emitter::Reporter, symbol::{Symbol, SymbolMap},
+    emitter::Reporter,
+    symbol::{Symbol, SymbolMap},
 };
 pub(crate) type InferResult<T> = Result<T, ()>;
 

@@ -222,10 +222,10 @@ impl Codegen {
                         self.gen_expression(rhs, rhs_temp, instructions, ctx);
                         let op = gen_bin_op(op);
                         instructions.push(ir::Instruction::BinOp(
-                            lhs_temp,
+                            temp,
                             op,
+                            ir::Value::Temp(lhs_temp),
                             ir::Value::Temp(rhs_temp),
-                            ir::Value::Temp(temp),
                         ));
                     }
 

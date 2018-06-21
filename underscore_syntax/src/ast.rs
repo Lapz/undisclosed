@@ -1,6 +1,7 @@
 use std::fmt::{self, Display};
 use util::{
-    pos::{Span, Spanned}, symbol::Symbol,
+    pos::{Span, Spanned},
+    symbol::Symbol,
 };
 
 #[derive(Debug)]

@@ -1,15 +1,6 @@
-fn id<T>(v:T) -> T {
-    return v;
-}
 
 fn main() {
-    let x = id::<i32>(10);
-    let y = id("A");
-
-    if true  {
-        x = 10;
-    }
-    
+    10+10;
 }
 
 

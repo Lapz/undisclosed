@@ -6,7 +6,6 @@ extern crate underscore_syntax;
 extern crate underscore_util;
 extern crate underscore_x86 as x86;
 
-
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
@@ -15,8 +14,7 @@ use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
-
-
+use x86::Compiler;
 fn main() {
     let opts = Cli::from_args();
 
@@ -129,7 +127,11 @@ fn run(path: String, dump_file: Option<String>) {
 
     let mut file = File::create("lowered.ir").expect("Couldn't create file");
 
-    write!(file, "{}", ir).expect("Couldn't write to the file");
+    write!(file, "{:#?}", ir).expect("Couldn't write to the file");
+
+    let mut compiler = Compiler::new();
+
+    compiler.compile(ir);
     // file.write(format!("{}", lowered).as_bytes())
     //
 }
