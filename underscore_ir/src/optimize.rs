@@ -5,14 +5,14 @@ pub struct Optimizer {}
 
 impl Optimizer {
     pub fn strength_reduction(ir: &mut Vec<Instruction>) {
-        ir.retain(|&ref instruction| match instruction {
-            &Instruction::Copy(ref lhs, ref rhs) => match (lhs, rhs) {
-                (_, Value::Temp(ref rhs)) => !(lhs == rhs),
-                _ => true,
-            },
+        // ir.retain(|&ref instruction| match instruction {
+        //     &Instruction::Copy(ref lhs, ref rhs) => match (lhs, rhs) {
+        //         (_, Value::Temp(ref rhs)) => !(lhs == rhs),
+        //         _ => true,
+        //     },
 
-            _ => true,
-        });
+        //     _ => true,
+        // });
     }
 
     pub fn unused_labels(targets: &mut Vec<Label>, ir: &mut Vec<Instruction>) {

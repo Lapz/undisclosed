@@ -22,7 +22,7 @@ pub enum Instruction {
     Store(Temp, Value),
     /// Copy the contents of x into y
     /// i.e x = y
-    Copy(Temp, Value),
+    Copy(Temp, Box<Instruction>),
     /// Jump to a label
     Jump(Label),
     /// CAST the expresion to a different type treating it a
@@ -54,10 +54,10 @@ pub enum Instruction {
 impl Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Instruction::Store(ref temp, ref value) => write!(f, "{} := {}", temp, value),
+            Instruction::Store(_, ref value) => write!(f, "{}",value),
             Instruction::Value(ref value) => write!(f, "{}", value),
             Instruction::BinOp(ref t1, ref op, ref v1, ref v2) => {
-                write!(f, "{} := {} {} {}", t1, op, v1, v2)
+                write!(f, "{} := {} {} {}", t1,  v1,op, v2)
             }
 
             Instruction::Block(ref temp, ref temps) => {

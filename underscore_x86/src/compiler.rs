@@ -34,23 +34,24 @@ impl Compiler {
 
     pub fn compile_function(&mut self, function: &ir::ir::Function) {
         self.write(&format!("\n{}:\n", function.name));
-        self.emit_func_prologue();
+        self.emit_func_prologue(function.locals.len());
 
         let locals = &function.locals;
 
         for instruction in function.body.iter() {
+            println!("{:?}",instruction);
             self.compile_instruction(instruction, locals);
         }
 
         self.emit_func_epilogue();
     }
 
-    pub fn emit_func_prologue(&mut self) {
-        self.write(
-            "\tpushq %rbp
-    movq %rsp, %rbp
-    movl %edi, -20(%rbp) #pro\n",
-        )
+    pub fn emit_func_prologue(&mut self, nparams: usize) {
+        if nparams == 0 {
+            self.write("\tpushq %rbp\n\tmovq %rsp, %rbp  #pro\n")
+        } else {
+            self.write("\tpushq %rbp\n\tmovq %rsp, %rbp\n\tmovl %edi, -20(%rbp) #pro\n")
+        }
     }
 
     pub fn emit_func_epilogue(&mut self) {
@@ -66,8 +67,7 @@ impl Compiler {
         locals: &HashMap<ir::Temp, i32>,
     ) {
         use ir::ir::{Instruction, Value};
-
-        println!("{:?}", locals);
+        
 
         match *instruction {
             Instruction::Label(ref label) => self.write(&format!("\t{}:\n", label)),
@@ -112,7 +112,7 @@ impl Compiler {
                         self.write("\tmovq %rdx, %rbx\n");
                         self.write("\tcqto\n");
                         self.write("\tidivq %rbx\n");
-                    },
+                    }
                 }
             }
 
@@ -122,27 +122,34 @@ impl Compiler {
                 match *op {
                     UnOp::Bang => {
                         self.compile_instruction(value, locals);
-                        self.write("\tnot %rax\n")
+                        self.write("\tcmpq $0, %rax\n");
+                        self.write("\tmovq $0, %rax\n");
+                        self.write("\tsete   %al\n");
                     }
                     UnOp::Minus => {
                         self.compile_instruction(value, locals);
                         self.write("\tneg %rax\n");
                     }
                 }
-            },
-
-            Instruction::Return(ref value) => {
-                self.compile_instruction(value, locals)
-            },
-            Instruction::Copy(ref temp,ref value) => {
-                if let Some(ref offset) = locals.get(temp) {
-                    write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();
-                } 
-            },
-            Instruction::Jump(ref label) => {
-                write!(&mut self.file,"\tjmp {} \n",label).unwrap()
             }
-            ref e  => unimplemented!("{:?}",e),
+
+            Instruction::Return(ref value) => self.compile_instruction(value, locals),
+            Instruction::Copy(ref temp, ref value) => {
+                // if let Some(ref offset) = locals.get(temp) {
+                //     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();
+                // }else {
+                    
+                // }
+
+                self.compile_instruction(value, locals)
+
+
+            }
+            Instruction::Jump(ref label) => write!(&mut self.file, "\tjmp {} \n", label).unwrap(),
+            Instruction::Load(ref temp) => {
+                self.compile_value(temp, locals)
+            }
+            ref e => unimplemented!("{:?}", e),
         }
     }
 
@@ -158,18 +165,5 @@ impl Compiler {
         }
     }
 
-    // pub fn compile_function()
+   
 }
-
-// fn compile_function(function: &ir::Function, ctx: &mut Ctx) {
-//     for instruction in &function.body {
-//         compile_instruction(instruction, ctx)
-//     }
-// }
-
-// fn compile_instruction(instruction: &ir::Instruction, ctx: &mut Ctx) {
-//     //  match *instruction {
-//     //      Instruction::
-//     //  }
-// }
-// // fn

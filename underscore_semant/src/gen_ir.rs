@@ -221,9 +221,9 @@ impl Codegen {
             t::Expression::Assign(ref name, ref value) => {
                 let temp = self.gen_var(name, instructions, ctx);
 
-                self.gen_expression(value, temp, instructions, ctx);
+                
 
-                ir::Instruction::Copy(temp, ir::Value::Temp(temp))
+                ir::Instruction::Copy(temp, Box::new(self.gen_expression(value, temp, instructions, ctx)))
                 //  let temp = self.symbols.look(symbol)
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
@@ -324,7 +324,7 @@ impl Codegen {
 
             t::Expression::Var(ref var) => {
                 let t = self.gen_var(var, instructions, ctx);
-                ir::Instruction::Copy(temp, ir::Value::Temp(t))
+                ir::Instruction::Load(ir::Value::Temp(t))
             }
 
             _ => unimplemented!(),
