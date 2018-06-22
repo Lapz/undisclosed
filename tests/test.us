@@ -1,7 +1,13 @@
 
 fn main() {
-    // let x = 17;
-    10/2;
+    
+    -2;
+    !(true);
+    10*10;
 }
 
+
+fn square(num:i32) -> i32 {
+    return num * num;
+}
 

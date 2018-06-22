@@ -16,7 +16,7 @@ pub struct Function {
     pub locals: HashMap<Temp, i32>,
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Instruction {
     /// Store a value into a register
     Store(Temp, Value),
@@ -32,7 +32,7 @@ pub enum Instruction {
     BinOp(Temp, BinOp, Box<Instruction>, Box<Instruction>),
 
     /// Unary Op store in Temp
-    UnOp(Temp, UnOp, Value),
+    UnOp(Temp, UnOp, Box<Instruction>),
 
     /// Evaluate l1, l2 compare using CmpOp and then got to L or R
     CJump(Temp, CmpOp, Temp, Label, Label),
@@ -43,7 +43,7 @@ pub enum Instruction {
     /// Empty Label
     Label(Label),
     /// Return
-    Return(Value),
+    Return(Box<Instruction>),
     /// Load
     Load(Value),
 
@@ -104,7 +104,7 @@ impl Display for Instruction {
     }
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Value {
     /// Integer Constant
     Const(u64, Sign, Size),
@@ -127,23 +127,21 @@ impl Display for Value {
     }
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum BinOp {
     Plus,
     Minus,
     Mul,
     Div,
-    And,
-    Or,
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum UnOp {
     Bang,
     Minus,
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum CmpOp {
     LT,
     GT,
@@ -191,8 +189,8 @@ impl Display for BinOp {
             BinOp::Minus => write!(f, "-"),
             BinOp::Mul => write!(f, "*"),
             BinOp::Div => write!(f, "/"),
-            BinOp::And => write!(f, "and"),
-            BinOp::Or => write!(f, "or"),
+            // BinOp::And => write!(f, "and"),
+            // BinOp::Or => write!(f, "or"),
         }
     }
 }

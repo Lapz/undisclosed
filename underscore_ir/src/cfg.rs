@@ -1,7 +1,7 @@
-use ir::Instruction;
 use ir;
+use ir::Instruction;
 
-#[derive(Default,Debug)]
+#[derive(Default, Debug)]
 pub struct CFG {
     nodes: Vec<NodeData>,
     edges: Vec<EdgeData>,
@@ -24,9 +24,8 @@ pub struct EdgeData {
 }
 
 impl CFG {
-
     pub fn new() -> Self {
-Self::default()
+        Self::default()
     }
     pub fn add_node(&mut self, data: Instruction) -> NodeIndex {
         let index = self.nodes.len();
@@ -48,7 +47,6 @@ Self::default()
     }
 }
 
-
 // pub fn construct_cfg(mut ir: ir::Program) -> CFG {
 //     let mut graph = CFG::new();
 
@@ -60,31 +58,24 @@ Self::default()
 //     //    let mut indexs = vec![];
 
 //        for (i,instruction) in func.body.iter_mut().enumerate() {
-           
+
 //            if has_label(&instruction) {
 
 //               graph.add_node(func.body[i].clone());
 //            }
 //        }
 
-
-
 //        println!("{:?}",func.body);
-
-       
 
 //     //    for index in indexs {
 //     //        println!("index {}",func.body[index]);
 //     //     //    graph.add_node(func.body.remove(index-1));
 //     //    }
 
-      
-
 //     }
 
 //     graph
 // }
-
 
 // fn has_label(instruction:&Instruction) -> bool {
 //     use self::Instruction::*;

@@ -116,10 +116,14 @@ impl Codegen {
                     //             ir::Instruction::Value(Value::Temp(HP))
                     //         ));
                     //     }
-                    //     _ => self.gen_expression(expr, id_temp, instructions, ctx),
+                    //     _ => ,
                     // }
 
-                    unimplemented!()
+                    let instruction = self.gen_expression(expr, id_temp, instructions, ctx);
+
+                    instructions.push(instruction)
+
+                    // unimplemented!()
                 }
             }
             t::Statement::Expr(ref expr) => {
@@ -188,10 +192,8 @@ impl Codegen {
 
             t::Statement::Return(ref expr) => {
                 let temp = Temp::new();
-
-                self.gen_expression(expr, temp, instructions, ctx);
-
-                instructions.push(ir::Instruction::Return(ir::Value::Temp(temp)))
+                let instruction = self.gen_expression(expr, temp, instructions, ctx);
+                instructions.push(ir::Instruction::Return(Box::new(instruction)))
             }
         }
     }
@@ -231,17 +233,11 @@ impl Codegen {
 
                 match *op {
                     Op::Plus | Op::Minus | Op::Slash | Op::Star => {
-                        
                         let lhs = self.gen_expression(lhs, lhs_temp, instructions, ctx);
                         let rhs = self.gen_expression(rhs, rhs_temp, instructions, ctx);
                         let op = gen_bin_op(op);
-                        
-                        ir::Instruction::BinOp(
-                            temp,
-                            op,
-                            Box::new(lhs),
-                            Box::new(rhs),
-                        )
+
+                        ir::Instruction::BinOp(temp, op, Box::new(lhs), Box::new(rhs))
                     }
 
                     _ => {
@@ -272,9 +268,7 @@ impl Codegen {
                 self.gen_expression(from, temp, instructions, ctx);
 
                 match expr.ty {
-                    Type::App(TyCon::Int(sign, size), _) => {
-                        ir::Instruction::Cast(temp, sign, size)
-                    }
+                    Type::App(TyCon::Int(sign, size), _) => ir::Instruction::Cast(temp, sign, size),
 
                     _ => panic!("Can only cast to ints"),
                 }
@@ -319,11 +313,13 @@ impl Codegen {
             }
 
             t::Expression::Unary(ref op, ref expr) => {
-                let new_temp = Temp::new();
-                self.gen_expression(expr, new_temp, instructions, ctx);
                 let op = gen_un_op(op);
 
-                ir::Instruction::UnOp(temp, op, ir::Value::Temp(new_temp))
+                ir::Instruction::UnOp(
+                    temp,
+                    op,
+                    Box::new(self.gen_expression(expr, temp, instructions, ctx)),
+                )
             }
 
             t::Expression::Var(ref var) => {
@@ -453,8 +449,8 @@ fn gen_bin_op(op: &Op) -> ir::BinOp {
         Op::Minus => ir::BinOp::Minus,
         Op::Star => ir::BinOp::Mul,
         Op::Slash => ir::BinOp::Div,
-        Op::And => ir::BinOp::And,
-        Op::Or => ir::BinOp::Or,
+        // Op::And => ir::BinOp::And,
+        // Op::Or => ir::BinOp::Or,
         _ => unreachable!(),
     }
 }
