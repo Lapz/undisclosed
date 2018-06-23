@@ -7,7 +7,7 @@ use util::symbol::Symbol;
 pub struct Temp(pub u32);
 
 static mut TEMP_COUNT: u32 = 1;
-static mut LABEL_COUNT: u32 = 0;
+static mut LABEL_COUNT: u32 = 1;
 
 /// A Label represents an address in assembly language.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Copy)]

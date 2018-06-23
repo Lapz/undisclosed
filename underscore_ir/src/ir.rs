@@ -19,25 +19,19 @@ pub struct Function {
 #[derive(Debug, Clone)]
 pub enum Instruction {
     /// Store a value into a register
-    Store(Temp, Value),
-    /// Copy the contents of x into y
     /// i.e x = y
-    Copy(Temp, Box<Instruction>),
+    Store(Temp, Value),
     /// Jump to a label
     Jump(Label),
+    /// Jump to a specfic label
+    JumpOp(CmpOp, Label),
+
     /// CAST the expresion to a different type treating it a
     Cast(Temp, Sign, Size), //TODO take into account sign
-
     /// Binary operation and store in Temp
     BinOp(Temp, BinOp, Box<Instruction>, Box<Instruction>),
-
     /// Unary Op store in Temp
     UnOp(Temp, UnOp, Box<Instruction>),
-
-    /// Evaluate l1, l2 compare using CmpOp and then got to L or R
-    CJump(Temp, CmpOp, Temp, Box<Instruction>, Box<Instruction>),
-    /// A Value
-    Value(Value),
     /// Call a function with arguments
     Call(Temp, Label, Vec<Temp>),
     /// Empty Label
@@ -55,7 +49,6 @@ impl Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Instruction::Store(_, ref value) => write!(f, "{}", value),
-            Instruction::Value(ref value) => write!(f, "{}", value),
             Instruction::BinOp(ref t1, ref op, ref v1, ref v2) => {
                 write!(f, "{} := {} {} {}", t1, v1, op, v2)
             }
@@ -74,9 +67,7 @@ impl Display for Instruction {
                 write!(f, "]")
             }
 
-            Instruction::Load(ref temp) => write!(f, "load{}", temp),
-
-            Instruction::Copy(ref t1, ref t2) => write!(f, "{} := {}", t1, t2),
+            Instruction::Load(ref temp) => write!(f, "load {}", temp),
             Instruction::UnOp(ref t1, ref op, ref t2) => write!(f, "{} := {} {}", t1, op, t2),
             Instruction::Cast(ref t1, ref sign, ref size) => {
                 write!(f, "t1 := {}:{}{}", t1, sign, size)
@@ -95,9 +86,7 @@ impl Display for Instruction {
                 write!(f, ")")
             }
             Instruction::Jump(ref label) => write!(f, "jump {}", label),
-            Instruction::CJump(ref t1, ref op, ref t2, ref ltrue, ref lfalse) => {
-                write!(f, "if {} {} {} then {} else {}", t1, op, t2, ltrue, lfalse)
-            }
+            Instruction::JumpOp(ref op, ref label) => write!(f, "jump {} {}", op, label),
             Instruction::Label(ref label) => write!(f, "label {}", label),
             Instruction::Return(ref ret) => write!(f, "ret {}", ret),
         }
@@ -183,7 +172,7 @@ impl Display for Function {
         writeln!(f)?;
 
         for instruction in &self.body {
-            writeln!(f, "    {}", instruction)?;
+            writeln!(f, "    {:?}", instruction)?;
         }
 
         write!(f, "}}")

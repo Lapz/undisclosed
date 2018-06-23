@@ -25,15 +25,15 @@ impl Optimizer {
             // }
         }
 
-        ir.retain(|&ref instruction| match instruction {
-            &Instruction::Label(ref label) => {
-                if targets.contains(&label) {
-                    true
-                } else {
-                    false
-                }
-            }
-            _ => true,
-        });
+        // ir.retain(|&ref instruction| match instruction {
+        //     &Instruction::Label(ref label) => {
+        //         if targets.contains(&label) {
+        //             true
+        //         } else {
+        //             false
+        //         }
+        //     }
+        //     _ => true,
+        // });
     }
 }

@@ -42,7 +42,7 @@ struct List<T> {
 
 # Assembly output 
 
-Basic native compilation has been added.
+Basic compiling to assembly has been added.
 i.e
 ```rust
 fn main() {
@@ -91,11 +91,19 @@ l0:
 ```
 
 
+
 # TODO
 * ~~Add support for recursive types~~
 * ~~Add proper printing of types~~
 * ~~Add field access~~
 * Add codegen 
+	[ ] Compile for loops,
+	[ ] Compile while loops,
+	[ ] Compile structs,
+	[ ] Compile arrays
+	[ ] Compile Function calls,
+	[ ] Compile extern function calls,
+	
 # References
 
 * [rust](https://github.com/rust-lang/rust)

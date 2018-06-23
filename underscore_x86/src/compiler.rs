@@ -66,7 +66,7 @@ impl Compiler {
         use ir::ir::Instruction;
 
         match *instruction {
-            Instruction::Label(ref label) => self.write(&format!("\t{}:\n", label)),
+            Instruction::Label(ref label) => self.write(&format!(".{}:\n", label)),
             Instruction::Store(ref temp, ref value) => {
                 if let Some(ref offset) = locals.get(temp) {
                     self.compile_value(value, locals);
@@ -191,7 +191,7 @@ impl Compiler {
                 }
             }
 
-            Instruction::Value(ref value) => self.compile_value(value, locals),
+            // Instruction::Value(ref value) => self.compile_value(value, locals),
             Instruction::UnOp(_, ref op, ref value) => {
                 use ir::ir::UnOp;
                 match *op {
@@ -208,17 +208,22 @@ impl Compiler {
                 }
             }
 
+            // Instruction::CJump(ref t1,ref op,ref t2,ref btrue,ref bfalse) => {
+
+            // }
             Instruction::Return(ref value) => self.compile_instruction(value, locals),
-            Instruction::Copy(ref temp, ref value) => {
-                // if let Some(ref offset) = locals.get(temp) {
-                //     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();
-                // }else {
-
-                // }
-
-                self.compile_instruction(value, locals)
+            Instruction::Jump(ref label) => write!(&mut self.file, "\tjmp .{} \n", label).unwrap(),
+            Instruction::JumpOp(ref op, ref label) => {
+                use ir::ir::CmpOp;
+                match *op {
+                    CmpOp::LT => write!(&mut self.file, "\tjge .{}\n",label).unwrap(),
+                    CmpOp::LTE => write!(&mut self.file, "\tjg .{}\n",label).unwrap(),
+                    CmpOp::GT => write!(&mut self.file, "\tjle .{}\n",label).unwrap(),
+                    CmpOp::GTE => write!(&mut self.file, "\tjl .{}\n",label).unwrap(),
+                    CmpOp::NE => write!(&mut self.file, "\tje  .{}\n",label).unwrap(),
+                    CmpOp::EQ => write!(&mut self.file, "\tjne .{}\n",label).unwrap(),
+                }
             }
-            Instruction::Jump(ref label) => write!(&mut self.file, "\tjmp {} \n", label).unwrap(),
             Instruction::Load(ref temp) => {
                 if let Some(ref offset) = locals.get(temp) {
                     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();

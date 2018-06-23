@@ -10,6 +10,8 @@ pub struct Codegen {
     loop_label: Option<Label>,
     loop_break_label: Option<Label>,
     offset: i32,
+    cmp_op: Option<ir::CmpOp>,
+    cmp:bool,
 }
 
 const HP: Temp = Temp(0);
@@ -20,6 +22,8 @@ impl Codegen {
             loop_label: None,
             loop_break_label: None,
             offset: 0,
+            cmp:false,
+            cmp_op:None
         }
     }
 
@@ -141,25 +145,37 @@ impl Codegen {
                 if let Some(ref otherwise) = *otherwise {
                     let l3 = Label::new();
 
-                    self.gen_expression(cond, Temp::new(), instructions, ctx);
 
-                    instructions.push(ir::Instruction::Label(l1));
+                    self.cmp = true;
 
+                    let cond = self.gen_expression(cond, Temp::new(), instructions, ctx);
+
+                    instructions.push(cond);
+
+                    instructions.push(ir::Instruction::JumpOp(self.cmp_op.take().expect("No cmpop found for jump cond"),l2));
+                    
+                   
                     self.gen_statement(then, instructions, locals, ctx);
 
                     instructions.push(ir::Instruction::Jump(l3));
-                    instructions.push(ir::Instruction::Label(l2));
-                    self.gen_statement(otherwise, instructions, locals, ctx);
 
+                    instructions.push(ir::Instruction::Label(l2));
+
+                    self.gen_statement(otherwise, instructions, locals, ctx);
+                    
                     instructions.push(ir::Instruction::Label(l3));
+                    self.cmp = false;
                 } else {
+                    self.cmp = true;
+                    
                     self.gen_expression(cond, Temp::new(), instructions, ctx);
 
-                    instructions.push(ir::Instruction::Label(l1));
+                    instructions.push(ir::Instruction::JumpOp(self.cmp_op.take().expect("No cmpop found for jump cond"),l2));
 
                     self.gen_statement(then, instructions, locals, ctx);
 
                     instructions.push(ir::Instruction::Label(l2));
+                    self.cmp = false;
                 }
             }
 
@@ -228,9 +244,13 @@ impl Codegen {
                 let lhs = self.gen_expression(lhs, lhs_temp, instructions, ctx);
                 let rhs_temp = Temp::new();
                 let rhs = self.gen_expression(rhs, rhs_temp, instructions, ctx);
-                let op = gen_bin_op(op);
+                let bop = gen_bin_op(op);
 
-                ir::Instruction::BinOp(temp, op, Box::new(lhs), Box::new(rhs))
+                if self.cmp {
+                    self.cmp_op = Some(gen_cmp_op(op))
+                }
+
+                ir::Instruction::BinOp(temp, bop, Box::new(lhs), Box::new(rhs))
             }
 
             t::Expression::Call(_, ref exprs) => {
@@ -364,6 +384,18 @@ fn gen_bin_op(op: &Op) -> ir::BinOp {
         Op::LTE => ir::BinOp::LTE,
         Op::NEq => ir::BinOp::NE,
         Op::Equal => ir::BinOp::EQ,
+    }
+}
+
+fn gen_cmp_op(op: &Op) -> ir::CmpOp {
+    match *op {
+        Op::LT => ir::CmpOp::LT,
+        Op::LTE => ir::CmpOp::LTE,
+        Op::GT => ir::CmpOp::GT,
+        Op::GTE => ir::CmpOp::GTE,
+        Op::NEq => ir::CmpOp::NE,
+        Op::Equal => ir::CmpOp::EQ,
+        _ => unreachable!(),
     }
 }
 

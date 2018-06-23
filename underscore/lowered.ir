@@ -1,0 +1,6 @@
+function l3() {
+    Store(t1, Const(10, Signed, Bit32))
+    JumpOp(LTE, Int(2))
+    Store(t1, Const(50, Signed, Bit32))
+    Label(Int(2))
+}
