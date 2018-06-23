@@ -54,7 +54,7 @@ fn main() {
 }
 ```
 compiles to 
-```asms
+```asm
 .text 
 		.global _main
 _main:
