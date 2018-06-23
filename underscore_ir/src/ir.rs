@@ -35,7 +35,7 @@ pub enum Instruction {
     UnOp(Temp, UnOp, Box<Instruction>),
 
     /// Evaluate l1, l2 compare using CmpOp and then got to L or R
-    CJump(Temp, CmpOp, Temp, Label, Label),
+    CJump(Temp, CmpOp, Temp, Box<Instruction>, Box<Instruction>),
     /// A Value
     Value(Value),
     /// Call a function with arguments
@@ -45,19 +45,19 @@ pub enum Instruction {
     /// Return
     Return(Box<Instruction>),
     /// Load
-    Load(Value),
+    Load(Temp),
 
     /// Block
-    Block(Temp, Vec<Temp>),
+    Block(Label, Vec<Instruction>),
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Instruction::Store(_, ref value) => write!(f, "{}",value),
+            Instruction::Store(_, ref value) => write!(f, "{}", value),
             Instruction::Value(ref value) => write!(f, "{}", value),
             Instruction::BinOp(ref t1, ref op, ref v1, ref v2) => {
-                write!(f, "{} := {} {} {}", t1,  v1,op, v2)
+                write!(f, "{} := {} {} {}", t1, v1, op, v2)
             }
 
             Instruction::Block(ref temp, ref temps) => {
@@ -133,6 +133,14 @@ pub enum BinOp {
     Minus,
     Mul,
     Div,
+    Or,
+    And,
+    LT,
+    GT,
+    LTE,
+    GTE,
+    EQ,
+    NE,
 }
 
 #[derive(Debug, Clone)]
@@ -189,8 +197,14 @@ impl Display for BinOp {
             BinOp::Minus => write!(f, "-"),
             BinOp::Mul => write!(f, "*"),
             BinOp::Div => write!(f, "/"),
-            // BinOp::And => write!(f, "and"),
-            // BinOp::Or => write!(f, "or"),
+            BinOp::And => write!(f, "and"),
+            BinOp::Or => write!(f, "or"),
+            BinOp::LT => write!(f, "<"),
+            BinOp::LTE => write!(f, "<="),
+            BinOp::GT => write!(f, ">"),
+            BinOp::GTE => write!(f, ">="),
+            BinOp::NE => write!(f, "!="),
+            BinOp::EQ => write!(f, "=="),
         }
     }
 }

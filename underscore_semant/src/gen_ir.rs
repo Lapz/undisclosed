@@ -141,7 +141,7 @@ impl Codegen {
                 if let Some(ref otherwise) = *otherwise {
                     let l3 = Label::new();
 
-                    self.gen_cond(cond, l1, l2, instructions, ctx);
+                    self.gen_expression(cond, Temp::new(), instructions, ctx);
 
                     instructions.push(ir::Instruction::Label(l1));
 
@@ -153,7 +153,7 @@ impl Codegen {
 
                     instructions.push(ir::Instruction::Label(l3));
                 } else {
-                    self.gen_cond(cond, l1, l2, instructions, ctx);
+                    self.gen_expression(cond, Temp::new(), instructions, ctx);
 
                     instructions.push(ir::Instruction::Label(l1));
 
@@ -177,7 +177,7 @@ impl Codegen {
 
                 instructions.push(ir::Instruction::Label(lbody));
 
-                self.gen_cond(cond, ltrue, lfalse, instructions, ctx);
+                self.gen_expression(cond, Temp::new(), instructions, ctx);
 
                 instructions.push(ir::Instruction::Label(ltrue));
 
@@ -212,43 +212,25 @@ impl Codegen {
                 for item in items {
                     let temp = Temp::new();
 
-                    self.gen_expression(item, temp, instructions, ctx);
-                    block.push(temp);
+                    block.push(self.gen_expression(item, temp, instructions, ctx));
                 }
 
-                ir::Instruction::Block(temp, block)
+                ir::Instruction::Block(Label::new(), block)
             }
             t::Expression::Assign(ref name, ref value) => {
                 let temp = self.gen_var(name, instructions, ctx);
 
-                
-
-                ir::Instruction::Copy(temp, Box::new(self.gen_expression(value, temp, instructions, ctx)))
+                self.gen_expression(value, temp, instructions, ctx)
                 //  let temp = self.symbols.look(symbol)
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
                 let lhs_temp = Temp::new();
-
+                let lhs = self.gen_expression(lhs, lhs_temp, instructions, ctx);
                 let rhs_temp = Temp::new();
+                let rhs = self.gen_expression(rhs, rhs_temp, instructions, ctx);
+                let op = gen_bin_op(op);
 
-                match *op {
-                    Op::Plus | Op::Minus | Op::Slash | Op::Star => {
-                        let lhs = self.gen_expression(lhs, lhs_temp, instructions, ctx);
-                        let rhs = self.gen_expression(rhs, rhs_temp, instructions, ctx);
-                        let op = gen_bin_op(op);
-
-                        ir::Instruction::BinOp(temp, op, Box::new(lhs), Box::new(rhs))
-                    }
-
-                    _ => {
-                        let ltrue = Label::new();
-                        let lfalse = Label::new();
-
-                        unimplemented!()
-
-                        // self.gen_cond(expr, ltrue, lfalse, instructions, ctx)
-                    }
-                }
+                ir::Instruction::BinOp(temp, op, Box::new(lhs), Box::new(rhs))
             }
 
             t::Expression::Call(_, ref exprs) => {
@@ -323,8 +305,7 @@ impl Codegen {
             }
 
             t::Expression::Var(ref var) => {
-                let t = self.gen_var(var, instructions, ctx);
-                ir::Instruction::Load(ir::Value::Temp(t))
+                ir::Instruction::Load(self.gen_var(var, instructions, ctx))
             }
 
             _ => unimplemented!(),
@@ -367,80 +348,6 @@ impl Codegen {
             _ => unimplemented!(),
         }
     }
-
-    fn gen_cond(
-        &mut self,
-        cond: &t::TypedExpression,
-        ltrue: Label,
-        lfalse: Label,
-        instructions: &mut Vec<ir::Instruction>,
-        ctx: &mut CompileCtx,
-    ) {
-        match *cond.expr {
-            t::Expression::Binary(ref lhs, ref op, ref rhs) => match *op {
-                Op::NEq => self.gen_cond(cond, lfalse, ltrue, instructions, ctx),
-
-                Op::And => {
-                    let lnext = Label::new();
-
-                    self.gen_cond(lhs, lnext, lfalse, instructions, ctx);
-
-                    instructions.push(ir::Instruction::Jump(lnext));
-
-                    self.gen_cond(rhs, ltrue, lfalse, instructions, ctx);
-
-                    instructions.push(ir::Instruction::Label(lnext));
-                }
-                Op::Or => {
-                    let lnext = Label::new();
-
-                    self.gen_cond(lhs, ltrue, lnext, instructions, ctx);
-
-                    instructions.push(ir::Instruction::Jump(lnext));
-
-                    self.gen_cond(rhs, ltrue, lfalse, instructions, ctx);
-
-                    instructions.push(ir::Instruction::Label(lnext));
-                }
-
-                Op::LT | Op::GT | Op::GTE | Op::LTE | Op::Equal => {
-                    let lhs_temp = Temp::new();
-                    let rhs_temp = Temp::new();
-                    self.gen_expression(lhs, lhs_temp, instructions, ctx);
-                    self.gen_expression(rhs, rhs_temp, instructions, ctx);
-                    instructions.push(ir::Instruction::CJump(
-                        lhs_temp,
-                        gen_cmp_op(op),
-                        rhs_temp,
-                        ltrue,
-                        lfalse,
-                    ))
-                }
-
-                ref e => unreachable!("{:?}", e),
-            },
-
-            _ => {
-                let true_temp = Temp::new();
-                let expr_temp = Temp::new();
-
-                self.gen_expression(cond, expr_temp, instructions, ctx);
-
-                ir::Instruction::Store(
-                    true_temp,
-                    ir::Value::Const(true as u64, Sign::Unsigned, Size::Bit8),
-                );
-
-                instructions.push(ir::Instruction::CJump(
-                    expr_temp,
-                    ir::CmpOp::EQ,
-                    true_temp,
-                    ltrue,
-                    lfalse,
-                ))
-            }
-        }
-    }
 }
 
 fn gen_bin_op(op: &Op) -> ir::BinOp {
@@ -449,23 +356,18 @@ fn gen_bin_op(op: &Op) -> ir::BinOp {
         Op::Minus => ir::BinOp::Minus,
         Op::Star => ir::BinOp::Mul,
         Op::Slash => ir::BinOp::Div,
-        // Op::And => ir::BinOp::And,
-        // Op::Or => ir::BinOp::Or,
-        _ => unreachable!(),
+        Op::And => ir::BinOp::And,
+        Op::Or => ir::BinOp::Or,
+        Op::GT => ir::BinOp::GT,
+        Op::GTE => ir::BinOp::GTE,
+        Op::LT => ir::BinOp::LT,
+        Op::LTE => ir::BinOp::LTE,
+        Op::NEq => ir::BinOp::NE,
+        Op::Equal => ir::BinOp::EQ,
     }
 }
 
-fn gen_cmp_op(op: &Op) -> ir::CmpOp {
-    match *op {
-        Op::LT => ir::CmpOp::LT,
-        Op::LTE => ir::CmpOp::LTE,
-        Op::GT => ir::CmpOp::GT,
-        Op::GTE => ir::CmpOp::GTE,
-        Op::NEq => ir::CmpOp::NE,
-        Op::Equal => ir::CmpOp::EQ,
-        _ => unreachable!(),
-    }
-}
+
 fn gen_un_op(op: &UnaryOp) -> ir::UnOp {
     match *op {
         UnaryOp::Minus => ir::UnOp::Minus,

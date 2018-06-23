@@ -17,12 +17,12 @@ impl Optimizer {
 
     pub fn unused_labels(targets: &mut Vec<Label>, ir: &mut Vec<Instruction>) {
         for instruction in ir.iter() {
-            if let Instruction::Jump(ref label) = instruction {
-                targets.push(*label)
-            } else if let Instruction::CJump(_, _, _, ref ltrue, ref lfalse) = instruction {
-                targets.push(*ltrue);
-                targets.push(*lfalse)
-            }
+            // if let Instruction::Jump(ref label) = instruction {
+            //     targets.push(*label)
+            // } else if let Instruction::CJump(_, _, _, ref ltrue, ref lfalse) = instruction {
+            //     targets.push(*ltrue);
+            //     targets.push(*lfalse)
+            // }
         }
 
         ir.retain(|&ref instruction| match instruction {
