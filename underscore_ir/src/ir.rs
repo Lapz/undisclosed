@@ -25,7 +25,6 @@ pub enum Instruction {
     Jump(Label),
     /// Jump to a specfic label
     JumpOp(CmpOp, Label),
-
     /// CAST the expresion to a different type treating it a
     Cast(Temp, Sign, Size), //TODO take into account sign
     /// Binary operation and store in Temp
@@ -33,7 +32,7 @@ pub enum Instruction {
     /// Unary Op store in Temp
     UnOp(Temp, UnOp, Box<Instruction>),
     /// Call a function with arguments
-    Call(Temp, Label, Vec<Temp>),
+    Call(Label),
     /// Empty Label
     Label(Label),
     /// Return
@@ -72,19 +71,7 @@ impl Display for Instruction {
             Instruction::Cast(ref t1, ref sign, ref size) => {
                 write!(f, "t1 := {}:{}{}", t1, sign, size)
             }
-            Instruction::Call(ref t1, ref label, ref temps) => {
-                write!(f, "{} := {}.call(", t1, label)?;
-
-                for (i, temp) in temps.iter().enumerate() {
-                    if i + 1 == temps.len() {
-                        write!(f, "{}", temp)?
-                    } else {
-                        write!(f, "{},", temp)?
-                    }
-                }
-
-                write!(f, ")")
-            }
+            Instruction::Call(ref label) => write!(f, "{}()", label),
             Instruction::Jump(ref label) => write!(f, "jump {}", label),
             Instruction::JumpOp(ref op, ref label) => write!(f, "jump {} {}", op, label),
             Instruction::Label(ref label) => write!(f, "label {}", label),

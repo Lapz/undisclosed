@@ -11,7 +11,7 @@ pub struct Codegen {
     loop_break_label: Option<Label>,
     offset: i32,
     cmp_op: Option<ir::CmpOp>,
-    cmp:bool,
+    cmp: bool,
 }
 
 const HP: Temp = Temp(0);
@@ -22,8 +22,8 @@ impl Codegen {
             loop_label: None,
             loop_break_label: None,
             offset: 0,
-            cmp:false,
-            cmp_op:None
+            cmp: false,
+            cmp_op: None,
         }
     }
 
@@ -145,16 +145,17 @@ impl Codegen {
                 if let Some(ref otherwise) = *otherwise {
                     let l3 = Label::new();
 
-
                     self.cmp = true;
 
                     let cond = self.gen_expression(cond, Temp::new(), instructions, ctx);
 
                     instructions.push(cond);
 
-                    instructions.push(ir::Instruction::JumpOp(self.cmp_op.take().expect("No cmpop found for jump cond"),l2));
-                    
-                   
+                    instructions.push(ir::Instruction::JumpOp(
+                        self.cmp_op.take().expect("No cmpop found for jump cond"),
+                        l2,
+                    ));
+
                     self.gen_statement(then, instructions, locals, ctx);
 
                     instructions.push(ir::Instruction::Jump(l3));
@@ -162,15 +163,18 @@ impl Codegen {
                     instructions.push(ir::Instruction::Label(l2));
 
                     self.gen_statement(otherwise, instructions, locals, ctx);
-                    
+
                     instructions.push(ir::Instruction::Label(l3));
                     self.cmp = false;
                 } else {
                     self.cmp = true;
-                    
+
                     self.gen_expression(cond, Temp::new(), instructions, ctx);
 
-                    instructions.push(ir::Instruction::JumpOp(self.cmp_op.take().expect("No cmpop found for jump cond"),l2));
+                    instructions.push(ir::Instruction::JumpOp(
+                        self.cmp_op.take().expect("No cmpop found for jump cond"),
+                        l2,
+                    ));
 
                     self.gen_statement(then, instructions, locals, ctx);
 
@@ -180,30 +184,31 @@ impl Codegen {
             }
 
             t::Statement::While(ref cond, ref body) => {
-                let (start, end) = (Label::new(), Label::new());
-
-                let lbody = Label::new();
                 let ltrue = Label::new();
                 let lfalse = Label::new();
 
-                self.loop_break_label = Some(end);
-                self.loop_label = Some(lbody);
+                self.loop_break_label = Some(ltrue);
+                self.loop_label = Some(ltrue);
 
-                instructions.push(ir::Instruction::Label(start));
-
-                instructions.push(ir::Instruction::Label(lbody));
-
-                self.gen_expression(cond, Temp::new(), instructions, ctx);
+                self.cmp = true;
 
                 instructions.push(ir::Instruction::Label(ltrue));
 
+                let cond = self.gen_expression(cond, Temp::new(), instructions, ctx);
+
+                instructions.push(cond);
+
+                if let Some(op) = self.cmp_op.take() {
+                    instructions.push(ir::Instruction::JumpOp(op, lfalse))
+                }
+
+                self.cmp = false;
+
                 self.gen_statement(body, instructions, locals, ctx);
 
-                instructions.push(ir::Instruction::Jump(lbody));
+                instructions.push(ir::Instruction::Jump(ltrue));
 
                 instructions.push(ir::Instruction::Label(lfalse));
-
-                instructions.push(ir::Instruction::Label(end));
             }
 
             t::Statement::Return(ref expr) => {
@@ -223,15 +228,17 @@ impl Codegen {
     ) -> ir::Instruction {
         match *expr.expr {
             t::Expression::Array(ref items) => {
-                let mut block = vec![];
+                // let mut block = vec![];
 
-                for item in items {
-                    let temp = Temp::new();
+                // for item in items {
+                //     let temp = Temp::new();
 
-                    block.push(self.gen_expression(item, temp, instructions, ctx));
-                }
+                //     block.push(self.gen_expression(item, temp, instructions, ctx));
+                // }
 
-                ir::Instruction::Block(Label::new(), block)
+                // ir::Instruction::Block(Label::new(), block)
+
+                unimplemented!()
             }
             t::Expression::Assign(ref name, ref value) => {
                 let temp = self.gen_var(name, instructions, ctx);
@@ -253,16 +260,13 @@ impl Codegen {
                 ir::Instruction::BinOp(temp, bop, Box::new(lhs), Box::new(rhs))
             }
 
-            t::Expression::Call(_, ref exprs) => {
-                let mut params = vec![];
-
+            t::Expression::Call(ref name, ref exprs) => {
                 for expr in exprs {
-                    let temp = Temp::new();
-                    self.gen_expression(expr, temp, instructions, ctx);
-                    params.push(temp)
+                    let expr = self.gen_expression(expr, temp, instructions, ctx);
+                    instructions.push(expr)
                 }
 
-                ir::Instruction::Call(temp, Label::new(), params)
+                ir::Instruction::Call(Label::named(*name))
             }
 
             t::Expression::Cast(ref from, _) => {
@@ -398,7 +402,6 @@ fn gen_cmp_op(op: &Op) -> ir::CmpOp {
         _ => unreachable!(),
     }
 }
-
 
 fn gen_un_op(op: &UnaryOp) -> ir::UnOp {
     match *op {

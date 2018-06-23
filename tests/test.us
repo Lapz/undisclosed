@@ -3,8 +3,9 @@ fn main() {
     
 
     let x = 10;
-    if x <= 10 {
-        x = 50;
+   
+    while(true) {
+       x = 1;
     }
 
 }

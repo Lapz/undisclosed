@@ -8,9 +8,11 @@ l3:
 	movl %edi, -20(%rbp) #pro
 	movq $10, %rax
 	movq %rax, -4(%rbp)
-	jg .l2
-	movq $50, %rax
+.l1:
+	movq $1, %rax
+	movq $1, %rax
 	movq %rax, -4(%rbp)
+	jmp .l1 
 .l2:
 	movq %rbp, %rsp #epi
 	popq %rbp  
