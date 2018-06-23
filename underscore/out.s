@@ -10,8 +10,7 @@ l3:
 	movq %rax, -4(%rbp)
 .l1:
 	movq $1, %rax
-	movq $1, %rax
-	movq %rax, -4(%rbp)
+	jmp .l1 
 	jmp .l1 
 .l2:
 	movq %rbp, %rsp #epi

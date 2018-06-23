@@ -5,7 +5,7 @@ fn main() {
     let x = 10;
    
     while(true) {
-       x = 1;
+       continue;
     }
 
 }

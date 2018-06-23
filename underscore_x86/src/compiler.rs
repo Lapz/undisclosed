@@ -190,8 +190,6 @@ impl Compiler {
                     }
                 }
             }
-
-            // Instruction::Value(ref value) => self.compile_value(value, locals),
             Instruction::UnOp(_, ref op, ref value) => {
                 use ir::ir::UnOp;
                 match *op {

@@ -187,7 +187,7 @@ impl Codegen {
                 let ltrue = Label::new();
                 let lfalse = Label::new();
 
-                self.loop_break_label = Some(ltrue);
+                self.loop_break_label = Some(lfalse);
                 self.loop_label = Some(ltrue);
 
                 self.cmp = true;
