@@ -140,9 +140,10 @@ impl Codegen {
                 ref otherwise,
             } => {
                 let l1 = Label::new();
-                let l2 = Label::new();
+                
 
                 if let Some(ref otherwise) = *otherwise {
+                    let l2 = Label::new();
                     let l3 = Label::new();
 
                     self.cmp = true;
@@ -156,6 +157,8 @@ impl Codegen {
                         l2,
                     ));
 
+                    self.cmp = false;
+
                     self.gen_statement(then, instructions, locals, ctx);
 
                     instructions.push(ir::Instruction::Jump(l3));
@@ -165,7 +168,7 @@ impl Codegen {
                     self.gen_statement(otherwise, instructions, locals, ctx);
 
                     instructions.push(ir::Instruction::Label(l3));
-                    self.cmp = false;
+                    
                 } else {
                     self.cmp = true;
 
@@ -173,13 +176,15 @@ impl Codegen {
 
                     instructions.push(ir::Instruction::JumpOp(
                         self.cmp_op.take().expect("No cmpop found for jump cond"),
-                        l2,
+                        l1,
                     ));
+
+                    self.cmp = false;
 
                     self.gen_statement(then, instructions, locals, ctx);
 
-                    instructions.push(ir::Instruction::Label(l2));
-                    self.cmp = false;
+                    instructions.push(ir::Instruction::Label(l1));
+                    
                 }
             }
 
@@ -350,7 +355,10 @@ impl Codegen {
 
                 let addr = Temp::new();
 
-                self.gen_expression(expr, addr, instructions, ctx);
+                let expr = self.gen_expression(expr, addr, instructions, ctx);
+
+                instructions.push(expr);
+
 
                 // instructions.push(ir::Instruction::BinOp(
                 //     addr,
