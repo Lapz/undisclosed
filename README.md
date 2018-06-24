@@ -97,11 +97,11 @@ l0:
 * ~~Add proper printing of types~~
 * ~~Add field access~~
 * Add codegen 
-	[ ] Compile for loops,
-	[ ] Compile while loops,
+	[x] Compile for loops,
+	[x] Compile while loops,
 	[ ] Compile structs,
 	[ ] Compile arrays
-	[ ] Compile Function calls,
+	[x] Compile Function calls,
 	[ ] Compile extern function calls,
 	
 # References

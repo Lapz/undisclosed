@@ -23,7 +23,7 @@ pub enum Instruction {
     Store(Temp, Value),
     /// Jump to a label
     Jump(Label),
-    /// Jump to a specfic label
+    /// Jump to a specfic label depending on the cond
     JumpOp(CmpOp, Label),
     /// CAST the expresion to a different type treating it a
     Cast(Temp, Sign, Size), //TODO take into account sign
@@ -39,7 +39,6 @@ pub enum Instruction {
     Return(Box<Instruction>),
     /// Load
     Load(Temp),
-
     /// Block
     Block(Label, Vec<Instruction>),
 }
