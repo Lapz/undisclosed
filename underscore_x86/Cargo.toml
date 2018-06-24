@@ -5,3 +5,4 @@ authors = ["rowlandsonpratt <striderman34@gmail.com>"]
 
 [dependencies]
 underscore_ir = { path = "../underscore_ir"}
+underscore_util = { path = "../underscore_util"}

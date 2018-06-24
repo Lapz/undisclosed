@@ -13,6 +13,7 @@ pub struct CompileCtx<'a> {
     vars: Symbols<VarEntry>,
     escapes: Symbols<(u32, bool)>,
     temps: Symbols<::ir::Temp>,
+    labels: Symbols<()>,
     reporter: &'a mut Reporter,
 }
 
@@ -68,6 +69,7 @@ impl<'a> CompileCtx<'a> {
             vars: Symbols::new(strings.clone()),
             escapes: Symbols::new(strings.clone()),
             temps: Symbols::new(strings.clone()),
+            labels: Symbols::new(strings.clone()),
             reporter,
         }
     }
@@ -142,6 +144,8 @@ impl<'a> CompileCtx<'a> {
     pub fn add_escape(&mut self, ident: Symbol, data: (u32, bool)) {
         self.escapes.enter(ident, data)
     }
+
+    
 
     pub fn name(&self, ident: Symbol) -> String {
         self.vars.name(ident)

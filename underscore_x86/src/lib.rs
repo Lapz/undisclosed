@@ -1,5 +1,5 @@
 extern crate underscore_ir as ir;
-
+extern crate underscore_util as util;
 mod compiler;
 // mod x86_frame;
 

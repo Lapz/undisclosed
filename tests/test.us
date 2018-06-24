@@ -1,12 +1,7 @@
 
 fn main() {
-    
-
     let x = "a";
     puts(x);
-   
-    
-
 }
 
 

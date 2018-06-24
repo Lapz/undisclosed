@@ -5,8 +5,10 @@ use std::fs::File;
 use std::io::Write;
 use ir::Label;
 
-pub struct Compiler {
+pub struct Compiler<'a> {
     file: File,
+    // labels:
+
 }
 
 impl Compiler {

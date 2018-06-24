@@ -213,6 +213,7 @@ name = "underscore_x86"
 version = "0.1.0"
 dependencies = [
  "underscore_ir 0.1.0",
+ "underscore_util 0.1.0",
 ]
 
 [[package]]
