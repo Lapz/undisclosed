@@ -2,11 +2,10 @@
 fn main() {
     
 
-    let x = 10;
+    let x = "a";
+    puts(x);
    
-    while(true) {
-       continue;
-    }
+    
 
 }
 

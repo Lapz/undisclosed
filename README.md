@@ -12,7 +12,7 @@ $ git clone https://github.com/Lapz/underscore
 $ cd underscore
 $ cargo install
 $ underscore foo.us
-$ gcc  out.s -o out
+$ gcc  -m64 out.s -o out
 $ ./out
 ```
 

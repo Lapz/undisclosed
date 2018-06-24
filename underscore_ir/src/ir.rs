@@ -14,6 +14,7 @@ pub struct Function {
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
     pub locals: HashMap<Temp, i32>,
+    pub strings: HashMap<Label,String>
 }
 
 #[derive(Debug, Clone)]
@@ -41,6 +42,8 @@ pub enum Instruction {
     Load(Temp),
     /// Block
     Block(Label, Vec<Instruction>),
+    /// Drop the local Variable
+    Drop(Temp),
 }
 
 impl Display for Instruction {
@@ -75,6 +78,7 @@ impl Display for Instruction {
             Instruction::JumpOp(ref op, ref label) => write!(f, "jump {} {}", op, label),
             Instruction::Label(ref label) => write!(f, "label {}", label),
             Instruction::Return(ref ret) => write!(f, "ret {}", ret),
+            Instruction::Drop(ref label) => write!(f,"drop {}",label)
         }
     }
 }
@@ -87,8 +91,7 @@ pub enum Value {
     Name(Label),
     /// A Temporary similar to a register
     Temp(Temp),
-    //  Contents of a word of memory at address
-    Mem(Vec<u8>),
+ 
 }
 
 impl Display for Value {
@@ -97,7 +100,6 @@ impl Display for Value {
             Value::Const(ref v, sn, si) => write!(f, "{}{}{}", v, sn, si),
             Value::Name(ref l) => write!(f, "{}", l),
             Value::Temp(ref temp) => write!(f, "{}", temp),
-            Value::Mem(ref bytes) => write!(f, "{:?}", bytes),
         }
     }
 }

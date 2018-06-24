@@ -3,10 +3,10 @@ use ir::ir::Value;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
+use ir::Label;
 
 pub struct Compiler {
     file: File,
-    strings: Vec<Vec<u8>>,
 }
 
 impl Compiler {
@@ -18,7 +18,7 @@ impl Compiler {
 
         Compiler {
             file,
-            strings: vec![],
+          
         }
     }
 
@@ -44,8 +44,16 @@ impl Compiler {
         }
 
         self.emit_func_epilogue();
+        self.emit_strings(&function.strings);
     }
 
+    pub fn emit_strings(&mut self,strings:&HashMap<Label,String>) {
+
+        for (label,string) in strings {
+             write!(&mut self.file, ".{}:\n\t.asciz {:?}", label,string).unwrap();
+        }
+    }
+ 
     pub fn emit_func_prologue(&mut self, nparams: usize) {
         if nparams == 0 {
             self.write("\tpushq %rbp\n\tmovq %rsp, %rbp  #pro\n")
@@ -55,7 +63,7 @@ impl Compiler {
     }
 
     pub fn emit_func_epilogue(&mut self) {
-        self.write("\tmovq %rbp, %rsp #epi\n\tpopq %rbp  \n\tret")
+        self.write("\tmovq %rbp, %rsp #epi\n\tpopq %rbp  \n\tret\n")
     }
 
     pub fn compile_instruction(
@@ -239,8 +247,11 @@ impl Compiler {
                 if let Some(ref offset) = locals.get(temp) {
                     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();
                 }
+            },
+            Value::Name(ref label) => {
+                write!(&mut self.file, "\tleaq .{}(%rip),%rax\n", label).unwrap();
             }
-            _ => unimplemented!(),
+            
         }
     }
 }
