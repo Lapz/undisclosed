@@ -1,26 +1,26 @@
 use ir;
 use ir::ir::Value;
+use ir::Label;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
-use ir::Label;
+use std::rc::Rc;
+use util::symbol::{Symbol, SymbolMap, Symbols};
 
-pub struct Compiler<'a> {
+pub struct Compiler {
     file: File,
-    // labels:
-
+    labels: Symbols<()>,
 }
 
 impl Compiler {
-    pub fn new() -> Compiler {
+    pub fn new(strings: &Rc<SymbolMap<Symbol>>) -> Compiler {
         let mut file = File::create("out.s").expect("\tCouldn't create the file");
 
-        file.write_all(b".text \n\t\t.global _main\n_main:\n")
-            .unwrap();
+        file.write_all(b".text \n\t.global _main").unwrap();
 
         Compiler {
             file,
-          
+            labels: Symbols::new(strings.clone()),
         }
     }
 
@@ -29,13 +29,31 @@ impl Compiler {
     }
 
     pub fn compile(&mut self, program: ir::ir::Program) {
+        let mut extern_funcs = vec![];
         for function in program.functions.iter() {
+            if function.linkage == ir::ir::Linkage::External {
+                extern_funcs.push(function.name);
+            }
+        }
+
+        extern_funcs.iter().for_each(|e| {
+            self.write("\n\t.extern ");
+            e.fmt(&mut self.file, &mut self.labels).unwrap();
+            self.write("\n");
+        });
+
+        for function in program.functions.iter() {
+            if function.linkage == ir::ir::Linkage::External {
+                continue;
+            }
             self.compile_function(function);
         }
     }
 
     pub fn compile_function(&mut self, function: &ir::ir::Function) {
-        self.write(&format!("\n{}:\n", function.name));
+        self.write("\n");
+        function.name.fmt(&mut self.file, &mut self.labels).unwrap();
+        self.write(":\n");
         self.emit_func_prologue(function.locals.len());
 
         let locals = &function.locals;
@@ -49,13 +67,12 @@ impl Compiler {
         self.emit_strings(&function.strings);
     }
 
-    pub fn emit_strings(&mut self,strings:&HashMap<Label,String>) {
-
-        for (label,string) in strings {
-             write!(&mut self.file, ".{}:\n\t.asciz {:?}", label,string).unwrap();
+    pub fn emit_strings(&mut self, strings: &HashMap<Label, String>) {
+        for (label, string) in strings {
+            write!(&mut self.file, ".{}:\n\t.asciz {:?}", label, string).unwrap();
         }
     }
- 
+
     pub fn emit_func_prologue(&mut self, nparams: usize) {
         if nparams == 0 {
             self.write("\tpushq %rbp\n\tmovq %rsp, %rbp  #pro\n")
@@ -236,7 +253,12 @@ impl Compiler {
                 }
             }
 
-            Instruction::Call(ref name) => write!(&mut self.file, "\tcallq {}\n", name).unwrap(),
+            Instruction::Call(ref name) => {
+                self.write("\tcallq ");
+
+                name.fmt(&mut self.file, &mut self.labels).unwrap();
+                self.write("\n");
+            }
 
             ref e => unimplemented!("{:?}", e),
         }
@@ -249,11 +271,10 @@ impl Compiler {
                 if let Some(ref offset) = locals.get(temp) {
                     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();
                 }
-            },
-            Value::Name(ref label) => {
-                write!(&mut self.file, "\tleaq .{}(%rip),%rax\n", label).unwrap();
             }
-            
+            Value::Name(ref label) => {
+                write!(&mut self.file, "\tleaq .{}(%rip),%rdi\n", label).unwrap();
+            }
         }
     }
 }

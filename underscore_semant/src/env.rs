@@ -13,7 +13,7 @@ pub enum VarType {
     Other,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum VarEntry {
     Var(Type),
     Fun { ty: Type },

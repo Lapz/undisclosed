@@ -7,7 +7,8 @@ use ctx::CompileCtx;
 use env::{Entry, VarEntry, VarType};
 use std::collections::HashMap;
 use syntax::ast::{
-    Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit, UnaryOp, Var,
+    Call, Expression, Function, Linkage, Literal, Op, Sign, Size, Statement, StructLit, UnaryOp,
+    Var,
 };
 use types::{Field, TyCon, Type, TypeVar};
 use util::pos::Spanned;
@@ -73,7 +74,9 @@ impl Infer {
 
         let body = self.infer_statement(&function.value.body, ctx)?;
 
-        self.unify(&returns, &self.body, function.value.body.span, ctx)?;
+        if function.value.linkage != Linkage::External {
+            self.unify(&returns, &self.body, function.value.body.span, ctx)?;
+        }
 
         ctx.end_scope();
         self.body = Type::Nil;

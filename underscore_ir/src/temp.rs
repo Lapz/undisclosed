@@ -1,5 +1,6 @@
 use std::fmt::{self, Debug, Display};
-use util::symbol::Symbol;
+use std::io::{self, Write};
+use util::symbol::{Symbol, Symbols};
 // pub type Label = Symbol;
 
 /// A Temporary address in assembly language.
@@ -10,7 +11,7 @@ static mut TEMP_COUNT: u32 = 1;
 static mut LABEL_COUNT: u32 = 1;
 
 /// A Label represents an address in assembly language.
-#[derive(Debug, Clone, PartialEq, PartialOrd, Copy,Eq,Hash)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Copy, Eq, Hash)]
 pub enum Label {
     Named(Symbol),
     Int(u32),
@@ -28,6 +29,13 @@ impl Label {
 
     pub fn named(symbol: Symbol) -> Self {
         Label::Named(symbol)
+    }
+
+    pub fn fmt<T: Write>(&self, f: &mut T, s: &mut Symbols<()>) -> io::Result<()> {
+        match *self {
+            Label::Int(ref i) => write!(f, "l{}", i),
+            Label::Named(ref i) => write!(f, "_{}", s.name(*i)),
+        }
     }
 }
 

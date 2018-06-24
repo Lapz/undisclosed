@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::{self, Display};
-use syntax::ast::Linkage;
+pub use syntax::ast::Linkage;
 use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
 #[derive(Debug)]
@@ -14,7 +14,7 @@ pub struct Function {
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
     pub locals: HashMap<Temp, i32>,
-    pub strings: HashMap<Label,String>
+    pub strings: HashMap<Label, String>,
 }
 
 #[derive(Debug, Clone)]
@@ -78,7 +78,7 @@ impl Display for Instruction {
             Instruction::JumpOp(ref op, ref label) => write!(f, "jump {} {}", op, label),
             Instruction::Label(ref label) => write!(f, "label {}", label),
             Instruction::Return(ref ret) => write!(f, "ret {}", ret),
-            Instruction::Drop(ref label) => write!(f,"drop {}",label)
+            Instruction::Drop(ref label) => write!(f, "drop {}", label),
         }
     }
 }
@@ -91,7 +91,6 @@ pub enum Value {
     Name(Label),
     /// A Temporary similar to a register
     Temp(Temp),
- 
 }
 
 impl Display for Value {

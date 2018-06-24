@@ -455,7 +455,7 @@ fn look_up_identifier(id: &str) -> TokenType {
         // Functions and vars
         "fn" => TokenType::FUNCTION,
         "as" => TokenType::AS,
-        "external" => TokenType::EXTERNAL,
+        "extern" => TokenType::EXTERNAL,
         "let" => TokenType::LET,
         "struct" => TokenType::STRUCT,
         // Control Flow

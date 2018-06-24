@@ -13,13 +13,13 @@ pub struct CompileCtx<'a> {
     vars: Symbols<VarEntry>,
     escapes: Symbols<(u32, bool)>,
     temps: Symbols<::ir::Temp>,
-    labels: Symbols<()>,
     reporter: &'a mut Reporter,
 }
 
 impl<'a> CompileCtx<'a> {
     pub fn new(strings: &Rc<SymbolMap<Symbol>>, reporter: &'a mut Reporter) -> Self {
         let mut types = Symbols::new(strings.clone());
+
         let string_ident = types.symbol("str");
         let i8_ident = types.symbol("i8");
         let u8_ident = types.symbol("u8");
@@ -30,6 +30,52 @@ impl<'a> CompileCtx<'a> {
 
         let nil_ident = types.symbol("nil");
         let bool_ident = types.symbol("bool");
+
+        let mut vars = Symbols::new(strings.clone());
+
+        let puts_ident = vars.symbol("puts");
+        let puti_ident = vars.symbol("puti");
+
+        vars.enter(
+            puts_ident,
+            VarEntry::Fun {
+                ty: Type::Poly(
+                    vec![],
+                    Box::new(Type::App(
+                        TyCon::Arrow,
+                        vec![Type::App(TyCon::String, vec![]), Type::Nil],
+                    )),
+                ),
+            },
+        );
+
+        vars.enter(
+            puti_ident,
+            VarEntry::Fun {
+                ty: Type::Poly(
+                    vec![],
+                    Box::new(Type::App(
+                        TyCon::Arrow,
+                        vec![
+                            Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![]),
+                            Type::Nil,
+                        ],
+                    )),
+                ),
+            },
+        );
+        // vars.enter(
+        //     printf_ident,
+        //     VarEntry::Fun {
+        //         ty: Type::Poly(
+        //             vec![],
+        //             Box::new(Type::App(
+        //                 TyCon::Arrow,
+        //                 vec![Type::App(TyCon::String, vec![]),Type::Nil],
+        //             )),
+        //         ),
+        //     },
+        // );
 
         types.enter(
             i8_ident,
@@ -66,10 +112,10 @@ impl<'a> CompileCtx<'a> {
         CompileCtx {
             types: Symbols::new(strings.clone()),
             tvars: HashMap::new(),
-            vars: Symbols::new(strings.clone()),
+            // vars:Symbols::new(strings.clone()),
+            vars,
             escapes: Symbols::new(strings.clone()),
             temps: Symbols::new(strings.clone()),
-            labels: Symbols::new(strings.clone()),
             reporter,
         }
     }
@@ -144,8 +190,6 @@ impl<'a> CompileCtx<'a> {
     pub fn add_escape(&mut self, ident: Symbol, data: (u32, bool)) {
         self.escapes.enter(ident, data)
     }
-
-    
 
     pub fn name(&self, ident: Symbol) -> String {
         self.vars.name(ident)

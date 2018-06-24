@@ -142,7 +142,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::FOR => write!(f, "for"),
             TokenType::WHILE => write!(f, "while"),
             TokenType::NIL => write!(f, "nil"),
-            TokenType::EXTERNAL => write!(f, "external"),
+            TokenType::EXTERNAL => write!(f, "extern"),
             TokenType::STRUCT => write!(f, "struct"),
             TokenType::EOF => write!(f, "EOF"),
         }

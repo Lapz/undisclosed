@@ -1,8 +1,0 @@
-function l3() {
-    Store(t1, Const(10, Signed, Bit32))
-    Label(Int(1))
-    Store(t2, Const(1, Unsigned, Bit8))
-    Jump(Int(1))
-    Jump(Int(1))
-    Label(Int(2))
-}

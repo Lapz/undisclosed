@@ -11,12 +11,19 @@ underscore_util =  {path="../underscore_util"}
 underscore_semant = {path ="../underscore_semant"}
 underscore_x86 = {path ="../underscore_x86"}
 underscore_ir = {path ="../underscore_ir"}
+libc = "*"
 
 [[test]]
 name ="underscore_test"
 path ="../tests/underscore_test.rs"
 harness = false
 
+
+
+[lib]
+name = "underscore_rt"
+path = "../underscore_runtime/src/lib.rs"
+crate-type = ["staticlib", "cdylib"]
 [dev-dependencies]
 walkdir = "2"
 ansi_term = "0.10"

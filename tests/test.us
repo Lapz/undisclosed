@@ -1,7 +1,13 @@
+fn square(a:i32) -> i32 {
+    return a * a;
+}
 
 fn main() {
-    let x = "a";
-    puts(x);
+    puts("Hello World!");
+    // puts('e');
+    // puts('l');
+    // puts('l');
+    // puts('o');
 }
 
 

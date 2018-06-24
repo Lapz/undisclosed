@@ -489,6 +489,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     /// },
     fn parse_function(&mut self) -> ParserResult<Spanned<Function>> {
         let linkage = if self.recognise(TokenType::EXTERNAL) {
+            self.advance();
             Linkage::External
         } else {
             Linkage::Normal
@@ -506,6 +507,27 @@ impl<'a, 'b> Parser<'a, 'b> {
         } else {
             None
         };
+
+        if self.recognise(TokenType::SEMICOLON) && linkage == Linkage::External {
+            self.advance();
+
+            let body = Spanned {
+                span: fn_span.to(params.get_span()),
+                value: Statement::Block(vec![]),
+            };
+
+            return Ok(Spanned {
+                span: fn_span.to(params.get_span()),
+                value: Function {
+                    span: fn_span.to(params.get_span()),
+                    name,
+                    params,
+                    body,
+                    linkage,
+                    returns,
+                },
+            });
+        }
 
         let body = self.parse_statement()?;
 

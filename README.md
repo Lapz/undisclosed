@@ -12,7 +12,6 @@ $ git clone https://github.com/Lapz/underscore
 $ cd underscore
 $ cargo install
 $ underscore foo.us
-$ gcc  -m64 out.s -o out
 $ ./out
 ```
 
@@ -102,7 +101,7 @@ l0:
 	[ ] Compile structs,
 	[ ] Compile arrays
 	[x] Compile Function calls,
-	[ ] Compile extern function calls,
+	[x] Compile extern function calls,
 	
 # References
 

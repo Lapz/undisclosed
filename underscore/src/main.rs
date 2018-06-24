@@ -10,17 +10,20 @@ extern crate underscore_x86 as x86;
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-use underscore_semant::{Codegen, Infer};
+use underscore_semant::Infer;
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
 use x86::Compiler;
+use std::process::Command;
+use std::fs::remove_file;
+
 fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file, opts.file);
+        run(file, opts.file,opts.emit_ir,opts.emit_asm);
     } else {
         repl()
     }
@@ -58,7 +61,7 @@ fn repl() {
     }
 }
 
-fn run(path: String, dump_file: Option<String>) {
+fn run(path: String, dump_file: Option<String>,emit_ir:bool,emit_asm:bool) {
     use std::fs::File;
     use std::io::Read;
 
@@ -126,19 +129,26 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
-    let mut file = File::create("lowered.ir").expect("Couldn't create file");
 
-    write!(file, "{}", ir).expect("Couldn't write to the file");
+    if emit_ir {
+        let mut file = File::create("lowered.ir").expect("Couldn't create file");
+        write!(file, "{}", ir).expect("Couldn't write to the file");
+    }
 
-    let mut compiler = Compiler::new();
+    let mut compiler = Compiler::new(&strings);
 
     compiler.compile(ir);
 
-    // let cfg = ir::construct_cfg(ir);
+    let mut gcc = Command::new("gcc");
+    
+    gcc.args(&["-m64", "-lz","../target/release/libunderscore_rt.dylib", "out.s","-o","out"]);
+    
+    gcc.output().expect("failed to execute process");
+    
+    if !emit_asm {
+        remove_file("out.s").unwrap();
+    }
 
-    //   write!(file, "{:#?}", cfg).expect("Couldn't write to the file");
-    // file.write(format!("{}", lowered).as_bytes())
-    //
 }
 
 #[derive(StructOpt, Debug)]
@@ -149,6 +159,8 @@ pub struct Cli {
     /// Dump the ast to a give file
     #[structopt(short = "d", long = "dump")]
     pub file: Option<String>,
-    #[structopt(short = "ir", long = "emit-ir")]
+    #[structopt(short = "ir", long = "emit_ir")]
     pub emit_ir: bool,
+    #[structopt(short = "a", long = "emit_asm")]
+    pub emit_asm:bool,
 }
