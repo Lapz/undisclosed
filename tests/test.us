@@ -1,16 +1,13 @@
-fn square(num:i32)   -> i32{
-    return num * num;
-    let x =10;
-    {
-        let y =10;
-        let z =10;
-    }
-     let z =10;
-}
 
 fn main() -> i32 {
-    let x =10;
-    return square(10);
+    {
+        let i =10;
+       
+    }
+    
+    let z =1;
+
+    return z;
 }
 
 

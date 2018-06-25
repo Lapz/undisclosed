@@ -248,9 +248,10 @@ impl Compiler {
             Instruction::Load(ref temp) => {
                 if let Some(ref offset) = locals.get(temp) {
                     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();
-                } else {
-                    panic!("Undefined temporary {}", temp);
-                }
+                } 
+                // else {
+                //     panic!("Undefined temporary {}", temp);
+                // }
             }
 
             Instruction::Call(ref name) => {
@@ -259,6 +260,9 @@ impl Compiler {
 
                 name.fmt(&mut self.file, &mut self.labels).unwrap();
                 self.write("\n");
+            },
+            Instruction::Drop(ref size) => {
+                write!(&mut self.file,"\taddq ${},%rsp\n",4*size).unwrap()
             }
 
             ref e => unimplemented!("{:?}", e),
