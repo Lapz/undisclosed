@@ -6,6 +6,10 @@ pub mod ir;
 pub mod optimize;
 mod temp;
 mod translate;
+mod scopes;
 
 pub use temp::{Label, Temp};
 // pub use cfg::construct_cfg;
+pub use scopes::Scopes;
+
+

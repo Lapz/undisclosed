@@ -42,8 +42,8 @@ pub enum Instruction {
     Load(Temp),
     /// Block
     Block(Label, Vec<Instruction>),
-    /// Drop the local Variable
-    Drop(Temp),
+    /// Drop the specified number of local variables
+    Drop(isize),
 }
 
 impl Display for Instruction {

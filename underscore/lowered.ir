@@ -1,0 +1,15 @@
+function ls0() {
+    Return(BinOp(t2, Mul, Load(t1), Load(t1)))
+    Store(t5, Const(10, Signed, Bit32))
+    Store(t6, Const(10, Signed, Bit32))
+    Store(t7, Const(10, Signed, Bit32))
+    Drop(2)
+    Store(t8, Const(10, Signed, Bit32))
+    Drop(2)
+}
+function ls5() {
+    Store(t9, Const(10, Signed, Bit32))
+    Store(t10, Const(10, Signed, Bit32))
+    Return(Call(Named(Symbol(0))))
+    Drop(1)
+}
