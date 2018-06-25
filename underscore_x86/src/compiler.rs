@@ -69,7 +69,7 @@ impl Compiler {
 
     pub fn emit_strings(&mut self, strings: &HashMap<Label, String>) {
         for (label, string) in strings {
-            write!(&mut self.file, ".{}:\n\t.asciz {:?}", label, string).unwrap();
+            write!(&mut self.file, ".{}:\n\t.asciz {:?}\n", label, string).unwrap();
         }
     }
 
@@ -254,6 +254,7 @@ impl Compiler {
             }
 
             Instruction::Call(ref name) => {
+                // self.write("\tmovq %rax,%rdi\n");
                 self.write("\tcallq ");
 
                 name.fmt(&mut self.file, &mut self.labels).unwrap();

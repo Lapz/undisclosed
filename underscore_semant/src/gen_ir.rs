@@ -157,7 +157,7 @@ impl Codegen {
                     instructions.push(cond);
 
                     instructions.push(ir::Instruction::JumpOp(
-                        self.cmp_op.take().expect("No cmpop found for jump cond"),
+                        self.cmp_op.take().unwrap_or(ir::CmpOp::EQ),
                         l2,
                     ));
 
@@ -178,7 +178,7 @@ impl Codegen {
                     self.gen_expression(cond, Temp::new(), instructions, strings, ctx);
 
                     instructions.push(ir::Instruction::JumpOp(
-                        self.cmp_op.take().expect("No cmpop found for jump cond"),
+                        self.cmp_op.take().unwrap_or(ir::CmpOp::EQ),
                         l1,
                     ));
 
