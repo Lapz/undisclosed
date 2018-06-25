@@ -1,7 +1,8 @@
 function ls0() {
-    Store(t1, Const(10, Signed, Bit32))
-    Drop(1)
-    Store(t2, Const(1, Signed, Bit32))
-    Return(Load(t2))
+    Store(t1, Const(1, Signed, Bit32))
+    Store(t2, Name(Int(1)))
+    Load(t1)
+    Call(Named(Symbol(2)))
+    Return(Load(t1))
     Drop(1)
 }

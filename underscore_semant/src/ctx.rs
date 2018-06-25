@@ -34,7 +34,7 @@ impl<'a> CompileCtx<'a> {
         let mut vars = Symbols::new(strings.clone());
 
         let puts_ident = vars.symbol("puts");
-        let puti_ident = vars.symbol("puti");
+        let printf_ident = vars.symbol("printf");
 
         vars.enter(
             puts_ident,
@@ -50,13 +50,14 @@ impl<'a> CompileCtx<'a> {
         );
 
         vars.enter(
-            puti_ident,
+            printf_ident,
             VarEntry::Fun {
                 ty: Type::Poly(
                     vec![],
                     Box::new(Type::App(
                         TyCon::Arrow,
                         vec![
+                            Type::App(TyCon::String, vec![]),
                             Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![]),
                             Type::Nil,
                         ],

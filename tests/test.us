@@ -1,13 +1,8 @@
 
 fn main() -> i32 {
-    puts("outer");
-    
-    {
-        puts("inner");  
-    }
     
     let z =1;
-
+    printf("%d",z);
     return z;
 }
 
