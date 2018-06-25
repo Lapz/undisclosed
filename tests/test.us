@@ -1,8 +1,9 @@
 
 fn main() -> i32 {
+    puts("outer");
+    
     {
-        let i =10;
-       
+        puts("inner");  
     }
     
     let z =1;
