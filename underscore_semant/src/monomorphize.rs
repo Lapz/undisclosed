@@ -153,7 +153,7 @@ impl Mono {
                     let new_sym = ctx.symbol(&name);
 
                     if self.new_defs.get(&symbol).is_some() {
-                        let mut defs = self.new_defs.get_mut(&symbol).unwrap();
+                        let defs = self.new_defs.get_mut(&symbol).unwrap();
                         defs.push((
                             new_sym,
                             expressions.iter().map(|e| e.ty.clone()).collect(),
@@ -330,7 +330,7 @@ impl Mono {
             t::Statement::Block(statements) => {
                 let mut new_block = Vec::new();
 
-                for mut statement in statements {
+                for statement in statements {
                     new_block.push(self.gen_new_body(statement, ctx))
                 }
                 t::Statement::Block(new_block)

@@ -59,7 +59,6 @@ impl Compiler {
         let locals = &function.locals;
 
         for instruction in function.body.iter() {
-            println!("{:?}", instruction);
             self.compile_instruction(instruction, locals);
         }
 
@@ -263,6 +262,9 @@ impl Compiler {
             },
             Instruction::Drop(ref size) => {
                 write!(&mut self.file,"\taddq ${},%rsp\n",4*size).unwrap()
+            },
+            Instruction::Move => {
+                write!(&mut self.file,"\tmovq %rax,%rsi\n").unwrap()
             }
 
             ref e => unimplemented!("{:?}", e),

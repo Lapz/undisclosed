@@ -282,8 +282,14 @@ impl Codegen {
 
             t::Expression::Call(ref name, ref exprs) => {
                 for expr in exprs {
-                    let expr = self.gen_expression(expr, temp, instructions, strings, ctx);
-                    instructions.push(expr)
+                   
+                    let gen_expr = self.gen_expression(expr, temp, instructions, strings, ctx);
+
+                    if let Type::App(TyCon::Int(_,_),_) =  expr.ty {
+                        instructions.push(ir::Instruction::Move)
+                    }
+                    
+                    instructions.push(gen_expr)
                 }
 
                 ir::Instruction::Call(Label::named(*name))

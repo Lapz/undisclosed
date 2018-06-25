@@ -1,7 +1,12 @@
 
+
+fn square(num:i32) -> i32 {
+    return num*num;
+}
+
 fn main() -> i32 {
     
-    let z =1;
+    let z = square(10);
     printf("%d",z);
     return z;
 }

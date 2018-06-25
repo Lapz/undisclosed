@@ -22,6 +22,7 @@ pub enum Instruction {
     /// Store a value into a register
     /// i.e x = y
     Store(Temp, Value),
+    Move,
     /// Jump to a label
     Jump(Label),
     /// Jump to a specfic label depending on the cond
@@ -79,6 +80,7 @@ impl Display for Instruction {
             Instruction::Label(ref label) => write!(f, "label {}", label),
             Instruction::Return(ref ret) => write!(f, "ret {}", ret),
             Instruction::Drop(ref label) => write!(f, "drop {}", label),
+            Instruction::Move => write!(f,"move"),
         }
     }
 }

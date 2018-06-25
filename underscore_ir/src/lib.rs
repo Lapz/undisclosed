@@ -4,6 +4,7 @@ extern crate underscore_util as util;
 mod cfg;
 pub mod ir;
 pub mod optimize;
+mod register;
 mod temp;
 mod translate;
 mod scopes;

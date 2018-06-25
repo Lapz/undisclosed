@@ -33,7 +33,7 @@ fn repl() {
     loop {
         let _ = io::stdout().write(b"underscore>> ");
         let _ = io::stdout().flush();
-        let reporter = Reporter::new();
+        let mut reporter = Reporter::new();
         let mut input = String::new();
 
         io::stdin()
@@ -54,10 +54,54 @@ fn repl() {
 
         let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
-        match parser.parse() {
-            Ok(p) => println!("{:#?}", p),
-            Err(_) => reporter.emit(&input),
+        let mut ast = match parser.parse() {
+            Ok(mut ast) => ast,
+            Err(_) => {
+                reporter.emit(&input);
+                continue;
+            }
         };
+
+        let mut infer = Infer::new();
+
+        let ir = match infer.infer(&mut ast, &strings, &mut reporter) {
+            Ok(ast) => ast,
+            Err(_) => {
+                reporter.emit(&input);
+                continue;
+            }
+        };
+
+        let mut compiler = Compiler::new(&strings);
+
+        compiler.compile(ir);
+
+        let mut gcc = Command::new("gcc");
+
+        gcc.args(&[
+            "-m64",
+            "-lz",
+            "../target/release/libunderscore_rt.dylib",
+            "out.s",
+            "-o",
+            "out",
+        ]);
+
+        gcc.output().expect("failed to execute process");
+
+        let mut out = Command::new("./out");
+
+        let out = out.output().expect("failed to run out");
+
+
+
+        
+        remove_file("out").unwrap();
+        remove_file("out.s").unwrap();
+
+         let output = String::from_utf8_lossy(&out.stdout);
+
+         println!("{}",output );
     }
 }
 
