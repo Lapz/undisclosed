@@ -1,5 +1,4 @@
 use ctx::CompileCtx;
-use ir::Frame;
 use std::fmt::{self, Display};
 use syntax::ast::{Sign, Size};
 use util::symbol::Symbol;

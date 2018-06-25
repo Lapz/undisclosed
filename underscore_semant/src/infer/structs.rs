@@ -2,7 +2,6 @@ use super::{Infer, InferResult};
 use ast::typed as t;
 use ctx::CompileCtx;
 use env::{Entry, VarType};
-use ir::Frame;
 use syntax::ast::Struct;
 use types::{Field, Type, TypeVar, Unique};
 use util::pos::Spanned;

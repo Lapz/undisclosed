@@ -1,8 +1,6 @@
+use super::{Infer, InferResult};
 use ctx::CompileCtx;
 use std::collections::HashMap;
-
-use super::{Infer, InferResult};
-use ir::Frame;
 use types::{TyCon, Type};
 use util::pos::Span;
 impl Infer {

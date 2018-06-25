@@ -22,7 +22,7 @@ mod unify;
 
 use ast::typed as t;
 use ctx::CompileCtx;
-use escape::FindEscape;
+// use escape::FindEscape;
 use gen_ir::Codegen;
 use monomorphize::Mono;
 use resolver::Resolver;

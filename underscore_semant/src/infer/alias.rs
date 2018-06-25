@@ -1,7 +1,6 @@
 use super::{Infer, InferResult};
 use ctx::CompileCtx;
 use env::{Entry, VarType};
-use ir::Frame;
 use syntax::ast::TyAlias;
 use types::{Type, TypeVar};
 use util::pos::Spanned;

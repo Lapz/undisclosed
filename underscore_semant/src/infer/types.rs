@@ -1,7 +1,6 @@
 use super::{Infer, InferResult};
 use ctx::CompileCtx;
 use env::Entry;
-use ir::Frame;
 use std::collections::HashMap;
 use std::mem;
 use syntax::ast::{Sign, Size, Ty as astType};
@@ -52,7 +51,7 @@ impl Infer {
 
             astType::Poly(ref ident, ref types) => {
                 //Concrete generics i.e List<i32>. List<bool>
-                let mut ty = if let Some(ty) = ctx.look_type(ident.value).cloned() {
+                let ty = if let Some(ty) = ctx.look_type(ident.value).cloned() {
                     ty
                 } else {
                     let msg = format!("Undefined Type `{}`", ctx.name(ident.value));

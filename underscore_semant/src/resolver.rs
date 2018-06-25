@@ -1,6 +1,5 @@
 use super::InferResult;
 use ctx::CompileCtx;
-use ir::Frame;
 use std::collections::HashSet;
 use syntax::ast::{Function, Program, Struct, TyAlias};
 use util::{pos::Spanned, symbol::Symbol};

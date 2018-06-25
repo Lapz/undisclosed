@@ -150,7 +150,7 @@ impl Mono {
                         name.push_str(&format!("{}", ty.ty))
                     }
 
-                    let mut new_sym = ctx.symbol(&name);
+                    let new_sym = ctx.symbol(&name);
 
                     if self.new_defs.get(&symbol).is_some() {
                         let mut defs = self.new_defs.get_mut(&symbol).unwrap();
@@ -243,7 +243,7 @@ impl Mono {
                         name.push_str(&format!("{}", ty.ty))
                     }
 
-                    let mut new_sym = ctx.symbol(&name);
+                    let new_sym = ctx.symbol(&name);
 
                     t::TypedExpression {
                         expr: Box::new(t::Expression::Call(new_sym, expressions.clone())),

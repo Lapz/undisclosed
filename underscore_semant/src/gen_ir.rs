@@ -14,8 +14,6 @@ pub(crate) struct Codegen {
     cmp: bool,
 }
 
-const HP: Temp = Temp(0);
-
 impl Codegen {
     pub fn new() -> Self {
         Self {
