@@ -3,6 +3,7 @@ use std::fmt::{self, Display};
 pub use syntax::ast::Linkage;
 use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
+use register::Register;
 #[derive(Debug)]
 pub struct Program {
     pub functions: Vec<Function>,
@@ -15,6 +16,7 @@ pub struct Function {
     pub linkage: Linkage,
     pub locals: HashMap<Temp, i32>,
     pub strings: HashMap<Label, String>,
+    pub params:HashMap<Temp,Register>
 }
 
 #[derive(Debug, Clone)]
@@ -22,7 +24,6 @@ pub enum Instruction {
     /// Store a value into a register
     /// i.e x = y
     Store(Temp, Value),
-    Move,
     /// Jump to a label
     Jump(Label),
     /// Jump to a specfic label depending on the cond
@@ -45,6 +46,8 @@ pub enum Instruction {
     Block(Label, Vec<Instruction>),
     /// Drop the specified number of local variables
     Drop(isize),
+    /// Move temp into Register
+    Move(Temp,Register)
 }
 
 impl Display for Instruction {
@@ -80,7 +83,7 @@ impl Display for Instruction {
             Instruction::Label(ref label) => write!(f, "label {}", label),
             Instruction::Return(ref ret) => write!(f, "ret {}", ret),
             Instruction::Drop(ref label) => write!(f, "drop {}", label),
-            Instruction::Move => write!(f,"move"),
+            Instruction::Move(ref temp,ref reg) => write!(f,"{} := {}",reg,temp),
         }
     }
 }

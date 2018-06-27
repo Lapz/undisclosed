@@ -12,5 +12,6 @@ mod scopes;
 pub use temp::{Label, Temp};
 // pub use cfg::construct_cfg;
 pub use scopes::Scopes;
+pub use register::Register;
 
 

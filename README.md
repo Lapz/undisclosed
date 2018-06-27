@@ -96,7 +96,7 @@ l0:
 * ~~Add proper printing of types~~
 * ~~Add field access~~
 * Add codegen 
-	[x] Compile for loops,
+	[x] Compile for loops, Needs fixing
 	[x] Compile while loops,
 	[ ] Compile structs,
 	[ ] Compile arrays

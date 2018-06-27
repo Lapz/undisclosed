@@ -1,6 +1,6 @@
 use ast::typed as t;
 use ctx::CompileCtx;
-use ir::{ir, optimize::Optimizer, Label, Temp,Scopes};
+use ir::{ir, optimize::Optimizer, Label, Temp,Scopes,Register};
 use std::collections::HashMap;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};
@@ -34,7 +34,8 @@ impl Codegen {
             let mut instructions = vec![];
             let mut locals = HashMap::new();
             let mut strings = HashMap::new();
-            self.gen_function(&function, &mut instructions, &mut locals, &mut strings, ctx);
+            let mut params = HashMap::new();
+            self.gen_function(&function, &mut instructions, &mut locals,&mut params, &mut strings, ctx);
 
             Optimizer::strength_reduction(&mut instructions);
             Optimizer::unused_labels(&mut vec![], &mut instructions);
@@ -45,6 +46,7 @@ impl Codegen {
                 linkage: function.linkage,
                 locals,
                 strings,
+                params
             });
         }
 
@@ -56,15 +58,15 @@ impl Codegen {
         func: &t::Function,
         instructions: &mut Vec<ir::Instruction>,
         locals: &mut HashMap<Temp, i32>,
+        params: &mut HashMap<Temp,Register>,
         strings: &mut HashMap<Label, String>,
         ctx: &mut CompileCtx,
     ) {
         let mut scopes = Scopes::new();
-        for param in &func.params {
+        for (i,param) in func.params.iter().enumerate() {
             let temp = Temp::new();
 
-            
-
+            params.insert(temp, get_register(i));
             ctx.add_temp(param.name, temp);
         }
 
@@ -118,7 +120,8 @@ impl Codegen {
             } => {
                 let id_temp = Temp::new();
                 ctx.add_temp(*ident, id_temp);
-                let offset = self.offset - 4;
+                self.offset -= 4;
+                let offset = self.offset ;
                 locals.insert(id_temp, offset);
                 scopes.enter(id_temp,offset);
                 if let Some(ref expr) = *expr {
@@ -140,7 +143,7 @@ impl Codegen {
                     // }
 
                     let instruction =
-                        self.gen_expression(expr, id_temp, instructions, strings, ctx);
+                        self.gen_expression(expr, id_temp, instructions, locals,strings, ctx);
 
                     instructions.push(instruction)
 
@@ -148,7 +151,7 @@ impl Codegen {
                 }
             }
             t::Statement::Expr(ref expr) => {
-                let expr = self.gen_expression(expr, Temp::new(), instructions, strings, ctx);
+                let expr = self.gen_expression(expr, Temp::new(), instructions, locals,strings, ctx);
                 instructions.push(expr)
             }
             t::Statement::If {
@@ -164,7 +167,7 @@ impl Codegen {
 
                     self.cmp = true;
 
-                    let cond = self.gen_expression(cond, Temp::new(), instructions, strings, ctx);
+                    let cond = self.gen_expression(cond, Temp::new(), instructions, locals,strings, ctx);
 
                     instructions.push(cond);
 
@@ -187,7 +190,7 @@ impl Codegen {
                 } else {
                     self.cmp = true;
 
-                    self.gen_expression(cond, Temp::new(), instructions, strings,ctx);
+                    self.gen_expression(cond, Temp::new(), instructions, locals,strings,ctx);
 
                     instructions.push(ir::Instruction::JumpOp(
                         self.cmp_op.take().unwrap_or(ir::CmpOp::EQ),
@@ -213,7 +216,7 @@ impl Codegen {
 
                 instructions.push(ir::Instruction::Label(ltrue));
 
-                let cond = self.gen_expression(cond, Temp::new(), instructions, strings, ctx);
+                let cond = self.gen_expression(cond, Temp::new(), instructions, locals,strings, ctx);
 
                 instructions.push(cond);
 
@@ -232,7 +235,7 @@ impl Codegen {
 
             t::Statement::Return(ref expr) => {
                 let temp = Temp::new();
-                let instruction = self.gen_expression(expr, temp, instructions, strings, ctx);
+                let instruction = self.gen_expression(expr, temp, instructions, locals,strings, ctx);
                 instructions.push(ir::Instruction::Return(Box::new(instruction)))
             }
         }
@@ -243,34 +246,44 @@ impl Codegen {
         expr: &t::TypedExpression,
         temp: Temp,
         instructions: &mut Vec<ir::Instruction>,
+        locals: &mut HashMap<Temp, i32>,
         strings: &mut HashMap<Label, String>,
         ctx: &mut CompileCtx,
     ) -> ir::Instruction {
         match *expr.expr {
             t::Expression::Array(ref items) => {
-                // let mut block = vec![];
+                let base = Temp::new();
+                self.offset -= (items.len() *4 +8) as i32;
 
-                // for item in items {
-                //     let temp = Temp::new();
+                locals.insert(base, self.offset);
 
-                //     block.push(self.gen_expression(item, temp, instructions, strings,ctx));
-                // }
 
-                // ir::Instruction::Block(Label::new(), block)
+                for item in items { 
+                    let temp =Temp::new();
+                    self.offset += 4;
+                    locals.insert(temp,self.offset);
+                    let expr = self.gen_expression(item, temp, instructions, locals,strings,ctx);
+                    instructions.push(expr);
+                }
 
-                unimplemented!()
+                self.offset += 4;
+                locals.insert(temp,self.offset);
+
+                
+                self.gen_expression(items.last().unwrap(), temp, instructions, locals,strings,ctx)
+            
             }
             t::Expression::Assign(ref name, ref value) => {
-                let temp = self.gen_var(name, instructions, strings, ctx);
+                let temp = self.gen_var(name, instructions, locals,strings, ctx);
 
-                self.gen_expression(value, temp, instructions, strings, ctx)
+                self.gen_expression(value, temp, instructions, locals,strings, ctx)
                 //  let temp = self.symbols.look(symbol)
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
                 let lhs_temp = Temp::new();
-                let lhs = self.gen_expression(lhs, lhs_temp, instructions, strings, ctx);
+                let lhs = self.gen_expression(lhs, lhs_temp, instructions, locals,strings, ctx);
                 let rhs_temp = Temp::new();
-                let rhs = self.gen_expression(rhs, rhs_temp, instructions, strings, ctx);
+                let rhs = self.gen_expression(rhs, rhs_temp, instructions, locals,strings, ctx);
                 let bop = gen_bin_op(op);
 
                 if self.cmp {
@@ -281,15 +294,20 @@ impl Codegen {
             }
 
             t::Expression::Call(ref name, ref exprs) => {
-                for expr in exprs {
+                for (i,expr) in exprs.iter().enumerate() {
                    
-                    let gen_expr = self.gen_expression(expr, temp, instructions, strings, ctx);
+                    let gen_expr = self.gen_expression(expr, temp, instructions, locals,strings, ctx);
 
-                    if let Type::App(TyCon::Int(_,_),_) =  expr.ty {
-                        instructions.push(ir::Instruction::Move)
-                    }
+                
+                    instructions.push(gen_expr);
+
+                    // if let Type::App(TyCon::String,_) = expr.ty {
+
+                    // } else {
+                        instructions.push(ir::Instruction::Move(Temp::new(),get_register(i)))
+                    // }
+
                     
-                    instructions.push(gen_expr)
                 }
 
                 ir::Instruction::Call(Label::named(*name))
@@ -297,7 +315,7 @@ impl Codegen {
 
             t::Expression::Cast(ref from, _) => {
                 let temp = Temp::new();
-                self.gen_expression(from, temp, instructions, strings, ctx);
+                self.gen_expression(from, temp, instructions, locals,strings, ctx);
 
                 match expr.ty {
                     Type::App(TyCon::Int(sign, size), _) => ir::Instruction::Cast(temp, sign, size),
@@ -306,7 +324,7 @@ impl Codegen {
                 }
             }
             t::Expression::Grouping { ref expr } => {
-                self.gen_expression(expr, temp, instructions, strings, ctx)
+                self.gen_expression(expr, temp, instructions, locals,strings, ctx)
             }
             t::Expression::Literal(ref literal) => {
                 let value = match *literal {
@@ -349,12 +367,12 @@ impl Codegen {
                 ir::Instruction::UnOp(
                     temp,
                     op,
-                    Box::new(self.gen_expression(expr, temp, instructions, strings, ctx)),
+                    Box::new(self.gen_expression(expr, temp, instructions, locals,strings, ctx)),
                 )
             }
 
             t::Expression::Var(ref var) => {
-                ir::Instruction::Load(self.gen_var(var, instructions, strings, ctx))
+                ir::Instruction::Load(self.gen_var(var, instructions, locals,strings, ctx))
             }
 
             _ => unimplemented!(),
@@ -365,6 +383,7 @@ impl Codegen {
         &mut self,
         var: &t::Var,
         instructions: &mut Vec<ir::Instruction>,
+        locals: &mut HashMap<Temp,i32>,
         strings: &mut HashMap<Label, String>,
         ctx: &mut CompileCtx,
     ) -> Temp {
@@ -373,10 +392,11 @@ impl Codegen {
 
             t::Var::SubScript(ref sym, ref expr, _) => {
                 let base = *ctx.look_temp(*sym).unwrap();
+                let base = locals.get(&base).unwrap();
 
                 let addr = Temp::new();
 
-                let expr = self.gen_expression(expr, addr, instructions, strings, ctx);
+                let expr = self.gen_expression(expr, addr, instructions, locals,strings, ctx);
 
                 instructions.push(expr);
 
@@ -435,5 +455,18 @@ fn gen_un_op(op: &UnaryOp) -> ir::UnOp {
     match *op {
         UnaryOp::Minus => ir::UnOp::Minus,
         UnaryOp::Bang => ir::UnOp::Bang,
+    }
+}
+
+
+fn get_register(i:usize) -> Register {
+    match i {
+        0 => Register::RDI,
+        1 => Register::RSI,
+        2 => Register::RDX,
+        3 => Register::RCX,
+        4 => Register::R8,
+        5 => Register::R9,
+        _ => panic!("To many params"),
     }
 }

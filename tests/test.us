@@ -1,14 +1,5 @@
-
-
-fn square(num:i32) -> i32 {
-    return num*num;
-}
-
-fn main() -> i32 {
-    
-    let z = square(10);
-    printf("%d",z);
-    return z;
+fn main() {
+    let foo = [0,1,2,3,4,5,6,7,8,9];
 }
 
 
