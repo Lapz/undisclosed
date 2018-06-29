@@ -16,7 +16,7 @@ pub fn cast_check(expr: &Type, to: &Type, ctx: &CompileCtx) -> InferResult<()> {
         }
 
         Type::Var(ref tv) => {
-            if let Some(&VarType::Int) = ctx.look_tvar(*tv) {
+            if let Some(&VarType::Int) = ctx.get_tvar(*tv) {
 
             } else {
                 return Err(());

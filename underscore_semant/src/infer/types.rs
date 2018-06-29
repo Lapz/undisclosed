@@ -22,7 +22,7 @@ impl Infer {
                 Ok(Type::Array(Box::new(self.trans_ty(ty, ctx)?), *len))
             }
             astType::Simple(ref ident) => {
-                if let Some(ty) = ctx.look_type(ident.value) {
+                if let Some(ty) = ctx.get_type(ident.value) {
                     match *ty {
                         Entry::Ty(ref ty) => match *ty {
                             Type::Poly(ref tvars, ref ret) => {
@@ -51,7 +51,7 @@ impl Infer {
 
             astType::Poly(ref ident, ref types) => {
                 //Concrete generics i.e List<i32>. List<bool>
-                let ty = if let Some(ty) = ctx.look_type(ident.value).cloned() {
+                let ty = if let Some(ty) = ctx.get_type(ident.value).cloned() {
                     ty
                 } else {
                     let msg = format!("Undefined Type `{}`", ctx.name(ident.value));

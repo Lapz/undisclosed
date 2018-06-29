@@ -28,12 +28,12 @@
 //     }
 
 //     fn check_ident(&mut self, ident: Symbol, ctx: &mut CompileCtx) -> InferResult<()> {
-//         if ctx.look_escape(ident).is_none() {
+//         if ctx.get_escape(ident).is_none() {
 //             ctx.add_escape(ident, (self.depth, false));
 //             return Ok(());
 //         }
 
-//         let d = ctx.look_escape(ident).unwrap().0;
+//         let d = ctx.get_escape(ident).unwrap().0;
 
 //         if d == self.depth {
 //             Ok(())
@@ -86,12 +86,12 @@
 //                 ref ident,
 //                 ..
 //             } => {
-//                 if ctx.look_escape(ident.value).is_none() {
+//                 if ctx.get_escape(ident.value).is_none() {
 //                     ctx.add_escape(ident.value, (self.depth, false));
 //                     return Ok(());
 //                 }
 
-//                 let d = ctx.look_escape(ident.value).unwrap().0;
+//                 let d = ctx.get_escape(ident.value).unwrap().0;
 
 //                 if d == self.depth {
 //                     Ok(())

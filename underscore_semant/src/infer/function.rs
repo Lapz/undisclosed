@@ -47,7 +47,7 @@ impl Infer {
         }
 
         for param in &function.value.params.value {
-            if let Some(ref escape) = ctx.look_escape(param.value.name.value) {
+            if let Some(ref escape) = ctx.get_escape(param.value.name.value) {
                 formals.push(escape.1)
             } else {
                 formals.push(false)
@@ -149,7 +149,7 @@ impl Infer {
                     if !ty.ty.is_int() {
                         match ty.ty {
                             Type::Var(ref tvar) => {
-                                if let Some(&VarType::Int) = ctx.look_tvar(*tvar) {}
+                                if let Some(&VarType::Int) = ctx.get_tvar(*tvar) {}
                             }
 
                             _ => {
@@ -465,7 +465,7 @@ impl Infer {
                         if !expr.ty.is_int() {
                             match expr.ty {
                                 Type::Var(ref tvar) => {
-                                    if let Some(VarType::Other) = ctx.look_tvar(*tvar) {
+                                    if let Some(VarType::Other) = ctx.get_tvar(*tvar) {
                                         let msg = format!(
                                             "Cannot use `-` operator on type `{}`",
                                             expr.ty.print(ctx)
@@ -519,7 +519,7 @@ impl Infer {
                 ref ident,
                 ref fields,
             } => {
-                let record = if let Some(ty) = ctx.look_type(ident.value).cloned() {
+                let record = if let Some(ty) = ctx.get_type(ident.value).cloned() {
                     ty
                 } else {
                     let msg = format!("Undefined struct `{}` ", ctx.name(ident.value));
@@ -608,7 +608,7 @@ impl Infer {
                 ref fields,
                 ref tys,
             } => {
-                let record = if let Some(ty) = ctx.look_type(ident.value).cloned() {
+                let record = if let Some(ty) = ctx.get_type(ident.value).cloned() {
                     ty
                 } else {
                     let msg = format!("Undefined struct `{}` ", ctx.name(ident.value));
@@ -738,7 +738,7 @@ impl Infer {
     fn infer_var(&self, var: &Spanned<Var>, ctx: &mut CompileCtx) -> InferResult<(t::Var, Type)> {
         match var.value {
             Var::Simple(ref ident) => {
-                if let Some(var) = ctx.look_var(ident.value).cloned() {
+                if let Some(var) = ctx.get_var(ident.value).cloned() {
                     // Ok((ident.value, var.get_ty()))
 
                     let ty = var.get_ty();
@@ -755,7 +755,7 @@ impl Infer {
                 ref ident,
                 ref value,
             } => {
-                let record = if let Some(ident) = ctx.look_var(ident.value).cloned() {
+                let record = if let Some(ident) = ctx.get_var(ident.value).cloned() {
                     ident
                 } else {
                     let msg = format!("Undefined variable `{}` ", ctx.name(ident.value));
@@ -803,7 +803,7 @@ impl Infer {
                 ref expr,
                 ref target,
             } => {
-                let target_ty = if let Some(var) = ctx.look_var(target.value).cloned() {
+                let target_ty = if let Some(var) = ctx.get_var(target.value).cloned() {
                     var
                 } else {
                     let msg = format!("Undefined variable `{}` ", ctx.name(target.value));
@@ -828,7 +828,7 @@ impl Infer {
                 match expr_ty.ty {
                     Type::App(TyCon::Int(_, _), _) => {}
                     Type::Var(ref tvar) => {
-                        if let Some(&VarType::Other) = ctx.look_tvar(*tvar) {
+                        if let Some(&VarType::Other) = ctx.get_tvar(*tvar) {
                             let msg =
                                 format!("Index expr cannot be of type `{}`", expr_ty.ty.print(ctx));
                             ctx.error(msg, var.span);
@@ -879,7 +879,7 @@ impl Infer {
                 ref callee,
                 ref args,
             } => {
-                let func = if let Some(func) = ctx.look_var(callee.value).cloned() {
+                let func = if let Some(func) = ctx.get_var(callee.value).cloned() {
                     func
                 } else {
                     let msg = format!("Undefined function `{}`", ctx.name(callee.value));
@@ -955,7 +955,7 @@ impl Infer {
                 ref tys,
                 ref args,
             } => {
-                let func = if let Some(func) = ctx.look_var(callee.value) {
+                let func = if let Some(func) = ctx.get_var(callee.value) {
                     func.clone()
                 } else {
                     let msg = format!("Undefined function `{}`", ctx.name(callee.value));

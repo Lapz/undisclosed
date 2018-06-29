@@ -16,7 +16,7 @@ use underscore_semant::Infer;
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
-use underscore_util::symbol::{SymbolMap, Symbols};
+use underscore_util::symbol::{SymbolMap, Hasher};
 use x86::Compiler;
 
 fn main() {
@@ -48,9 +48,9 @@ fn repl() {
             }
         };
 
-        let strings = Rc::new(SymbolMap::new());
+        let hasher = Rc::new(Hasher::new());
 
-        let mut table = Symbols::new(Rc::clone(&strings));
+        let mut table = SymbolMap::new(Rc::clone(&hasher));
 
         let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
@@ -64,7 +64,7 @@ fn repl() {
 
         let mut infer = Infer::new();
 
-        let ir = match infer.infer(&mut ast, &strings, &mut reporter) {
+        let ir = match infer.infer(&mut ast, &hasher, &mut reporter) {
             Ok(ast) => ast,
             Err(_) => {
                 reporter.emit(&input);
@@ -72,7 +72,7 @@ fn repl() {
             }
         };
 
-        let mut compiler = Compiler::new(&strings);
+        let mut compiler = Compiler::new(&hasher);
 
         compiler.compile(ir);
 
@@ -101,7 +101,7 @@ fn repl() {
 
          let output = String::from_utf8_lossy(&out.stdout);
 
-         println!("{}",output );
+         println!("{}",output);
     }
 }
 
@@ -132,9 +132,9 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool, emit_asm: bool) {
         }
     };
 
-    let strings = Rc::new(SymbolMap::new());
+    let hasher = Rc::new(Hasher::new());
 
-    let mut table = Symbols::new(Rc::clone(&strings));
+    let mut table = SymbolMap::new(Rc::clone(&hasher));
 
     let mut parser = Parser::new(tokens, reporter.clone(), &mut table);
 
@@ -156,7 +156,7 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool, emit_asm: bool) {
 
     let mut infer = Infer::new();
 
-    let ir = match infer.infer(&mut ast, &strings, &mut reporter) {
+    let ir = match infer.infer(&mut ast, &hasher, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
                 let mut file =
@@ -178,7 +178,7 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool, emit_asm: bool) {
         write!(file, "{}", ir).expect("Couldn't write to the file");
     }
 
-    let mut compiler = Compiler::new(&strings);
+    let mut compiler = Compiler::new(&hasher);
 
     compiler.compile(ir);
 

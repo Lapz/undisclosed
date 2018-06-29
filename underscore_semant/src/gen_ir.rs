@@ -145,7 +145,9 @@ impl Codegen {
                     let instruction =
                         self.gen_expression(expr, id_temp, instructions, locals,strings, ctx);
 
-                    instructions.push(instruction)
+                    instructions.push(instruction);
+
+                    // instructions.push(ir::Instruction::Deref(id_temp))
 
                     // unimplemented!()
                 }
@@ -206,31 +208,38 @@ impl Codegen {
             }
 
             t::Statement::While(ref cond, ref body) => {
-                let ltrue = Label::new();
-                let lfalse = Label::new();
+                let lbody = Label::new();
+                let lcond = Label::new();
+                let lout = Label::new();
 
-                self.loop_break_label = Some(lfalse);
-                self.loop_label = Some(ltrue);
+                self.loop_break_label = Some(lout);
+                self.loop_label = Some(lbody);
+
+                
+                
+                instructions.push(ir::Instruction::Jump(lcond));
+
+
+                instructions.push(ir::Instruction::Label(lbody));
+
+                self.gen_statement(body, instructions, locals, strings, scopes,ctx);
 
                 self.cmp = true;
 
-                instructions.push(ir::Instruction::Label(ltrue));
-
+                instructions.push(ir::Instruction::Label(lcond));
+                
                 let cond = self.gen_expression(cond, Temp::new(), instructions, locals,strings, ctx);
 
                 instructions.push(cond);
 
                 if let Some(op) = self.cmp_op.take() {
-                    instructions.push(ir::Instruction::JumpOp(op, lfalse))
+                    instructions.push(ir::Instruction::JumpOp(op, lbody))
                 }
 
                 self.cmp = false;
 
-                self.gen_statement(body, instructions, locals, strings, scopes,ctx);
-
-                instructions.push(ir::Instruction::Jump(ltrue));
-
-                instructions.push(ir::Instruction::Label(lfalse));
+            
+                
             }
 
             t::Statement::Return(ref expr) => {
@@ -277,7 +286,7 @@ impl Codegen {
                 let temp = self.gen_var(name, instructions, locals,strings, ctx);
 
                 self.gen_expression(value, temp, instructions, locals,strings, ctx)
-                //  let temp = self.symbols.look(symbol)
+                //  let temp = self.SymbolMap.get(symbol)
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
                 let lhs_temp = Temp::new();
@@ -388,10 +397,10 @@ impl Codegen {
         ctx: &mut CompileCtx,
     ) -> Temp {
         match *var {
-            t::Var::Simple(ref sym, _) => *ctx.look_temp(*sym).unwrap(),
+            t::Var::Simple(ref sym, _) => *ctx.get_temp(*sym).unwrap(),
 
             t::Var::SubScript(ref sym, ref expr, _) => {
-                let base = *ctx.look_temp(*sym).unwrap();
+                let base = *ctx.get_temp(*sym).unwrap();
                 let base = locals.get(&base).unwrap();
 
                 let addr = Temp::new();

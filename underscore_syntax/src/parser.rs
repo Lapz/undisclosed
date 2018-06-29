@@ -9,13 +9,13 @@ use std::vec::IntoIter;
 use tokens::{Token, TokenType};
 use util::emitter::Reporter;
 use util::pos::{Span, Spanned};
-use util::symbol::{Symbol, Symbols};
+use util::symbol::{Symbol, SymbolMap};
 
 pub struct Parser<'a, 'b> {
     reporter: Reporter,
     tokens: Peekable<IntoIter<Spanned<Token<'a>>>>,
     parsing_cond: bool,
-    symbols: &'b mut Symbols<()>,
+    SymbolMap: &'b mut SymbolMap<()>,
 }
 
 pub type ParserResult<T> = Result<T, ()>;
@@ -144,12 +144,12 @@ impl<'a, 'b> Parser<'a, 'b> {
     pub fn new(
         tokens: Vec<Spanned<Token<'a>>>,
         reporter: Reporter,
-        symbols: &'b mut Symbols<()>,
+        SymbolMap: &'b mut SymbolMap<()>,
     ) -> Self {
         Parser {
             tokens: tokens.into_iter().peekable(),
             parsing_cond: false,
-            symbols,
+            SymbolMap,
             reporter,
         }
     }
@@ -218,7 +218,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     fn ident(&mut self, name: &str) -> Symbol {
-        self.symbols.symbol(name)
+        self.SymbolMap.symbol(name)
     }
 
     fn random_ident(&mut self) -> Symbol {
@@ -227,7 +227,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         let number: u32 = rng.gen_range(0, 999999);
         let s = format!("{}{:06}", letter, number);
 
-        self.symbols.symbol(&s)
+        self.SymbolMap.symbol(&s)
     }
 
     fn peek<F>(&mut self, mut check: F) -> bool

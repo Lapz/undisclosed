@@ -31,7 +31,7 @@ use syntax::ast::Program;
 use types::Type;
 use util::{
     emitter::Reporter,
-    symbol::{Symbol, SymbolMap},
+    symbol::{Symbol, Hasher},
 };
 pub(crate) type InferResult<T> = Result<T, ()>;
 
@@ -48,7 +48,7 @@ impl Infer {
     pub fn infer<'a>(
         &mut self,
         program: &mut Program,
-        strings: &Rc<SymbolMap<Symbol>>,
+        strings: &Rc<Hasher<Symbol>>,
         reporter: &mut Reporter,
     ) -> InferResult<::ir::ir::Program> {
         let mut ctx = CompileCtx::new(strings, reporter);

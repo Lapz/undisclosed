@@ -5,20 +5,20 @@ use syntax::ast::{Sign, Size};
 use types::{TyCon, Type, TypeVar};
 use util::emitter::Reporter;
 use util::pos::Span;
-use util::symbol::{Symbol, SymbolMap, Symbols};
+use util::symbol::{Symbol, SymbolMap,Hasher};
 
 pub struct CompileCtx<'a> {
-    types: Symbols<Entry>,
+    types: SymbolMap<Entry>,
     tvars: HashMap<TypeVar, VarType>,
-    vars: Symbols<VarEntry>,
-    escapes: Symbols<(u32, bool)>,
-    temps: Symbols<::ir::Temp>,
+    vars: SymbolMap<VarEntry>,
+    escapes: SymbolMap<(u32, bool)>,
+    temps: SymbolMap<::ir::Temp>,
     reporter: &'a mut Reporter,
 }
 
 impl<'a> CompileCtx<'a> {
-    pub fn new(strings: &Rc<SymbolMap<Symbol>>, reporter: &'a mut Reporter) -> Self {
-        let mut types = Symbols::new(strings.clone());
+    pub fn new(strings: &Rc<Hasher<Symbol>>, reporter: &'a mut Reporter) -> Self {
+        let mut types = SymbolMap::new(strings.clone());
 
         let string_ident = types.symbol("str");
         let i8_ident = types.symbol("i8");
@@ -31,12 +31,12 @@ impl<'a> CompileCtx<'a> {
         let nil_ident = types.symbol("nil");
         let bool_ident = types.symbol("bool");
 
-        let mut vars = Symbols::new(strings.clone());
+        let mut vars = SymbolMap::new(strings.clone());
 
         let puts_ident = vars.symbol("puts");
         let printf_ident = vars.symbol("printf");
 
-        vars.enter(
+        vars.insert(
             puts_ident,
             VarEntry::Fun {
                 ty: Type::Poly(
@@ -49,7 +49,7 @@ impl<'a> CompileCtx<'a> {
             },
         );
 
-        vars.enter(
+        vars.insert(
             printf_ident,
             VarEntry::Fun {
                 ty: Type::Poly(
@@ -65,7 +65,7 @@ impl<'a> CompileCtx<'a> {
                 ),
             },
         );
-        // vars.enter(
+        // vars.insert(
         //     printf_ident,
         //     VarEntry::Fun {
         //         ty: Type::Poly(
@@ -78,45 +78,45 @@ impl<'a> CompileCtx<'a> {
         //     },
         // );
 
-        types.enter(
+        types.insert(
             i8_ident,
             Type::App(TyCon::Int(Sign::Signed, Size::Bit8), vec![]),
         );
 
-        types.enter(
+        types.insert(
             u8_ident,
             Type::App(TyCon::Int(Sign::Unsigned, Size::Bit8), vec![]),
         );
 
-        types.enter(
+        types.insert(
             i32_ident,
             Type::App(TyCon::Int(Sign::Signed, Size::Bit32), vec![]),
         );
-        types.enter(
+        types.insert(
             u32_ident,
             Type::App(TyCon::Int(Sign::Unsigned, Size::Bit32), vec![]),
         );
 
-        types.enter(
+        types.insert(
             i64_ident,
             Type::App(TyCon::Int(Sign::Signed, Size::Bit64), vec![]),
         );
-        types.enter(
+        types.insert(
             u64_ident,
             Type::App(TyCon::Int(Sign::Unsigned, Size::Bit64), vec![]),
         );
 
-        types.enter(bool_ident, Type::App(TyCon::Bool, vec![]));
-        types.enter(nil_ident, Type::Nil);
-        types.enter(string_ident, Type::App(TyCon::String, vec![]));
+        types.insert(bool_ident, Type::App(TyCon::Bool, vec![]));
+        types.insert(nil_ident, Type::Nil);
+        types.insert(string_ident, Type::App(TyCon::String, vec![]));
 
         CompileCtx {
-            types: Symbols::new(strings.clone()),
+            types: SymbolMap::new(strings.clone()),
             tvars: HashMap::new(),
-            // vars:Symbols::new(strings.clone()),
+            // vars:SymbolMap::new(strings.clone()),
             vars,
-            escapes: Symbols::new(strings.clone()),
-            temps: Symbols::new(strings.clone()),
+            escapes: SymbolMap::new(strings.clone()),
+            temps: SymbolMap::new(strings.clone()),
             reporter,
         }
     }
@@ -148,40 +148,40 @@ impl<'a> CompileCtx<'a> {
         self.reporter.pop_error();
     }
 
-    pub fn look_type(&self, ident: Symbol) -> Option<&Entry> {
-        self.types.look(ident)
+    pub fn get_type(&self, ident: Symbol) -> Option<&Entry> {
+        self.types.get(&ident)
     }
 
     pub fn replace_type(&mut self, ident: Symbol, data: Entry) {
         self.types.replace(ident, data)
     }
 
-    pub fn look_var(&self, ident: Symbol) -> Option<&VarEntry> {
-        self.vars.look(ident)
+    pub fn get_var(&self, ident: Symbol) -> Option<&VarEntry> {
+        self.vars.get(&ident)
     }
 
-    pub fn look_tvar(&self, ident: TypeVar) -> Option<&VarType> {
+    pub fn get_tvar(&self, ident: TypeVar) -> Option<&VarType> {
         self.tvars.get(&ident)
     }
 
-    pub fn look_escape(&self, ident: Symbol) -> Option<&(u32, bool)> {
-        self.escapes.look(ident)
+    pub fn get_escape(&self, ident: Symbol) -> Option<&(u32, bool)> {
+        self.escapes.get(&ident)
     }
 
-    pub fn look_temp(&self, ident: Symbol) -> Option<&::ir::Temp> {
-        self.temps.look(ident)
+    pub fn get_temp(&self, ident: Symbol) -> Option<&::ir::Temp> {
+        self.temps.get(&ident)
     }
 
     pub fn add_type(&mut self, ident: Symbol, data: Entry) {
-        self.types.enter(ident, data)
+        self.types.insert(ident, data)
     }
 
     pub fn add_temp(&mut self, ident: Symbol, data: ::ir::Temp) {
-        self.temps.enter(ident, data)
+        self.temps.insert(ident, data)
     }
 
     pub fn add_var(&mut self, ident: Symbol, data: VarEntry) {
-        self.vars.enter(ident, data)
+        self.vars.insert(ident, data)
     }
 
     pub fn add_tvar(&mut self, ident: TypeVar, data: VarType) {
@@ -189,7 +189,7 @@ impl<'a> CompileCtx<'a> {
     }
 
     pub fn add_escape(&mut self, ident: Symbol, data: (u32, bool)) {
-        self.escapes.enter(ident, data)
+        self.escapes.insert(ident, data)
     }
 
     pub fn name(&self, ident: Symbol) -> String {

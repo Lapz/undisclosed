@@ -1,6 +1,6 @@
 use std::fmt::{self, Debug, Display};
 use std::io::{self, Write};
-use util::symbol::{Symbol, Symbols};
+use util::symbol::{Symbol, SymbolMap};
 // pub type Label = Symbol;
 
 /// A Temporary address in assembly language.
@@ -31,7 +31,7 @@ impl Label {
         Label::Named(symbol)
     }
 
-    pub fn fmt<T: Write>(&self, f: &mut T, s: &mut Symbols<()>) -> io::Result<()> {
+    pub fn fmt<T: Write>(&self, f: &mut T, s: &mut SymbolMap<()>) -> io::Result<()> {
         match *self {
             Label::Int(ref i) => write!(f, "l{}", i),
             Label::Named(ref i) => write!(f, "_{}", s.name(*i)),

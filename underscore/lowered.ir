@@ -1,0 +1,19 @@
+function ls0() {
+    Return(BinOp(t2, Mul, Load(t1), Load(t1)))
+    Drop(0)
+}
+function ls2() {
+    Store(t5, Const(0, Signed, Bit32))
+    Deref(t5)
+    Jump(Int(3))
+    BinOp(t5, Plus, Load(t5), Store(t8, Const(1, Signed, Bit32)))
+    Store(t9, Name(Int(4)))
+    Move(t10, RDI)
+    Load(t5)
+    Move(t11, RSI)
+    Call(Named(Symbol(4)))
+    Drop(0)
+    BinOp(t12, LT, Load(t5), Store(t14, Const(10, Signed, Bit32)))
+    JumpOp(LT, Int(2))
+    Drop(1)
+}

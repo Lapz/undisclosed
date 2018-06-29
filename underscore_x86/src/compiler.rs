@@ -5,22 +5,22 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 use std::rc::Rc;
-use util::symbol::{Symbol, SymbolMap, Symbols};
+use util::symbol::{Symbol,SymbolMap,Hasher};
 
 pub struct Compiler {
     file: File,
-    labels: Symbols<()>,
+    labels: SymbolMap<()>,
 }
 
 impl Compiler {
-    pub fn new(strings: &Rc<SymbolMap<Symbol>>) -> Compiler {
+    pub fn new(strings: &Rc<Hasher<Symbol>>) -> Compiler {
         let mut file = File::create("out.s").expect("\tCouldn't create the file");
 
         file.write_all(b".text \n\t.global _main").unwrap();
 
         Compiler {
             file,
-            labels: Symbols::new(strings.clone()),
+            labels: SymbolMap::new(strings.clone()),
         }
     }
 
@@ -74,13 +74,8 @@ impl Compiler {
     }
 
     pub fn emit_func_prologue(&mut self, nparams: usize,nlocals:usize,) {
-
-        println!("{:?} {:?}",nparams,nlocals);
         self.write("\tpushq %rbp\n\tmovq %rsp,%rbp\n");
-
-
          write!(&mut self.file,"\tmovl %edi, -{}(%rbp) #pro\n", (nparams+nlocals)*4+8).unwrap();
-        
     }
 
     pub fn emit_func_epilogue(&mut self) {
@@ -271,6 +266,11 @@ impl Compiler {
             },
             Instruction::Move(_,ref reg) => {
                 write!(&mut self.file,"\tmovq %rax,{}\n",reg).unwrap()
+            },
+            Instruction::Deref(ref temp) => {
+                if let Some(ref offset) = locals.get(temp) {
+                    write!(&mut self.file, "\tmovq %rax,{}(%rbp)\n", offset).unwrap();
+                }
             }
 
             ref e => unimplemented!("{:?}", e),

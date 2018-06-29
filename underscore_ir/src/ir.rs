@@ -47,7 +47,9 @@ pub enum Instruction {
     /// Drop the specified number of local variables
     Drop(isize),
     /// Move temp into Register
-    Move(Temp,Register)
+    Move(Temp,Register),
+    /// Move rax into the register
+    Deref(Temp)
 }
 
 impl Display for Instruction {
@@ -84,6 +86,7 @@ impl Display for Instruction {
             Instruction::Return(ref ret) => write!(f, "ret {}", ret),
             Instruction::Drop(ref label) => write!(f, "drop {}", label),
             Instruction::Move(ref temp,ref reg) => write!(f,"{} := {}",reg,temp),
+            Instruction::Deref(ref label) => write!(f, "deref {}", label),
         }
     }
 }

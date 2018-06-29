@@ -116,8 +116,8 @@ impl Infer {
             (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
                 Ok(())
             } else {
-                let a = ctx.look_tvar(*v1);
-                let b = ctx.look_tvar(*v2);
+                let a = ctx.get_tvar(*v1);
+                let b = ctx.get_tvar(*v2);
 
                 if a != b {
                     let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(ctx), rhs.print(ctx));
