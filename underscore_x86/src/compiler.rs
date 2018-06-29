@@ -59,6 +59,8 @@ impl Compiler {
         let locals = &function.locals;
         let params = &function.params;
 
+        println!("{:?}",locals);
+
         for instruction in function.body.iter() {
             self.compile_instruction(instruction,locals,params);
         }
@@ -75,7 +77,7 @@ impl Compiler {
 
     pub fn emit_func_prologue(&mut self, nparams: usize,nlocals:usize,) {
         self.write("\tpushq %rbp\n\tmovq %rsp,%rbp\n");
-         write!(&mut self.file,"\tmovl %edi, -{}(%rbp) #pro\n", (nparams+nlocals)*4+8).unwrap();
+         write!(&mut self.file,"\tsubq ${}, %rsp #pro\n", (nparams+nlocals)*4+12).unwrap();
     }
 
     pub fn emit_func_epilogue(&mut self) {
@@ -262,7 +264,9 @@ impl Compiler {
                 self.write("\n");
             },
             Instruction::Drop(ref size) => {
-                write!(&mut self.file,"\taddq ${},%rsp\n",4*size).unwrap()
+                if *size != 0 {
+                    write!(&mut self.file,"\taddq ${},%rsp\n",4*size).unwrap()
+                }
             },
             Instruction::Move(_,ref reg) => {
                 write!(&mut self.file,"\tmovq %rax,{}\n",reg).unwrap()
