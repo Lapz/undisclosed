@@ -49,7 +49,11 @@ pub enum Instruction {
     /// Move temp into Register
     Move(Temp,Register),
     /// Move rax into the register
-    Deref(Temp)
+    Deref(Temp),
+    /// Cmp
+    Cmp,
+    Push(Register),
+    Pop(Register),
 }
 
 impl Display for Instruction {
@@ -87,6 +91,9 @@ impl Display for Instruction {
             Instruction::Drop(ref label) => write!(f, "drop {}", label),
             Instruction::Move(ref temp,ref reg) => write!(f,"{} := {}",reg,temp),
             Instruction::Deref(ref label) => write!(f, "deref {}", label),
+            Instruction::Cmp => write!(f, "cmp"),
+            Instruction::Push(ref reg) => write!(f, "push {}",reg),
+            Instruction::Pop(ref reg) => write!(f, "pop {}",reg),
         }
     }
 }

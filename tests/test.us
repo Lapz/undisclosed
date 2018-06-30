@@ -1,22 +1,16 @@
+fn square(num:i32) -> i32 {
+    return num*num;
+}
+
 fn main() {
-    let i =0;
+    let i = square(10) ;
 
-    printf("%d\n",i); 
-    {
-        let i = 10;
-        printf("%d\n",i); 
-    }  
-
-    printf("%d\n",i); 
-   
-
-     
-
-    while i<10 {
+    while(i<10) {
+        printf("%ld\n",i);
         i = i+1;
-
-        printf("%d\n",i);
     }
+
+
 }
 
 

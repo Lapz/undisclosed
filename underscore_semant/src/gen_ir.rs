@@ -70,7 +70,7 @@ impl Codegen {
             ctx.add_temp(param.name, temp);
         }
 
-        // locals.insert(temp, self.offset - 4);
+        // locals.insert(temp, self.offset - 8);
 
         self.gen_statement(&func.body, instructions, locals, strings,&mut scopes, ctx);
     }
@@ -120,7 +120,7 @@ impl Codegen {
             } => {
                 let id_temp = Temp::new();
                 ctx.add_temp(*ident, id_temp);
-                self.offset -= 4;
+                self.offset -= 8;
                 let offset = self.offset ;
                 locals.insert(id_temp, offset);
                 scopes.enter(id_temp,offset);
@@ -147,7 +147,7 @@ impl Codegen {
 
                     instructions.push(instruction);
 
-                    // instructions.push(ir::Instruction::Deref(id_temp))
+                    instructions.push(ir::Instruction::Deref(id_temp))
 
                     // unimplemented!()
                 }
@@ -190,20 +190,36 @@ impl Codegen {
 
                     instructions.push(ir::Instruction::Label(l3));
                 } else {
+
+
                     self.cmp = true;
 
-                    self.gen_expression(cond, Temp::new(), instructions, locals,strings,ctx);
 
-                    instructions.push(ir::Instruction::JumpOp(
-                        self.cmp_op.take().unwrap_or(ir::CmpOp::EQ),
-                        l1,
-                    ));
 
+                    let cond = self.gen_expression(cond, Temp::new(), instructions, locals,strings, ctx);
+                    
                     self.cmp = false;
+
+
+                    instructions.push(cond);
+
+                    if self.cmp_op.is_none() {
+                        instructions.push(ir::Instruction::Cmp);
+
+                        instructions.push(ir::Instruction::JumpOp(ir::CmpOp::NE,l1))
+                    }else {
+                        instructions.push(ir::Instruction::JumpOp(
+                        self.cmp_op.take().unwrap(),
+                        l1,
+                        ));
+                    }
+                   
+                    
+                    
 
                     self.gen_statement(then, instructions, locals, strings,scopes, ctx);
 
-                    instructions.push(ir::Instruction::Label(l1));
+                    instructions.push(ir::Instruction::Label(l1));              
                 }
             }
 
@@ -309,17 +325,15 @@ impl Codegen {
 
                 
                     instructions.push(gen_expr);
-
-                    // if let Type::App(TyCon::String,_) = expr.ty {
-
-                    // } else {
-                        instructions.push(ir::Instruction::Move(Temp::new(),get_register(i)))
-                    // }
-
-                    
+                    instructions.push(ir::Instruction::Move(temp,get_register(i)))
                 }
 
                 ir::Instruction::Call(Label::named(*name))
+
+                // ir::Instruction::Drop(exprs.len() as isize)
+               
+
+
             }
 
             t::Expression::Cast(ref from, _) => {

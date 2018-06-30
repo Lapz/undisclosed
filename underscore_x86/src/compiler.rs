@@ -54,7 +54,7 @@ impl Compiler {
         self.write("\n");
         function.name.fmt(&mut self.file, &mut self.labels).unwrap();
         self.write(":\n");
-        self.emit_func_prologue(function.params.len(),function.locals.len()-1);
+        self.emit_func_prologue(function.params.len(),function.locals.len());
 
         let locals = &function.locals;
         let params = &function.params;
@@ -77,7 +77,7 @@ impl Compiler {
 
     pub fn emit_func_prologue(&mut self, nparams: usize,nlocals:usize,) {
         self.write("\tpushq %rbp\n\tmovq %rsp,%rbp\n");
-         write!(&mut self.file,"\tsubq ${}, %rsp #pro\n", (nparams+nlocals)*4+12).unwrap();
+        write!(&mut self.file,"\tsubq ${}, %rsp #pro\n", (nparams+nlocals)*8+8).unwrap();
     }
 
     pub fn emit_func_epilogue(&mut self) {
@@ -97,9 +97,11 @@ impl Compiler {
             Instruction::Store(ref temp, ref value) => {
                 if let Some(ref offset) = locals.get(temp) {
                     self.compile_value(value,locals);
+                    
                     write!(&mut self.file, "\tmovq %rax, {}(%rbp)\n", offset).unwrap();
                 } else {
                     self.compile_value(value,locals);
+        
                 }
             }
             Instruction::BinOp(_, ref op, ref v1, ref v2) => {
@@ -167,8 +169,8 @@ impl Compiler {
                         self.compile_instruction(v2,locals,params);
                         self.write("\tpopq %rdx\n");
                         self.write("\tcmpq %rdx, %rax #compute e1 == e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsete %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsete %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::NE => {
                         self.compile_instruction(v1,locals,params);
@@ -176,8 +178,8 @@ impl Compiler {
                         self.compile_instruction(v2,locals,params);
                         self.write("\tpopq %rdx\n");
                         self.write("\tcmpq %rdx, %rax #compute e1 != e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetne %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetne %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::LT => {
                         self.compile_instruction(v1,locals,params);
@@ -185,8 +187,8 @@ impl Compiler {
                         self.compile_instruction(v2,locals,params);
                         self.write("\tpopq %rdx\n");
                         self.write("\tcmpq %rdx, %rax #compute e1 < e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetl %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetl %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::LTE => {
                         self.compile_instruction(v1,locals,params);
@@ -194,8 +196,8 @@ impl Compiler {
                         self.compile_instruction(v2,locals,params);
                         self.write("\tpopq %rdx\n");
                         self.write("\tcmpq %rdx, %rax #compute e1 <= e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetle %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetle %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::GT => {
                         self.compile_instruction(v1,locals,params);
@@ -203,8 +205,8 @@ impl Compiler {
                         self.compile_instruction(v2,locals,params);
                         self.write("\tpopq %rdx\n");
                         self.write("\tcmpq %rdx, %rax #compute e1 > e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetg %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetg %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::GTE => {
                         self.compile_instruction(v1,locals,params);
@@ -212,8 +214,8 @@ impl Compiler {
                         self.compile_instruction(v2,locals,params);
                         self.write("\tpopq %rdx\n");
                         self.write("\tcmpq %rdx, %rax #compute e1 >= e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetge %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetge %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                 }
             }
@@ -237,12 +239,12 @@ impl Compiler {
             Instruction::JumpOp(ref op, ref label) => {
                 use ir::ir::CmpOp;
                 match *op {
-                    CmpOp::LT => write!(&mut self.file, "\tjge .{}\n", label).unwrap(),
-                    CmpOp::LTE => write!(&mut self.file, "\tjg .{}\n", label).unwrap(),
-                    CmpOp::GT => write!(&mut self.file, "\tjle .{}\n", label).unwrap(),
-                    CmpOp::GTE => write!(&mut self.file, "\tjl .{}\n", label).unwrap(),
-                    CmpOp::NE => write!(&mut self.file, "\tje  .{}\n", label).unwrap(),
-                    CmpOp::EQ => write!(&mut self.file, "\tjne .{}\n", label).unwrap(),
+                    CmpOp::LT => write!(&mut self.file, "\tjl .{}\n", label).unwrap(),
+                    CmpOp::LTE => write!(&mut self.file, "\tjle .{}\n", label).unwrap(),
+                    CmpOp::GT => write!(&mut self.file, "\tjg .{}\n", label).unwrap(),
+                    CmpOp::GTE => write!(&mut self.file, "\tjge .{}\n", label).unwrap(),
+                    CmpOp::NE => write!(&mut self.file, "\tjne  .{}\n", label).unwrap(),
+                    CmpOp::EQ => write!(&mut self.file, "\tje .{}\n", label).unwrap(),
                 }
             }
             Instruction::Load(ref temp) => {
@@ -265,7 +267,7 @@ impl Compiler {
             },
             Instruction::Drop(ref size) => {
                 if *size != 0 {
-                    write!(&mut self.file,"\taddq ${},%rsp\n",4*size).unwrap()
+                    write!(&mut self.file,"\taddq ${},%rsp\n",8*size).unwrap()
                 }
             },
             Instruction::Move(_,ref reg) => {
@@ -275,6 +277,18 @@ impl Compiler {
                 if let Some(ref offset) = locals.get(temp) {
                     write!(&mut self.file, "\tmovq %rax,{}(%rbp)\n", offset).unwrap();
                 }
+            },
+
+            Instruction::Cmp => {
+                 write!(&mut self.file,"\tcmpq $0,%rax\n").unwrap()
+            },
+
+            Instruction::Push(ref reg) => {
+                write!(&mut self.file, "\tpushq {}\n", reg).unwrap();
+            }
+
+            Instruction::Pop(ref reg) => {
+                write!(&mut self.file, "\tpopq {}\n", reg).unwrap();
             }
 
             ref e => unimplemented!("{:?}", e),
