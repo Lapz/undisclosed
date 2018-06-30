@@ -1,9 +1,9 @@
+use register::Register;
 use std::collections::HashMap;
 use std::fmt::{self, Display};
 pub use syntax::ast::Linkage;
 use syntax::ast::{Sign, Size};
 use temp::{Label, Temp};
-use register::Register;
 #[derive(Debug)]
 pub struct Program {
     pub functions: Vec<Function>,
@@ -16,7 +16,7 @@ pub struct Function {
     pub linkage: Linkage,
     pub locals: HashMap<Temp, i32>,
     pub strings: HashMap<Label, String>,
-    pub params:HashMap<Temp,Register>
+    pub params: HashMap<Temp, Register>,
 }
 
 #[derive(Debug, Clone)]
@@ -47,7 +47,7 @@ pub enum Instruction {
     /// Drop the specified number of local variables
     Drop(isize),
     /// Move temp into Register
-    Move(Temp,Register),
+    Move(Temp, Register),
     /// Move rax into the register
     Deref(Temp),
     /// Cmp
@@ -89,11 +89,11 @@ impl Display for Instruction {
             Instruction::Label(ref label) => write!(f, "label {}", label),
             Instruction::Return(ref ret) => write!(f, "ret {}", ret),
             Instruction::Drop(ref label) => write!(f, "drop {}", label),
-            Instruction::Move(ref temp,ref reg) => write!(f,"{} := {}",reg,temp),
+            Instruction::Move(ref temp, ref reg) => write!(f, "{} := {}", reg, temp),
             Instruction::Deref(ref label) => write!(f, "deref {}", label),
             Instruction::Cmp => write!(f, "cmp"),
-            Instruction::Push(ref reg) => write!(f, "push {}",reg),
-            Instruction::Pop(ref reg) => write!(f, "pop {}",reg),
+            Instruction::Push(ref reg) => write!(f, "push {}", reg),
+            Instruction::Pop(ref reg) => write!(f, "pop {}", reg),
         }
     }
 }

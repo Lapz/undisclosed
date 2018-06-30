@@ -5,13 +5,11 @@ mod cfg;
 pub mod ir;
 pub mod optimize;
 mod register;
+mod scopes;
 mod temp;
 mod translate;
-mod scopes;
 
 pub use temp::{Label, Temp};
 // pub use cfg::construct_cfg;
-pub use scopes::Scopes;
 pub use register::Register;
-
-
+pub use scopes::Scopes;

@@ -2,14 +2,20 @@ fn square(num:i32) -> i32 {
     return num*num;
 }
 
+fn fib(n:i32) -> i32 {
+    return fib(n - 1) + fib(n - 2);
+} 
 fn main() {
     let i = square(10) ;
 
-    while(i<10) {
+    if (1<10) {
+        i =10;
         printf("%ld\n",i);
-        i = i+1;
     }
 
+    let x = fib(10);
+    
+    printf("%ld\n",x);
 
 }
 

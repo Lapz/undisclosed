@@ -16,7 +16,7 @@ use underscore_semant::Infer;
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
-use underscore_util::symbol::{SymbolMap, Hasher};
+use underscore_util::symbol::{Hasher, SymbolMap};
 use x86::Compiler;
 
 fn main() {
@@ -93,15 +93,12 @@ fn repl() {
 
         let out = out.output().expect("failed to run out");
 
-
-
-        
         remove_file("out").unwrap();
         remove_file("out.s").unwrap();
 
-         let output = String::from_utf8_lossy(&out.stdout);
+        let output = String::from_utf8_lossy(&out.stdout);
 
-         println!("{}",output);
+        println!("{}", output);
     }
 }
 

@@ -31,7 +31,7 @@ use syntax::ast::Program;
 use types::Type;
 use util::{
     emitter::Reporter,
-    symbol::{Symbol, Hasher},
+    symbol::{Hasher, Symbol},
 };
 pub(crate) type InferResult<T> = Result<T, ()>;
 

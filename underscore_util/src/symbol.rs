@@ -17,25 +17,25 @@ pub struct Hasher<T: Copy + Eq + Hash> {
     pub mappings: RefCell<HashMap<T, String>>,
 }
 
-
-
-
-#[derive(Debug,Clone)]
-/// A Scoped Map that takes any K and 
-pub struct ScopedMap<K:Eq+Hash,V> where K:Eq+Hash{
+#[derive(Debug, Clone)]
+/// A Scoped Map that takes any K and
+pub struct ScopedMap<K: Eq + Hash, V>
+where
+    K: Eq + Hash,
+{
     table: HashMap<K, Vec<V>>,
     scopes: Vec<Option<K>>,
 }
 
-impl <K:Eq+Hash+Copy,V> ScopedMap<K,V> {
+impl<K: Eq + Hash + Copy, V> ScopedMap<K, V> {
     pub fn new() -> Self {
         Self {
-            table:HashMap::new(),
-            scopes:vec![],
+            table: HashMap::new(),
+            scopes: vec![],
         }
     }
 
-     /// Adds a new scope to the table
+    /// Adds a new scope to the table
     pub fn begin_scope(&mut self) {
         self.scopes.push(None);
     }
@@ -58,24 +58,17 @@ impl <K:Eq+Hash+Copy,V> ScopedMap<K,V> {
         self.table.get(key).and_then(|vec| vec.last())
     }
 
-
     pub fn replace(&mut self, key: K, value: V) {
         let bindings = self.table.entry(key).or_insert_with(Vec::new);
         bindings.pop().expect("Call enter() before replace()");
         bindings.push(value);
     }
-
-    
-
-
 }
 
-
 #[derive(Debug, Clone)]
-pub struct SymbolMap<V:Clone> {
-    hasher:Rc<Hasher<Symbol>>,
-    map:ScopedMap<Symbol,V>
-    
+pub struct SymbolMap<V: Clone> {
+    hasher: Rc<Hasher<Symbol>>,
+    map: ScopedMap<Symbol, V>,
 }
 
 impl<V: Clone> SymbolMap<V> {
@@ -83,7 +76,7 @@ impl<V: Clone> SymbolMap<V> {
     pub fn new(hasher: Rc<Hasher<Symbol>>) -> Self {
         SymbolMap {
             hasher,
-            map:ScopedMap::new()
+            map: ScopedMap::new(),
         }
     }
 
@@ -93,16 +86,13 @@ impl<V: Clone> SymbolMap<V> {
     }
     /// Recursivly destorys the scopes
     pub fn end_scope(&mut self) {
-       self.map.end_scope()
+        self.map.end_scope()
     }
-
 
     /// Enters a peice of value into the current scope
     pub fn insert(&mut self, symbol: Symbol, value: V) {
         self.map.insert(symbol, value)
     }
-
-    
 
     /// Looks in the table for the `Symbol` and if found returns the top element in
     /// the stack of Vec<T>
@@ -113,7 +103,6 @@ impl<V: Clone> SymbolMap<V> {
     /// Finds the name given to a `Symbol`
     pub fn name(&self, symbol: Symbol) -> String {
         self.hasher.mappings.borrow()[&symbol].to_owned()
-
     }
 
     // /// Checks if the given name allready exists within the table
@@ -134,7 +123,7 @@ impl<V: Clone> SymbolMap<V> {
     }
     /// Inserts the `Symbol` into the table
     pub fn replace(&mut self, symbol: Symbol, value: V) {
-       self.map.replace(symbol, value)
+        self.map.replace(symbol, value)
     }
 }
 
@@ -142,8 +131,6 @@ impl<T: Copy + Eq + Hash + Default> Hasher<T> {
     pub fn new() -> Hasher<T> {
         Self::default()
     }
-
-   
 }
 
 impl Display for Symbol {

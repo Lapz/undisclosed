@@ -5,7 +5,7 @@ use syntax::ast::{Sign, Size};
 use types::{TyCon, Type, TypeVar};
 use util::emitter::Reporter;
 use util::pos::Span;
-use util::symbol::{Symbol, SymbolMap,Hasher};
+use util::symbol::{Hasher, Symbol, SymbolMap};
 
 pub struct CompileCtx<'a> {
     types: SymbolMap<Entry>,
