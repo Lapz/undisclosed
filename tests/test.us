@@ -3,12 +3,19 @@ fn square(num:i32) -> i32 {
 }
 
 fn fib(n:i32) -> i32 {
-    return fib(n-1) + fib(n-2);
+
+    if (n < 1) {
+        return 0;
+    } else if (n == 0) {
+       return 0;
+    } else {
+        return fib(n-1) + fib(n-2);
+    }
 }
 
 
 fn main() {
-    printf("%ld\n",fib(10));
+    printf("%ld\n",square(10));
 
 }
 

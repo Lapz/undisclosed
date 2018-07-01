@@ -21,6 +21,24 @@ _fib:
 	pushq %rax
 	movq $1, %rax
 	popq %rdx
+	cmpq %rdx, %rax #compute e1 < e2, set ZF 
+ 	jl .l2
+	movq $0, %rax
+	jmp .l3 
+.l2:
+	movq %rax, %rdi
+	pushq %rax
+	movq $0, %rax
+	popq %rdx
+	cmpq %rdx, %rax #compute e1 == e2, set ZF 
+ 	je .l5
+	movq $0, %rax
+	jmp .l6 
+.l5:
+	movq %rax, %rdi
+	pushq %rax
+	movq $1, %rax
+	popq %rdx
 	subq %rdx,%rax
 	pushq %rax
 	popq %rdi
@@ -36,6 +54,8 @@ _fib:
 	callq _fib
 	popq %rdx
 	addq %rdx,%rax
+.l6:
+.l3:
 	movq %rbp, %rsp #epi
 	popq %rbp  
 	ret
@@ -47,15 +67,15 @@ _main:
 	movq $10, %rax
 	pushq %rax
 	popq %rdi
-	callq _fib
+	callq _square
 	pushq %rax
 	popq %rsi
-	leaq .l1(%rip),%rax
+	leaq .l7(%rip),%rax
 	pushq %rax
 	popq %rdi
 	callq _printf
 	movq %rbp, %rsp #epi
 	popq %rbp  
 	ret
-.l1:
+.l7:
 	.asciz "%ld\n"

@@ -59,8 +59,6 @@ impl Compiler {
         let locals = &function.locals;
         let params = &function.params;
 
-        println!("{:?}", locals);
-
         for instruction in function.body.iter() {
             self.compile_instruction(instruction, locals, params);
         }
@@ -101,8 +99,6 @@ impl Compiler {
             Instruction::Store(ref temp, ref value) => {
                 if let Some(ref offset) = locals.get(temp) {
                     self.compile_value(value, locals);
-
-                    // write!(&mut self.file, "\tmovq %rax, {}(%rbp)\n", offset).unwrap();
                 } else {
                     self.compile_value(value, locals);
                 }
@@ -256,15 +252,16 @@ impl Compiler {
                 } else if let Some(ref reg) = params.get(temp) {
                     write!(&mut self.file, "\tmovq %rax, {}\n", reg).unwrap();
                 }
-                // else {
-                //     panic!("Undefined temporary {}", temp);
-                // }
+                else {
+                    panic!("Undefined temporary {}", temp);
+                }
             }
 
             Instruction::Call(ref name) => {
-                // self.write("\tmovq %rax,%rdi\n");
                 self.write("\tcallq ");
 
+                
+                
                 name.fmt(&mut self.file, &mut self.labels).unwrap();
                 self.write("\n");
             }
