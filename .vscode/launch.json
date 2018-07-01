@@ -4,6 +4,14 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    { 
+        "name": "debug out.s",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${workspaceFolder}/underscore/out",
+        "cwd":"${workspaceFolder}/underscore"
+        
+    },
         {
             "type": "lldb",
             "request": "launch",

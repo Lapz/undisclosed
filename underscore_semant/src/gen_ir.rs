@@ -316,12 +316,13 @@ impl Codegen {
             }
 
             t::Expression::Call(ref name, ref exprs) => {
-                for (i, expr) in exprs.iter().enumerate() {
+                for (i, expr) in exprs.iter().enumerate().rev() {
                     let gen_expr =
                         self.gen_expression(expr, temp, instructions, locals, strings, ctx);
 
                     instructions.push(gen_expr);
-                    instructions.push(ir::Instruction::Move(temp, get_register(i)))
+                    instructions.push(ir::Instruction::Push(Register::RAX));
+                    instructions.push(ir::Instruction::Pop(get_register(i)))
                 }
 
                 ir::Instruction::Call(Label::named(*name))

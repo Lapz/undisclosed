@@ -102,7 +102,7 @@ impl Compiler {
                 if let Some(ref offset) = locals.get(temp) {
                     self.compile_value(value, locals);
 
-                    write!(&mut self.file, "\tmovq %rax, {}(%rbp)\n", offset).unwrap();
+                    // write!(&mut self.file, "\tmovq %rax, {}(%rbp)\n", offset).unwrap();
                 } else {
                     self.compile_value(value, locals);
                 }
