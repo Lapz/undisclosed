@@ -1,21 +1,6 @@
 function ls0() {
-    Return(BinOp(t2, Mul, Load(t1), Load(t1)))
-    Drop(0)
-}
-function ls2() {
-    Store(t5, Const(1, Signed, Bit32))
-    Deref(t5)
-    BinOp(t5, Plus, Load(t5), Store(t8, Const(3, Signed, Bit32)))
-    Move(t9, RBP(-8))
-    Load(t5)
-    Push(RAX)
-    Pop(RDI)
-    Call(Named(Symbol(0)))
-    Push(RAX)
-    Pop(RSI)
-    Store(t10, Name(Int(1)))
-    Push(RAX)
-    Pop(RDI)
-    Call(Named(Symbol(4)))
+    Store(t1, Const(1, Signed, Bit32))
+    Deref(t1)
+    BinOp(t2, LT, Load(t1), Store(t4, Const(10, Signed, Bit32)))
     Drop(1)
 }

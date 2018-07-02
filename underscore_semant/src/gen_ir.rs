@@ -307,9 +307,8 @@ impl Codegen {
 
                 instructions.push(expr);
 
-                  ir::Instruction::Move(Temp::new(),Register::RBP(*locals.get(&temp).unwrap()))
+                ir::Instruction::Move(Temp::new(),Register::RBP(*locals.get(&temp).unwrap()))
 
-                //  let temp = self.SymbolMap.get(symbol)
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
                 let lhs_temp = Temp::new();
