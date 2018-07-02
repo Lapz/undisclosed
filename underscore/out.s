@@ -4,9 +4,9 @@ _square:
 	pushq %rbp
 	movq %rsp,%rbp
 	subq $16, %rsp #pro
-	movq %rax, %rdi
+	movq %rdi,%rax
 	pushq %rax
-	movq %rax, %rdi
+	movq %rdi,%rax
 	popq %rdx
 	imulq %rdx,%rax
 	movq %rbp, %rsp #epi
@@ -17,32 +17,31 @@ _fib:
 	pushq %rbp
 	movq %rsp,%rbp
 	subq $16, %rsp #pro
-	movq %rax, %rdi
+	movq %rdi,%rax
 	pushq %rax
 	movq $1, %rax
 	popq %rdx
 	cmpq %rdx, %rax #compute e1 < e2, set ZF 
- 	jl .l2
-	movq $0, %rax
-	jmp .l3 
-.l2:
-	movq %rax, %rdi
+ 	jl .l1
+	movq $1, %rax
+	neg %rax
+.l1:
+	movq %rdi,%rax
 	pushq %rax
 	movq $0, %rax
 	popq %rdx
 	cmpq %rdx, %rax #compute e1 == e2, set ZF 
- 	je .l5
+ 	je .l2
 	movq $0, %rax
-	jmp .l6 
-.l5:
-	movq %rax, %rdi
+.l2:
+	movq %rdi,%rax
 	pushq %rax
 	movq $1, %rax
 	popq %rdx
 	subq %rdx,%rax
 	pushq %rax
 	popq %rdi
-	movq %rax, %rdi
+	movq %rdi,%rax
 	pushq %rax
 	movq $2, %rax
 	popq %rdx
@@ -54,8 +53,6 @@ _fib:
 	callq _fib
 	popq %rdx
 	addq %rdx,%rax
-.l6:
-.l3:
 	movq %rbp, %rsp #epi
 	popq %rbp  
 	ret
@@ -64,13 +61,30 @@ _main:
 	pushq %rbp
 	movq %rsp,%rbp
 	subq $0, %rsp #pro
+	movq $20, %rax
+	pushq %rax
+	movq $20, %rax
+	popq %rdx
+	cmpq %rdx, %rax #compute e1 <= e2, set ZF 
+ 	jle .l4
+	leaq .l6(%rip),%rax
+	pushq %rax
+	popq %rdi
+	callq _puts
+	jmp .l5 
+.l4:
+	leaq .l7(%rip),%rax
+	pushq %rax
+	popq %rdi
+	callq _puts
+.l5:
 	movq $10, %rax
 	pushq %rax
 	popq %rdi
-	callq _square
+	callq _fib
 	pushq %rax
 	popq %rsi
-	leaq .l7(%rip),%rax
+	leaq .l8(%rip),%rax
 	pushq %rax
 	popq %rdi
 	callq _printf
@@ -78,4 +92,8 @@ _main:
 	popq %rbp  
 	ret
 .l7:
+	.asciz "True"
+.l8:
 	.asciz "%ld\n"
+.l6:
+	.asciz "False"

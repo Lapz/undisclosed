@@ -250,9 +250,8 @@ impl Compiler {
                 if let Some(ref offset) = locals.get(temp) {
                     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();
                 } else if let Some(ref reg) = params.get(temp) {
-                    write!(&mut self.file, "\tmovq %rax, {}\n", reg).unwrap();
-                }
-                else {
+                    write!(&mut self.file, "\tmovq {},%rax\n", reg).unwrap();
+                } else {
                     panic!("Undefined temporary {}", temp);
                 }
             }
@@ -260,8 +259,6 @@ impl Compiler {
             Instruction::Call(ref name) => {
                 self.write("\tcallq ");
 
-                
-                
                 name.fmt(&mut self.file, &mut self.labels).unwrap();
                 self.write("\n");
             }
@@ -279,7 +276,7 @@ impl Compiler {
                 }
             }
 
-            Instruction::Cmp => write!(&mut self.file, "\tcmpq $0,%rax\n").unwrap(),
+            Instruction::Cmp => write!(&mut self.file, "\tcmpq $1,%rax\n").unwrap(),
 
             Instruction::Push(ref reg) => {
                 write!(&mut self.file, "\tpushq {}\n", reg).unwrap();

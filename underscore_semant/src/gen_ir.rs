@@ -180,10 +180,13 @@ impl Codegen {
 
                     instructions.push(cond);
 
-                    instructions.push(ir::Instruction::JumpOp(
-                        self.cmp_op.take().unwrap_or(ir::CmpOp::EQ),
-                        l2,
-                    ));
+                    if self.cmp_op.is_none() {
+                        instructions.push(ir::Instruction::Cmp);
+
+                        instructions.push(ir::Instruction::JumpOp(ir::CmpOp::NE, l2))
+                    } else {
+                        instructions.push(ir::Instruction::JumpOp(self.cmp_op.take().unwrap(), l2));
+                    }
 
                     self.cmp = false;
 
