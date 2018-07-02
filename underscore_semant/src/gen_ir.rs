@@ -301,7 +301,14 @@ impl Codegen {
             t::Expression::Assign(ref name, ref value) => {
                 let temp = self.gen_var(name, instructions, locals, strings, ctx);
 
-                self.gen_expression(value, temp, instructions, locals, strings, ctx)
+                // ;
+                
+                let expr = self.gen_expression(value, temp, instructions, locals, strings, ctx);
+
+                instructions.push(expr);
+
+                  ir::Instruction::Move(Temp::new(),Register::RBP(*locals.get(&temp).unwrap()))
+
                 //  let temp = self.SymbolMap.get(symbol)
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
@@ -412,7 +419,7 @@ impl Codegen {
 
             t::Var::SubScript(ref sym, ref expr, _) => {
                 let base = *ctx.get_temp(*sym).unwrap();
-                let base = locals.get(&base).unwrap();
+                // let base = locals.get(&base).unwrap();
 
                 let addr = Temp::new();
 

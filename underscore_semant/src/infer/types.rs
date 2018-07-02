@@ -22,8 +22,9 @@ impl Infer {
                 Ok(Type::Array(Box::new(self.trans_ty(ty, ctx)?), *len))
             }
             astType::Simple(ref ident) => {
-                if let Some(ty) = ctx.get_type(ident.value) {
-                    match *ty {
+                if let Some(ty) = ctx.get_type(ident.value).cloned() {
+                    // FIXME:Remove .cloned when NLL
+                    match ty {
                         Entry::Ty(ref ty) => match *ty {
                             Type::Poly(ref tvars, ref ret) => {
                                 if !tvars.is_empty() {

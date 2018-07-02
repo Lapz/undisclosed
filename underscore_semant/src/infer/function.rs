@@ -955,7 +955,8 @@ impl Infer {
                 ref tys,
                 ref args,
             } => {
-                let func = if let Some(func) = ctx.get_var(callee.value) {
+                let func = if let Some(func) = ctx.get_var(callee.value).cloned() {
+                    // FIXME:Remove .cloned when NLL
                     func.clone()
                 } else {
                     let msg = format!("Undefined function `{}`", ctx.name(callee.value));

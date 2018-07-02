@@ -7,8 +7,10 @@ addons:
     packages:
       - libssl-dev
 rust:
-  - nightly
+  - stable
+  - beta
+  - nightly 
 script:
-- cargo clean
-- cargo build 
-- cargo test -- --nocapture
+  - cargo clean
+  - cargo build 
+  - cargo test -- --nocapture

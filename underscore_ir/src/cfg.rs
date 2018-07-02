@@ -1,4 +1,3 @@
-use ir;
 use ir::Instruction;
 
 #[derive(Default, Debug)]
@@ -23,29 +22,29 @@ pub struct EdgeData {
     next_outgoing_edge: Option<EdgeIndex>,
 }
 
-impl CFG {
-    pub fn new() -> Self {
-        Self::default()
-    }
-    pub fn add_node(&mut self, data: Instruction) -> NodeIndex {
-        let index = self.nodes.len();
-        self.nodes.push(NodeData {
-            instruction: data,
-            first_outgoing_edge: None,
-        });
-        index
-    }
+// impl CFG {
+//     pub fn new() -> Self {
+//         Self::default()
+//     }
+//     pub fn add_node(&mut self, data: Instruction) -> NodeIndex {
+//         let index = self.nodes.len();
+//         self.nodes.push(NodeData {
+//             instruction: data,
+//             first_outgoing_edge: None,
+//         });
+//         index
+//     }
 
-    pub fn add_edge(&mut self, source: NodeIndex, target: NodeIndex) {
-        let edge_index = self.edges.len();
-        let node_data = &mut self.nodes[source];
-        self.edges.push(EdgeData {
-            target: target,
-            next_outgoing_edge: node_data.first_outgoing_edge,
-        });
-        node_data.first_outgoing_edge = Some(edge_index);
-    }
-}
+//     pub fn add_edge(&mut self, source: NodeIndex, target: NodeIndex) {
+//         let edge_index = self.edges.len();
+//         let node_data = &mut self.nodes[source];
+//         self.edges.push(EdgeData {
+//             target: target,
+//             next_outgoing_edge: node_data.first_outgoing_edge,
+//         });
+//         node_data.first_outgoing_edge = Some(edge_index);
+//     }
+// }
 
 // pub fn construct_cfg(mut ir: ir::Program) -> CFG {
 //     let mut graph = CFG::new();

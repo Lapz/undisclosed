@@ -2,32 +2,16 @@ fn square(num:i32) -> i32 {
     return num*num;
 }
 
-fn fib(n:i32) -> i32{
-
-    if (n < 1) {
-        return -1;
-    } 
-
-
-    
-    if (n==0) {
-        return 0;
-    }
-    
-    
-    return fib(n-1) + fib(n-2);
-    
-}
-
-
 fn main() {
-    if (20<=20) {
-        puts("False");
+    
 
-    }else {
-        puts("True");
-    }
-    printf("%ld\n",fib(10));
+    let i =1;
+    
+    i = i+3;
+ 
+    // while(i<10) {
+    // }
+    printf("%ld\n",square(i));
 
 }
 

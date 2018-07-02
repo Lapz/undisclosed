@@ -9,6 +9,7 @@ pub enum Register {
     R8,
     R9,
     RAX,
+    RBP(i32),
 }
 
 impl Display for Register {
@@ -21,6 +22,7 @@ impl Display for Register {
             Register::R8 => write!(f, "%r8"),
             Register::R9 => write!(f, "%r9"),
             Register::RAX => write!(f, "%rax"),
+            Register::RBP(ref i) => write!(f, "{}(%rbp)",i),
         }
     }
 }
