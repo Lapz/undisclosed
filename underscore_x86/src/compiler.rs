@@ -183,8 +183,8 @@ impl Compiler {
                     BinOp::LT => {
                         self.compile_instruction(v1, locals, params);
                         self.write("\tpushq %rax\n");
-                        self.compile_instruction(v2, locals, params);  
-                        self.write("\tpopq %rdx\n");                      
+                        self.compile_instruction(v2, locals, params);
+                        self.write("\tpopq %rdx\n");
                         self.write("\tcmpq %rax,%rdx #compute e1 < e2, set ZF \n ");
                         // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
                         // self.write("\tsetl %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
@@ -244,6 +244,7 @@ impl Compiler {
                     CmpOp::GTE => write!(&mut self.file, "\tjge .{}\n", label).unwrap(),
                     CmpOp::NE => write!(&mut self.file, "\tjne  .{}\n", label).unwrap(),
                     CmpOp::EQ => write!(&mut self.file, "\tje .{}\n", label).unwrap(),
+                    _ => unreachable!(),
                 }
             }
             Instruction::Load(ref temp) => {

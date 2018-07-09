@@ -30,7 +30,8 @@ use std::rc::Rc;
 use syntax::ast::Program;
 use types::Type;
 use util::{
-    emitter::Reporter, symbol::{Hasher, Symbol},
+    emitter::Reporter,
+    symbol::{Hasher, Symbol},
 };
 pub(crate) type InferResult<T> = Result<T, ()>;
 

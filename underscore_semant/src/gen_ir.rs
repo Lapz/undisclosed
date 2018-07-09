@@ -302,26 +302,42 @@ impl Codegen {
                 let temp = self.gen_var(name, instructions, locals, strings, ctx);
 
                 // ;
-                
+
                 let expr = self.gen_expression(value, temp, instructions, locals, strings, ctx);
 
                 instructions.push(expr);
 
-                ir::Instruction::Move(Temp::new(),Register::RBP(*locals.get(&temp).unwrap()))
-
+                ir::Instruction::Move(Temp::new(), Register::RBP(*locals.get(&temp).unwrap()))
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
-                let lhs_temp = Temp::new();
-                let lhs = self.gen_expression(lhs, lhs_temp, instructions, locals, strings, ctx);
-                let rhs_temp = Temp::new();
-                let rhs = self.gen_expression(rhs, rhs_temp, instructions, locals, strings, ctx);
                 let bop = gen_bin_op(op);
 
                 if self.cmp {
-                    self.cmp_op = Some(gen_cmp_op(op))
+                    self.cmp_op = gen_cmp_op(op)
                 }
 
-                ir::Instruction::BinOp(temp, bop, Box::new(lhs), Box::new(rhs))
+                match bop {
+                    ir::BinOp::And => {
+                        self.gen_expression(lhs, Temp::new(), instructions, locals, strings, ctx);
+                        let skip = Label::new();
+
+                        instructions.push(ir::Instruction::JumpOp(ir::CmpOp::EQ, skip));
+
+                        self.gen_expression(rhs, Temp::new(), instructions, locals, strings, ctx);
+
+                        ir::Instruction::Label(skip)
+                    }
+                    _ => {
+                        let lhs_temp = Temp::new();
+                        let lhs =
+                            self.gen_expression(lhs, lhs_temp, instructions, locals, strings, ctx);
+
+                        let rhs_temp = Temp::new();
+                        let rhs =
+                            self.gen_expression(rhs, rhs_temp, instructions, locals, strings, ctx);
+                        ir::Instruction::BinOp(temp, bop, Box::new(lhs), Box::new(rhs))
+                    }
+                }
             }
 
             t::Expression::Call(ref name, ref exprs) => {
@@ -465,15 +481,15 @@ fn gen_bin_op(op: &Op) -> ir::BinOp {
     }
 }
 
-fn gen_cmp_op(op: &Op) -> ir::CmpOp {
+fn gen_cmp_op(op: &Op) -> Option<ir::CmpOp> {
     match *op {
-        Op::LT => ir::CmpOp::LT,
-        Op::LTE => ir::CmpOp::LTE,
-        Op::GT => ir::CmpOp::GT,
-        Op::GTE => ir::CmpOp::GTE,
-        Op::NEq => ir::CmpOp::NE,
-        Op::Equal => ir::CmpOp::EQ,
-        _ => unreachable!(),
+        Op::LT => Some(ir::CmpOp::LT),
+        Op::LTE => Some(ir::CmpOp::LTE),
+        Op::GT => Some(ir::CmpOp::GT),
+        Op::GTE => Some(ir::CmpOp::GTE),
+        Op::NEq => Some(ir::CmpOp::NE),
+        Op::Equal => Some(ir::CmpOp::EQ),
+        _ => None,
     }
 }
 

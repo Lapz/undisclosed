@@ -289,7 +289,15 @@ impl<'a> Lexer<'a> {
                 '(' => Some(span(TokenType::LPAREN, start)),
                 ')' => Some(span(TokenType::RPAREN, start)),
                 ',' => Some(span(TokenType::COMMA, start)),
-                '|' => Some(span(TokenType::BAR, start)),
+                '|' => {
+                    if self.peek(|ch| ch == '|') {
+                        self.advance();
+
+                        Some(spans(TokenType::OR, start, start.shift('|')))
+                    } else {
+                        Some(span(TokenType::BAR, start))
+                    }
+                }
                 ':' => {
                     if self.peek(|ch| ch == ':') {
                         self.advance();
@@ -316,6 +324,16 @@ impl<'a> Lexer<'a> {
                         None
                     }
                 },
+                '&' => {
+                    if self.peek(|ch| ch == '&') {
+                        self.advance();
+                        Some(spans(TokenType::AND, start, start.shift('&')))
+                    } else {
+                        let msg = format!("Unexpected char '{}'", ch);
+                        self.error(msg, start);
+                        None
+                    }
+                }
                 '=' => {
                     if self.peek(|ch| ch == '=') {
                         self.advance();
@@ -469,8 +487,6 @@ fn look_up_identifier(id: &str) -> TokenType {
         // Booleans
         "true" => TokenType::TRUE(true),
         "false" => TokenType::FALSE(false),
-        "and" => TokenType::AND,
-        "or" => TokenType::OR,
         "bool" => TokenType::BOOL,
         "nil" => TokenType::NIL,
         "u8" => TokenType::U8,

@@ -148,6 +148,8 @@ pub enum CmpOp {
     GTE,
     EQ,
     NE,
+    OR,
+    AND,
 }
 
 impl Display for Program {
@@ -188,8 +190,8 @@ impl Display for BinOp {
             BinOp::Minus => write!(f, "-"),
             BinOp::Mul => write!(f, "*"),
             BinOp::Div => write!(f, "/"),
-            BinOp::And => write!(f, "and"),
-            BinOp::Or => write!(f, "or"),
+            BinOp::And => write!(f, "&&"),
+            BinOp::Or => write!(f, "||"),
             BinOp::LT => write!(f, "<"),
             BinOp::LTE => write!(f, "<="),
             BinOp::GT => write!(f, ">"),
@@ -209,6 +211,8 @@ impl Display for CmpOp {
             CmpOp::GTE => write!(f, ">="),
             CmpOp::NE => write!(f, "!="),
             CmpOp::EQ => write!(f, "=="),
+            CmpOp::AND => write!(f, "&&"),
+            CmpOp::OR => write!(f, "||"),
         }
     }
 }
