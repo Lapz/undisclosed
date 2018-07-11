@@ -158,8 +158,8 @@ impl Compiler {
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
                         self.write("\torq %rdx, %rax #compute e1 | e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetne %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetne %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
 
                     BinOp::EQ => {

@@ -316,28 +316,10 @@ impl Codegen {
                     self.cmp_op = gen_cmp_op(op)
                 }
 
-                match bop {
-                    ir::BinOp::And => {
-                        self.gen_expression(lhs, Temp::new(), instructions, locals, strings, ctx);
-                        let skip = Label::new();
+                let lhs = self.gen_expression(lhs, Temp::new(), instructions, locals, strings, ctx);
 
-                        instructions.push(ir::Instruction::JumpOp(ir::CmpOp::EQ, skip));
-
-                        self.gen_expression(rhs, Temp::new(), instructions, locals, strings, ctx);
-
-                        ir::Instruction::Label(skip)
-                    }
-                    _ => {
-                        let lhs_temp = Temp::new();
-                        let lhs =
-                            self.gen_expression(lhs, lhs_temp, instructions, locals, strings, ctx);
-
-                        let rhs_temp = Temp::new();
-                        let rhs =
-                            self.gen_expression(rhs, rhs_temp, instructions, locals, strings, ctx);
-                        ir::Instruction::BinOp(temp, bop, Box::new(lhs), Box::new(rhs))
-                    }
-                }
+                let rhs = self.gen_expression(rhs, Temp::new(), instructions, locals, strings, ctx);
+                ir::Instruction::BinOp(temp, bop, Box::new(lhs), Box::new(rhs))
             }
 
             t::Expression::Call(ref name, ref exprs) => {

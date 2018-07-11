@@ -1,14 +1,14 @@
-fn square(num:i32) -> i32 {
-    return num*num;
-}
+// fn square(num:i32) -> i32 {
+//     return num*num;
+// }
 
-fn fib(n:i32) -> i32 {
-    if n == 0 ||  n ==1 {
-        return n;
-    } else {
-        return fib(n-1) +fib(n-2);
-    }
-}
+// fn fib(n:i32) -> i32 {
+//     if n == 0 ||  n ==1 {
+//         return n;
+//     } else {
+//         return fib(n-1) +fib(n-2);
+//     }
+// }
 
 fn main() {
     
@@ -25,9 +25,11 @@ fn main() {
     // }
 
 
-    let i = fib(5);
-    printf("%ld\n",i);
+    // let i = fib(5);
+    // printf("%ld\n",i);
     // 
+
+    10 || 10;
 
 }
 
