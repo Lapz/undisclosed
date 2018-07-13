@@ -73,7 +73,7 @@ impl Codegen {
         for (i, param) in func.params.iter().enumerate() {
             let temp = Temp::new();
 
-            params.insert(temp, get_register(i));
+            locals.insert(temp, self.offset -8);
             ctx.add_temp(param.name, temp);
         }
 

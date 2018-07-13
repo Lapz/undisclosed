@@ -2,18 +2,18 @@
 //     return num*num;
 // }
 
-// fn fib(n:i32) -> i32 {
-//     if n == 0 ||  n ==1 {
-//         return n;
-//     } else {
-//         return fib(n-1) +fib(n-2);
-//     }
-// }
+fn fib(n:i32) -> i32 {
+    if n == 0 ||  n ==1 {
+        return n;
+    } else {
+        return fib(n-1) +fib(n-2);
+    }
+}
 
 fn main() {
     
 
-    // let i =0;
+    let n =5;
 
     // while(i<10) {
     //      i = i+1;
@@ -25,11 +25,9 @@ fn main() {
     // }
 
 
-    // let i = fib(5);
-    // printf("%ld\n",i);
-    // 
-
-    10 || 10;
+    let i = fib(5);
+    printf("%ld\n",i);
+    
 
 }
 
