@@ -73,7 +73,8 @@ impl Codegen {
         for (i, param) in func.params.iter().enumerate() {
             let temp = Temp::new();
 
-            locals.insert(temp, self.offset -8);
+           
+            params.insert(temp, get_register(i));
             ctx.add_temp(param.name, temp);
         }
 
@@ -316,10 +317,13 @@ impl Codegen {
                     self.cmp_op = gen_cmp_op(op)
                 }
 
-                let lhs = self.gen_expression(lhs, Temp::new(), instructions, locals, strings, ctx);
+                let lhs =self.gen_expression(lhs, Temp::new(), instructions, locals, strings, ctx);
 
                 let rhs = self.gen_expression(rhs, Temp::new(), instructions, locals, strings, ctx);
+
                 ir::Instruction::BinOp(temp, bop, Box::new(lhs), Box::new(rhs))
+
+             
             }
 
             t::Expression::Call(ref name, ref exprs) => {

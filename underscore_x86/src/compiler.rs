@@ -95,6 +95,7 @@ impl Compiler {
         use ir::ir::Instruction;
 
         match *instruction {
+            Instruction::Add  => self.write("\t addq %rdx,%rax"),
             Instruction::Label(ref label) => self.write(&format!(".{}:\n", label)),
             Instruction::Store(ref temp, ref value) => {
                 if let Some(ref offset) = locals.get(temp) {
@@ -157,9 +158,9 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.write("\tcmpq $0, %rax \n");
                         let label = Label::new();
-                        write!(&mut self.file,"je .{}\n",label).unwrap();
+                        write!(&mut self.file,"\tje .{}\n",label).unwrap();
                         self.compile_instruction(v2, locals, params);
-                        write!(&mut self.file,".{}\n",label).unwrap();
+                        write!(&mut self.file,".{}:\n",label).unwrap();
                     }
 
                     BinOp::EQ => {
@@ -167,7 +168,7 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rax, %rdx #compute e1 == e2, set ZF \n ");
+                        self.write("\tcmpq %rdx, %rax #compute e1 == e2, set ZF \n ");
                         // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
                         // self.write("\tsete %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
@@ -176,7 +177,7 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rax, %rdx #compute e1 != e2, set ZF \n ");
+                        self.write("\tcmpq %rdx, %rax #compute e1 != e2, set ZF \n ");
                         self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
                         self.write("\tsetne %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
@@ -185,7 +186,7 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rax,%rdx #compute e1 < e2, set ZF \n ");
+                        self.write("\tcmpq %rdx,%rax #compute e1 < e2, set ZF \n ");
                         self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
                         self.write("\tsetl %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
@@ -194,7 +195,7 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rax, %rdx #compute e1 <= e2, set ZF \n ");
+                        self.write("\tcmpq %rdx, %rax #compute e1 <= e2, set ZF \n ");
                         self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
                         self.write("\tsetle %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
@@ -203,7 +204,7 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rax, %rdx #compute e1 > e2, set ZF \n ");
+                        self.write("\tcmpq %rdx, %rax #compute e1 > e2, set ZF \n ");
                         self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
                         self.write("\tsetg %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
@@ -212,7 +213,7 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rax, %rdx #compute e1 >= e2, set ZF \n ");
+                        self.write("\tcmpq %rdx, %rax #compute e1 >= e2, set ZF \n ");
                         self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
                         self.write("\tsetge %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
