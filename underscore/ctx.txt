@@ -1,0 +1,411 @@
+CompileCtx {
+    types: SymbolMap {
+        hasher: Hasher {
+            next: RefCell {
+                value: 17
+            },
+            mappings: RefCell {
+                value: {
+                    Symbol(
+                        9
+                    ): "u8",
+                    Symbol(
+                        4
+                    ): "next",
+                    Symbol(
+                        6
+                    ): "printf",
+                    Symbol(
+                        3
+                    ): "second",
+                    Symbol(
+                        15
+                    ): "bool",
+                    Symbol(
+                        0
+                    ): "fib",
+                    Symbol(
+                        12
+                    ): "i64",
+                    Symbol(
+                        5
+                    ): "i",
+                    Symbol(
+                        8
+                    ): "i8",
+                    Symbol(
+                        14
+                    ): "nil",
+                    Symbol(
+                        7
+                    ): "str",
+                    Symbol(
+                        13
+                    ): "u64",
+                    Symbol(
+                        1
+                    ): "n",
+                    Symbol(
+                        2
+                    ): "first",
+                    Symbol(
+                        16
+                    ): "puts",
+                    Symbol(
+                        10
+                    ): "i32",
+                    Symbol(
+                        11
+                    ): "u32"
+                }
+            }
+        },
+        map: ScopedMap {
+            table: {},
+            scopes: []
+        }
+    },
+    tvars: {
+        TypeVar(
+            0
+        ): Int,
+        TypeVar(
+            2
+        ): Int,
+        TypeVar(
+            1
+        ): Int,
+        TypeVar(
+            3
+        ): Int,
+        TypeVar(
+            4
+        ): Int
+    },
+    vars: SymbolMap {
+        hasher: Hasher {
+            next: RefCell {
+                value: 17
+            },
+            mappings: RefCell {
+                value: {
+                    Symbol(
+                        9
+                    ): "u8",
+                    Symbol(
+                        4
+                    ): "next",
+                    Symbol(
+                        6
+                    ): "printf",
+                    Symbol(
+                        3
+                    ): "second",
+                    Symbol(
+                        15
+                    ): "bool",
+                    Symbol(
+                        0
+                    ): "fib",
+                    Symbol(
+                        12
+                    ): "i64",
+                    Symbol(
+                        5
+                    ): "i",
+                    Symbol(
+                        8
+                    ): "i8",
+                    Symbol(
+                        14
+                    ): "nil",
+                    Symbol(
+                        7
+                    ): "str",
+                    Symbol(
+                        13
+                    ): "u64",
+                    Symbol(
+                        1
+                    ): "n",
+                    Symbol(
+                        2
+                    ): "first",
+                    Symbol(
+                        16
+                    ): "puts",
+                    Symbol(
+                        10
+                    ): "i32",
+                    Symbol(
+                        11
+                    ): "u32"
+                }
+            }
+        },
+        map: ScopedMap {
+            table: {
+                Symbol(
+                    1
+                ): [],
+                Symbol(
+                    2
+                ): [],
+                Symbol(
+                    16
+                ): [
+                    Fun {
+                        ty: Poly(
+                            [],
+                            App(
+                                Arrow,
+                                [
+                                    App(
+                                        String,
+                                        []
+                                    ),
+                                    Nil
+                                ]
+                            )
+                        )
+                    }
+                ],
+                Symbol(
+                    3
+                ): [],
+                Symbol(
+                    6
+                ): [
+                    Fun {
+                        ty: Poly(
+                            [],
+                            App(
+                                Arrow,
+                                [
+                                    App(
+                                        String,
+                                        []
+                                    ),
+                                    App(
+                                        Int(
+                                            Signed,
+                                            Bit32
+                                        ),
+                                        []
+                                    ),
+                                    Nil
+                                ]
+                            )
+                        )
+                    }
+                ],
+                Symbol(
+                    5
+                ): [],
+                Symbol(
+                    0
+                ): [
+                    Fun {
+                        ty: Poly(
+                            [],
+                            App(
+                                Arrow,
+                                [
+                                    App(
+                                        Int(
+                                            Signed,
+                                            Bit32
+                                        ),
+                                        []
+                                    ),
+                                    Nil
+                                ]
+                            )
+                        )
+                    }
+                ],
+                Symbol(
+                    4
+                ): []
+            },
+            scopes: [
+                Some(
+                    Symbol(
+                        16
+                    )
+                ),
+                Some(
+                    Symbol(
+                        6
+                    )
+                ),
+                Some(
+                    Symbol(
+                        0
+                    )
+                )
+            ]
+        }
+    },
+    escapes: SymbolMap {
+        hasher: Hasher {
+            next: RefCell {
+                value: 17
+            },
+            mappings: RefCell {
+                value: {
+                    Symbol(
+                        9
+                    ): "u8",
+                    Symbol(
+                        4
+                    ): "next",
+                    Symbol(
+                        6
+                    ): "printf",
+                    Symbol(
+                        3
+                    ): "second",
+                    Symbol(
+                        15
+                    ): "bool",
+                    Symbol(
+                        0
+                    ): "fib",
+                    Symbol(
+                        12
+                    ): "i64",
+                    Symbol(
+                        5
+                    ): "i",
+                    Symbol(
+                        8
+                    ): "i8",
+                    Symbol(
+                        14
+                    ): "nil",
+                    Symbol(
+                        7
+                    ): "str",
+                    Symbol(
+                        13
+                    ): "u64",
+                    Symbol(
+                        1
+                    ): "n",
+                    Symbol(
+                        2
+                    ): "first",
+                    Symbol(
+                        16
+                    ): "puts",
+                    Symbol(
+                        10
+                    ): "i32",
+                    Symbol(
+                        11
+                    ): "u32"
+                }
+            }
+        },
+        map: ScopedMap {
+            table: {},
+            scopes: []
+        }
+    },
+    temps: SymbolMap {
+        hasher: Hasher {
+            next: RefCell {
+                value: 17
+            },
+            mappings: RefCell {
+                value: {
+                    Symbol(
+                        9
+                    ): "u8",
+                    Symbol(
+                        4
+                    ): "next",
+                    Symbol(
+                        6
+                    ): "printf",
+                    Symbol(
+                        3
+                    ): "second",
+                    Symbol(
+                        15
+                    ): "bool",
+                    Symbol(
+                        0
+                    ): "fib",
+                    Symbol(
+                        12
+                    ): "i64",
+                    Symbol(
+                        5
+                    ): "i",
+                    Symbol(
+                        8
+                    ): "i8",
+                    Symbol(
+                        14
+                    ): "nil",
+                    Symbol(
+                        7
+                    ): "str",
+                    Symbol(
+                        13
+                    ): "u64",
+                    Symbol(
+                        1
+                    ): "n",
+                    Symbol(
+                        2
+                    ): "first",
+                    Symbol(
+                        16
+                    ): "puts",
+                    Symbol(
+                        10
+                    ): "i32",
+                    Symbol(
+                        11
+                    ): "u32"
+                }
+            }
+        },
+        map: ScopedMap {
+            table: {
+                Symbol(
+                    1
+                ): [
+                    t1
+                ],
+                Symbol(
+                    3
+                ): [],
+                Symbol(
+                    2
+                ): [],
+                Symbol(
+                    4
+                ): [],
+                Symbol(
+                    5
+                ): []
+            },
+            scopes: [
+                Some(
+                    Symbol(
+                        1
+                    )
+                )
+            ]
+        }
+    },
+    reporter: Reporter {
+        diagnostics: RefCell {
+            value: []
+        }
+    }
+}

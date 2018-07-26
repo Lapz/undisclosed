@@ -86,6 +86,8 @@ impl Infer {
 
         let ir = codegen.gen_program(mono_program, &mut ctx);
 
+        use std::fs::File;
+        
         Ok(ir)
     }
 }

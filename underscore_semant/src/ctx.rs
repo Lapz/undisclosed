@@ -7,6 +7,7 @@ use util::emitter::Reporter;
 use util::pos::Span;
 use util::symbol::{Hasher, Symbol, SymbolMap};
 
+#[derive(Debug)]
 pub struct CompileCtx<'a> {
     types: SymbolMap<Entry>,
     tvars: HashMap<TypeVar, VarType>,

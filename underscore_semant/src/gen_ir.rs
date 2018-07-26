@@ -300,13 +300,14 @@ impl Codegen {
                 )
             }
             t::Expression::Assign(ref name, ref value) => {
-                let temp = self.gen_var(name, instructions, locals, strings, ctx);
-
-                // ;
-
                 let expr = self.gen_expression(value, temp, instructions, locals, strings, ctx);
 
                 instructions.push(expr);
+
+                let temp = self.gen_var(name, instructions, locals, strings, ctx);
+
+
+               
 
                 ir::Instruction::Move(Temp::new(), Register::RBP(*locals.get(&temp).unwrap()))
             }

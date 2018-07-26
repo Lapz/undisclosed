@@ -48,6 +48,8 @@ impl Compiler {
             }
             self.compile_function(function);
         }
+
+        
     }
 
     pub fn compile_function(&mut self, function: &ir::ir::Function) {
@@ -65,6 +67,7 @@ impl Compiler {
 
         self.emit_func_epilogue();
         self.emit_strings(&function.strings);
+        write!(&mut self.file,"/*\nlocals:{:#?} ,\nparams:{:#?}\n*/",locals,params).unwrap();
     }
 
     pub fn emit_strings(&mut self, strings: &HashMap<Label, String>) {
@@ -168,7 +171,7 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rdx, %rax #compute e1 == e2, set ZF \n ");
+                        self.write("\tcmpq %rax,%rdx #compute e1 == e2, set ZF \n ");
                         // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
                         // self.write("\tsete %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
@@ -177,45 +180,45 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rdx, %rax #compute e1 != e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetne %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        self.write("\tcmpq %rax,%rdx #compute e1 != e2, set ZF \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetne %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::LT => {
                         self.compile_instruction(v1, locals, params);
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rdx,%rax #compute e1 < e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetl %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        self.write("\tcmpq %rax,%rdx #compute e1 < e2, set ZF \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetl %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::LTE => {
                         self.compile_instruction(v1, locals, params);
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rdx, %rax #compute e1 <= e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetle %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        self.write("\tcmpq %rax,%rdx #compute e1 <= e2, set ZF \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetle %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::GT => {
                         self.compile_instruction(v1, locals, params);
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rdx, %rax #compute e1 > e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetg %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        self.write("\tcmpq %rax,%rdx #compute e1 > e2, set ZF \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetg %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                     BinOp::GTE => {
                         self.compile_instruction(v1, locals, params);
                         self.write("\tpushq %rax\n");
                         self.compile_instruction(v2, locals, params);
                         self.write("\tpopq %rdx\n");
-                        self.write("\tcmpq %rdx, %rax #compute e1 >= e2, set ZF \n ");
-                        self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
-                        self.write("\tsetge %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
+                        self.write("\tcmpq %rax,%rdx #compute e1 >= e2, set ZF \n ");
+                        // self.write("\tmovq $0, %rax #zero out EAX without changing ZF \n ");
+                        // self.write("\tsetge %al #set AL register (the lower byte of EAX) to 1 iff e1 | e2 != 0 \n ");
                     }
                 }
             }
@@ -294,7 +297,7 @@ impl Compiler {
 
     pub fn compile_value(&mut self, value: &Value, locals: &HashMap<ir::Temp, i32>) {
         match *value {
-            Value::Const(ref i, _, _) => write!(&mut self.file, "\tmovq ${}, %rax\n", i).unwrap(),
+            Value::Const(ref i, _, _) => write!(&mut self.file, "\tmovq ${}, %rax #{} \n", *i,*i).unwrap(),
             Value::Temp(ref temp) => {
                 if let Some(ref offset) = locals.get(temp) {
                     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();
