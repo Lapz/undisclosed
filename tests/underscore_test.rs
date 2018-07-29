@@ -9,6 +9,7 @@ use std::fs::File;
 use std::io::Read;
 use std::process::Command;
 use walkdir::WalkDir;
+use std::fs::remove_file;
 
 fn main() {
     let mut pass = 0i32;
@@ -46,6 +47,27 @@ fn main() {
 
         let output = String::from_utf8_lossy(&output.stdout);
 
+        for expects in expected.iter() {
+            if output.contains(expects) {
+                pass += 1;
+            } else if underscorec
+                .status()
+                .expect("failed to execute process")
+                .success() && !output.contains(expects)
+            {
+                pass += 1;
+            } else {
+                fail += 1;
+            }
+        }
+
+        let mut program = Command::new("../tests/pass/out");
+
+        let output = program.output().expect("failed to execute process");
+
+        println!("{:?}",output);
+        let output = String::from_utf8_lossy(&output.stdout);
+
         for expects in expected {
             if output.contains(&expects) {
                 pass += 1;
@@ -69,51 +91,51 @@ fn main() {
 
     assert!(fail == 0);
 
-    for entry in WalkDir::new("../tests/fail") {
-        let mut underscorec = Command::new("cargo");
-        let entry = entry.unwrap();
+    // for entry in WalkDir::new("../tests/fail") {
+    //     let mut underscorec = Command::new("cargo");
+    //     let entry = entry.unwrap();
 
-        if entry.path().is_dir() {
-            continue;
-        }
+    //     if entry.path().is_dir() {
+    //         continue;
+    //     }
 
-        let mut source = String::new();
+    //     let mut source = String::new();
 
-        let mut file = File::open(entry.path().to_str().unwrap()).expect("File not found");
+    //     let mut file = File::open(entry.path().to_str().unwrap()).expect("File not found");
 
-        file.read_to_string(&mut source)
-            .expect("something went wrong reading the file");
+    //     file.read_to_string(&mut source)
+    //         .expect("something went wrong reading the file");
 
-        underscorec.args(&["run", "--", entry.path().to_str().unwrap()]);
+    //     underscorec.args(&["run", "--", entry.path().to_str().unwrap()]);
 
-        let mut expected = Vec::new();
+    //     let mut expected = Vec::new();
 
-        let pattern = "//expect:";
+    //     let pattern = "//expect:";
 
-        for line in source.lines() {
-            if let Some((index, _)) = line.match_indices(&pattern).next() {
-                let from = index + pattern.len();
-                let expects = line[from..].to_string();
-                expected.push(expects);
-            }
-        }
+    //     for line in source.lines() {
+    //         if let Some((index, _)) = line.match_indices(&pattern).next() {
+    //             let from = index + pattern.len();
+    //             let expects = line[from..].to_string();
+    //             expected.push(expects);
+    //         }
+    //     }
 
-        let output = underscorec.output().expect("failed to execute process");
+    //     let output = underscorec.output().expect("failed to execute process");
 
-        let output = String::from_utf8_lossy(&output.stdout);
-        for expects in expected {
-            if !output.contains(&expects) {
-                panic!("Expected: {}", expects)
-            } else {
+    //     let output = String::from_utf8_lossy(&output.stdout);
+    //     for expects in expected {
+    //         if !output.contains(&expects) {
+    //             panic!("Expected: {}", expects)
+    //         } else {
 
-            }
-        }
+    //         }
+    //     }
 
-        assert!(
-            underscorec
-                .status()
-                .expect("failed to execute process")
-                .success() != true
-        );
-    }
+    //     assert!(
+    //         underscorec
+    //             .status()
+    //             .expect("failed to execute process")
+    //             .success() != true
+    //     );
+    // }
 }

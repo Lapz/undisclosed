@@ -18,7 +18,7 @@ fn fib(n:i32) {
 fn main() -> i32 {
   
 
-    fib(10);
+    fib(30);
 
     return 0;
 }

@@ -180,17 +180,30 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool, emit_asm: bool) {
     compiler.compile(ir);
 
     let mut gcc = Command::new("gcc");
+   
+    
+    use std::path::Path;
+    
+    let path = Path::new(&path);
 
+
+    let path  = format!("{}/out",path.parent().unwrap().to_str().unwrap());
     gcc.args(&[
         "-m64",
         "-lz",
         "../target/release/libunderscore_rt.dylib",
         "out.s",
         "-o",
-        "out",
+        &path,
     ]);
 
-    gcc.output().expect("failed to execute process");
+    let output = gcc.output().expect("failed to execute process");
+    let output = String::from_utf8_lossy(&output.stdout);
+
+    if output.is_empty() {
+        println!("{}",output);
+    }
+   
 
     if !emit_asm {
         remove_file("out.s").unwrap();
