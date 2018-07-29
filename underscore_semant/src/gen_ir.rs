@@ -75,10 +75,13 @@ impl Codegen {
 
            
             params.insert(temp, get_register(i));
+            self.offset -= 8;
+            instructions.push(ir::Instruction::Move(temp,Register::RBP(self.offset)));
+            locals.insert(temp, self.offset);
             ctx.add_temp(param.name, temp);
         }
 
-        // locals.insert(temp, self.offset - 8);
+       
 
         self.gen_statement(&func.body, instructions, locals, strings, &mut scopes, ctx);
     }

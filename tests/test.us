@@ -1,5 +1,5 @@
 fn fib(n:i32) {
-       let first =0;
+    let first =0;
     let second =1;
     let next = 1;
 
@@ -15,22 +15,12 @@ fn fib(n:i32) {
 
 
 
-fn main() {
-    let first =0;
-    let second =1;
-    let next = 1;
+fn main() -> i32 {
+  
 
+    fib(10);
 
-    for (let i =1;i<10;i=i+1) {
-        next = first +second;
-        first = second;
-        second = next;
-        printf("%ld\n",next);
-    }
-
-    // fib(15);
-
-    // return 1;
+    return 0;
 }
 
 
