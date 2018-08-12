@@ -48,8 +48,6 @@ impl Compiler {
             }
             self.compile_function(function);
         }
-
-        
     }
 
     pub fn compile_function(&mut self, function: &ir::ir::Function) {
@@ -67,7 +65,11 @@ impl Compiler {
 
         self.emit_func_epilogue();
         self.emit_strings(&function.strings);
-        write!(&mut self.file,"/*\nlocals:{:#?} ,\nparams:{:#?}\n*/",locals,params).unwrap();
+        write!(
+            &mut self.file,
+            "/*\nlocals:{:#?} ,\nparams:{:#?}\n*/",
+            locals, params
+        ).unwrap();
     }
 
     pub fn emit_strings(&mut self, strings: &HashMap<Label, String>) {
@@ -98,7 +100,7 @@ impl Compiler {
         use ir::ir::Instruction;
 
         match *instruction {
-            Instruction::Add  => self.write("\t addq %rdx,%rax"),
+            Instruction::Add => self.write("\t addq %rdx,%rax"),
             Instruction::Label(ref label) => self.write(&format!(".{}:\n", label)),
             Instruction::Store(ref temp, ref value) => {
                 if let Some(ref offset) = locals.get(temp) {
@@ -161,9 +163,9 @@ impl Compiler {
                         self.write("\tpushq %rax\n");
                         self.write("\tcmpq $0, %rax \n");
                         let label = Label::new();
-                        write!(&mut self.file,"\tje .{}\n",label).unwrap();
+                        write!(&mut self.file, "\tje .{}\n", label).unwrap();
                         self.compile_instruction(v2, locals, params);
-                        write!(&mut self.file,".{}:\n",label).unwrap();
+                        write!(&mut self.file, ".{}:\n", label).unwrap();
                     }
 
                     BinOp::EQ => {
@@ -297,7 +299,9 @@ impl Compiler {
 
     pub fn compile_value(&mut self, value: &Value, locals: &HashMap<ir::Temp, i32>) {
         match *value {
-            Value::Const(ref i, _, _) => write!(&mut self.file, "\tmovq ${}, %rax #{} \n", *i,*i).unwrap(),
+            Value::Const(ref i, _, _) => {
+                write!(&mut self.file, "\tmovq ${}, %rax #{} \n", *i, *i).unwrap()
+            }
             Value::Temp(ref temp) => {
                 if let Some(ref offset) = locals.get(temp) {
                     write!(&mut self.file, "\tmovq {}(%rbp),%rax\n", offset).unwrap();

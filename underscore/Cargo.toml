@@ -27,3 +27,4 @@ crate-type = ["staticlib", "cdylib"]
 [dev-dependencies]
 walkdir = "2"
 ansi_term = "0.10"
+tempfile = "3"

@@ -54,7 +54,7 @@ pub enum Instruction {
     Cmp,
     Push(Register),
     Pop(Register),
-    Add
+    Add,
 }
 
 impl Display for Instruction {
@@ -93,7 +93,7 @@ impl Display for Instruction {
             Instruction::Move(ref temp, ref reg) => write!(f, "{} := {}", reg, temp),
             Instruction::Deref(ref label) => write!(f, "deref {}", label),
             Instruction::Cmp => write!(f, "cmp"),
-            Instruction::Add=> write!(f, "add"),
+            Instruction::Add => write!(f, "add"),
             Instruction::Push(ref reg) => write!(f, "push {}", reg),
             Instruction::Pop(ref reg) => write!(f, "pop {}", reg),
         }

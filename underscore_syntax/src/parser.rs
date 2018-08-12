@@ -1394,7 +1394,8 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         if !self.recognise(TokenType::RBRACE) {
             loop {
-                let (open_span, ident) = self.consume_get_ident_and_span("Expected a field name")?;
+                let (open_span, ident) =
+                    self.consume_get_ident_and_span("Expected a field name")?;
 
                 self.consume(&TokenType::COLON, "Expected a colon")?;
 

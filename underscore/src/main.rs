@@ -23,7 +23,7 @@ fn main() {
     let opts = Cli::from_args();
 
     if let Some(file) = opts.source {
-        run(file, opts.file, opts.emit_ir, opts.emit_asm);
+        run(file, opts.file, opts.emit_ir, opts.emit_asm, opts.path);
     } else {
         repl()
     }
@@ -102,11 +102,17 @@ fn repl() {
     }
 }
 
-fn run(path: String, dump_file: Option<String>, emit_ir: bool, emit_asm: bool) {
+fn run(
+    source: String,
+    dump_file: Option<String>,
+    emit_ir: bool,
+    emit_asm: bool,
+    output_path: Option<String>,
+) {
     use std::fs::File;
     use std::io::Read;
 
-    let mut file = File::open(path.clone()).expect("File not found");
+    let mut file = File::open(source.clone()).expect("File not found");
 
     let mut contents = String::new();
 
@@ -180,14 +186,14 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool, emit_asm: bool) {
     compiler.compile(ir);
 
     let mut gcc = Command::new("gcc");
-   
-    
+
     use std::path::Path;
-    
-    let path = Path::new(&path);
 
+    let output_path = output_path.unwrap_or("./".into());
 
-    let path  = format!("{}/out",path.parent().unwrap().to_str().unwrap());
+    let path = Path::new(&output_path);
+
+    let path = format!("{}/out", path.display());
     gcc.args(&[
         "-m64",
         "-lz",
@@ -201,9 +207,8 @@ fn run(path: String, dump_file: Option<String>, emit_ir: bool, emit_asm: bool) {
     let output = String::from_utf8_lossy(&output.stdout);
 
     if output.is_empty() {
-        println!("{}",output);
+        println!("{}", output);
     }
-   
 
     if !emit_asm {
         remove_file("out.s").unwrap();
@@ -218,8 +223,13 @@ pub struct Cli {
     /// Dump the ast to a give file
     #[structopt(short = "d", long = "dump")]
     pub file: Option<String>,
+    /// Emit the intermeidate rep to a file
     #[structopt(short = "ir", long = "emit_ir")]
     pub emit_ir: bool,
+    /// Emit the assembly
     #[structopt(short = "a", long = "emit_asm")]
     pub emit_asm: bool,
+    /// The source to use
+    #[structopt(short = "p", long = "path")]
+    pub path: Option<String>,
 }
