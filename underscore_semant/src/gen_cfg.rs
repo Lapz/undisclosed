@@ -7,7 +7,7 @@ use util::{symbol::Symbol};
 #[derive(Debug)]
 pub struct IrBuilder<'a> {
     params: Vec<Register>,
-    current_function:Option<Vec<ir::Instruction>>,
+    current_function:Option<Vec<Instruction>>,
     var_registers: HashMap<Symbol,Register>,
     ctx: &'a CompileCtx<'a>,
 }
@@ -30,20 +30,34 @@ impl <'a> IrBuilder <'a> {
             self.params.push(reg);
             self.var_registers.insert(param.name,reg);
         }
-
-        
     }
 
-    fn build_statement(&mut self,statement:&mut t::Statement) {
+    pub fn emit_instruction(&mut self,inst:Instruction) {
+        self.current_function.as_mut().unwrap().push(inst)
+    }
+
+    fn build_statement(&mut self,statement:&t::Statement) {
 
         match *statement {
-            t::Statement::Block(ref statements) {
+            t::Statement::Block(ref statements) => {
                 for statement in statements {
+                    self.build_statement(statement)
+                }
 
+                for statement in statements {
+                    if let t::Statement::Let {ref ident,..} =  *statement {
+                        let register = self.var_registers[ident];
+                        self.emit_instruction(Instruction::Drop(register))
+                    }
                 }
 
                 
             },
+
+
+            t::Statement::Expr(ref expr) => {
+                unimplemented!()
+            }
 
             _ => unimplemented!()
         }
@@ -61,4 +75,9 @@ fn get_register(i: usize) -> Register {
         5 => Register::R9,
         _ => panic!("To many params"),
     }
+}
+
+#[derive(Debug)]
+pub enum Instruction {
+    Drop(Register)
 }
