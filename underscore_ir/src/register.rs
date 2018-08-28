@@ -1,6 +1,6 @@
 use std::fmt::{self, Display};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,Copy)]
 pub enum Register {
     RDI,
     RSI,

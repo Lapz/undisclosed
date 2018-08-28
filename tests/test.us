@@ -1,26 +1,30 @@
-fn fib(n:i32) {
-    let first =0;
-    let second =1;
-    let next = 1;
+struct List<T> {
+    head:T,
+    tail:List<T>
+}
 
-
-    for (let i =1;i<n;i=i+1) {
-        next = first +second;
-        first = second;
-        second = next;
-        printf("%ld\n",next);
+fn append(a:List<i32>,b:List<i32>) -> List<i32> {
+    if a == nil {
+        return b;
+    } else {
+        return List {
+            head:a.head,
+            tail: append(a.tail,b)
+        }; 
     }
 }
 
 
+fn main() {
+    let shopping = List {
+        head:"apple",
+        tail:List {
+            head:"banana",
+            tail:nil
+        }
+    };
 
-
-fn main() -> i32 {
-  
-
-    fib(30);
-
-    return 0;
+    print(shopping.tail.head); // Expect:"apple"
 }
 
 

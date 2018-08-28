@@ -101,6 +101,14 @@ impl Codegen {
                 for statement in statements {
                     self.gen_statement(statement, instructions, locals, strings, scopes, ctx)
                 }
+
+                // for statement in statements {
+                //     if let t::Statement::Let {ref ident,.. } = statement {
+                //         let register = self.r
+                //         instructions.push(ir::Instruction::Drop())
+                //     }
+                // }
+
                 instructions.push(ir::Instruction::Drop(scopes.locals() as isize));
                 ctx.end_scope();
                 scopes.end_scope();
