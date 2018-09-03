@@ -10,29 +10,11 @@ _fib:
 	movq $0, %rax #0 
 	popq %rdx
 	cmpq %rax,%rdx #compute e1 <= e2, set ZF 
- 	jle .l2
+ 	jge .l2
 	movq $1, %rax #1 
 	neg %rax
 	jmp .l1 
 .l2:
-	movq -8(%rbp),%rax
-	pushq %rax
-	movq $1, %rax #1 
-	popq %rdx
-	cmpq %rax,%rdx #compute e1 == e2, set ZF 
- 	pushq %rax
-	cmpq $0, %rax 
-	je .l5
-	movq -8(%rbp),%rax
-	pushq %rax
-	movq $2, %rax #2 
-	popq %rdx
-	cmpq %rax,%rdx #compute e1 == e2, set ZF 
- .l5:
-	jne .l3
-	movq $1, %rax #1 
-	jmp .l1 
-.l3:
 	movq -8(%rbp),%rax
 	pushq %rax
 	movq $1, %rax #1 
@@ -73,12 +55,20 @@ _main:
 	pushq %rax
 	popq %rdi
 	callq _fib
+	pushq %rax
+	popq %rsi
+	leaq .l4(%rip),%rax
+	pushq %rax
+	popq %rdi
+	callq _printf
 	movq $0, %rax #0 
-	jmp .l4 
-.l4:
+	jmp .l3 
+.l3:
 	movq %rbp, %rsp #epi
 	popq %rbp  
 	ret
+.l4:
+	.asciz "%d\n"
 /*
 locals:{} ,
 params:{}

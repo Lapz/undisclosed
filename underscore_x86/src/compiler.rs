@@ -247,10 +247,10 @@ impl Compiler {
             Instruction::JumpOp(ref op, ref label) => {
                 use ir::ir::CmpOp;
                 match *op {
-                    CmpOp::LT => write!(&mut self.file, "\tjl .{}\n", label).unwrap(),
-                    CmpOp::LTE => write!(&mut self.file, "\tjle .{}\n", label).unwrap(),
-                    CmpOp::GT => write!(&mut self.file, "\tjg .{}\n", label).unwrap(),
-                    CmpOp::GTE => write!(&mut self.file, "\tjge .{}\n", label).unwrap(),
+                    CmpOp::LT => write!(&mut self.file, "\tje .{}\n", label).unwrap(),
+                    CmpOp::LTE => write!(&mut self.file, "\tjge .{}\n", label).unwrap(),
+                    CmpOp::GT => write!(&mut self.file, "\tjl .{}\n", label).unwrap(),
+                    CmpOp::GTE => write!(&mut self.file, "\tjle .{}\n", label).unwrap(),
                     CmpOp::NE => write!(&mut self.file, "\tje  .{}\n", label).unwrap(),
                     CmpOp::EQ => write!(&mut self.file, "\tjne .{}\n", label).unwrap(),
                     _ => unreachable!(),
