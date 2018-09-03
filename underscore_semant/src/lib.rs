@@ -1,4 +1,4 @@
-// #![feature(nll)]
+#![feature(option_replace)]
 
 extern crate underscore_ir as ir;
 extern crate underscore_syntax as syntax;

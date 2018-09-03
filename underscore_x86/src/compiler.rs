@@ -239,7 +239,10 @@ impl Compiler {
                     }
                 }
             }
-            Instruction::Return(ref value) => self.compile_instruction(value, locals, params),
+            Instruction::Return(ref value,ref label) => {
+                self.compile_instruction(value, locals, params);
+                write!(&mut self.file, "\tjmp .{} \n", label).unwrap()
+            }
             Instruction::Jump(ref label) => write!(&mut self.file, "\tjmp .{} \n", label).unwrap(),
             Instruction::JumpOp(ref op, ref label) => {
                 use ir::ir::CmpOp;
@@ -248,8 +251,8 @@ impl Compiler {
                     CmpOp::LTE => write!(&mut self.file, "\tjle .{}\n", label).unwrap(),
                     CmpOp::GT => write!(&mut self.file, "\tjg .{}\n", label).unwrap(),
                     CmpOp::GTE => write!(&mut self.file, "\tjge .{}\n", label).unwrap(),
-                    CmpOp::NE => write!(&mut self.file, "\tjne  .{}\n", label).unwrap(),
-                    CmpOp::EQ => write!(&mut self.file, "\tje .{}\n", label).unwrap(),
+                    CmpOp::NE => write!(&mut self.file, "\tje  .{}\n", label).unwrap(),
+                    CmpOp::EQ => write!(&mut self.file, "\tjne .{}\n", label).unwrap(),
                     _ => unreachable!(),
                 }
             }

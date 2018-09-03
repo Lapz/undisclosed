@@ -9,6 +9,7 @@ use types::{TyCon, Type};
 pub(crate) struct Codegen {
     loop_label: Option<Label>,
     loop_break_label: Option<Label>,
+    end_label:Option<Label>,
     offset: i32,
     cmp_op: Option<ir::CmpOp>,
     cmp: bool,
@@ -19,6 +20,7 @@ impl Codegen {
         Self {
             loop_label: None,
             loop_break_label: None,
+            end_label:None,
             offset: 0,
             cmp: false,
             cmp_op: None,
@@ -79,9 +81,18 @@ impl Codegen {
             locals.insert(temp, self.offset);
             ctx.add_temp(param.name, temp);
         }
+         let label = Label::new();
+
+         self.end_label = Some(label);
 
         self.gen_statement(&func.body, instructions, locals, strings, &mut scopes, ctx);
+       
+        instructions.push(ir::Instruction::Label(label));
+        // fix_returns(instructions, label)
     }
+
+
+    
 
     fn gen_statement(
         &mut self,
@@ -266,7 +277,7 @@ impl Codegen {
                 let temp = Temp::new();
                 let instruction =
                     self.gen_expression(expr, temp, instructions, locals, strings, ctx);
-                instructions.push(ir::Instruction::Return(Box::new(instruction)))
+                instructions.push(ir::Instruction::Return(Box::new(instruction),self.end_label.unwrap()))
             }
         }
     }
@@ -501,3 +512,5 @@ fn get_register(i: usize) -> Register {
         _ => panic!("To many params"),
     }
 }
+
+

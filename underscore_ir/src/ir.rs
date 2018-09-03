@@ -39,7 +39,7 @@ pub enum Instruction {
     /// Empty Label
     Label(Label),
     /// Return
-    Return(Box<Instruction>),
+    Return(Box<Instruction>,Label),
     /// Load
     Load(Temp),
     /// Block
@@ -88,7 +88,7 @@ impl Display for Instruction {
             Instruction::Jump(ref label) => write!(f, "jump {}", label),
             Instruction::JumpOp(ref op, ref label) => write!(f, "jump {} {}", op, label),
             Instruction::Label(ref label) => write!(f, "label {}", label),
-            Instruction::Return(ref ret) => write!(f, "ret {}", ret),
+            Instruction::Return(ref ret,_) => write!(f, "ret {}", ret),
             Instruction::Drop(ref label) => write!(f, "drop {}", label),
             Instruction::Move(ref temp, ref reg) => write!(f, "{} := {}", reg, temp),
             Instruction::Deref(ref label) => write!(f, "deref {}", label),
