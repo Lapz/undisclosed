@@ -38,7 +38,12 @@ impl Compiler {
 
         extern_funcs.iter().for_each(|e| {
             self.write("\n\t.extern ");
-            e.fmt(&mut self.file, &mut self.labels).unwrap();
+
+            match *e {
+                Label::Int(ref i) => write!(&mut self.file, "l{}", i).unwrap(),
+                Label::Named(ref i) => write!(&mut self.file, "{}", self.labels.name(*i)).unwrap(),
+            }
+
             self.write("\n");
         });
 

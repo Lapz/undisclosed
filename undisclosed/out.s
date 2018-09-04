@@ -1,91 +1,72 @@
 .text 
 	.global _main
-_fib:
+	.extern strcat
+
+_add:
 	pushq %rbp
 	movq %rsp,%rbp
-	subq $32, %rsp #pro
-	movq %rax,-8(%rbp)
-	movq -8(%rbp),%rax
+	subq $64, %rsp #pro
+	movq %rax,-24(%rbp)
+	movq %rax,-32(%rbp)
+	movq -32(%rbp),%rax
 	pushq %rax
-	movq $0, %rax #0 
-	popq %rdx
-	cmpq %rax,%rdx #compute e1 <= e2, set ZF 
- 	jge .l2
-	movq $1, %rax #1 
-	neg %rax
-	jmp .l1 
+	popq %rsi
+	movq -24(%rbp),%rax
+	pushq %rax
+	popq %rdi
+	callq _concat
+	jmp .l2 
 .l2:
-	movq -8(%rbp),%rax
-	pushq %rax
-	movq $1, %rax #1 
-	popq %rdx
-	cmpq %rax,%rdx #compute e1 == e2, set ZF 
- 	cmpq $0, %rax 
-	jne .l6
-	movq -8(%rbp),%rax
-	pushq %rax
-	movq $2, %rax #2 
-	popq %rdx
-	cmpq %rax,%rdx #compute e1 == e2, set ZF 
- .l6:
-	jne .l3
-	movq $1, %rax #1 
-	jmp .l1 
-.l3:
-	movq -8(%rbp),%rax
-	pushq %rax
-	movq $1, %rax #1 
-	popq %rdx
-	subq %rdx,%rax
-	pushq %rax
-	popq %rdi
-	movq -8(%rbp),%rax
-	pushq %rax
-	movq $2, %rax #2 
-	popq %rdx
-	subq %rdx,%rax
-	pushq %rax
-	popq %rdi
-	callq _fib
-	pushq %rax
-	callq _fib
-	popq %rdx
-	addq %rdx,%rax
-	jmp .l1 
-.l1:
 	movq %rbp, %rsp #epi
 	popq %rbp  
 	ret
 /*
 locals:{
-    t1: -8
+    t4: -24,
+    t5: -32
 } ,
 params:{
-    t1: RDI
+    t5: RSI,
+    t4: RDI
 }
 */
 _main:
 	pushq %rbp
 	movq %rsp,%rbp
 	subq $0, %rsp #pro
-	movq $10, %rax #10 
-	pushq %rax
-	popq %rdi
-	callq _fib
+	leaq .l4(%rip),%rax
 	pushq %rax
 	popq %rsi
 	leaq .l5(%rip),%rax
 	pushq %rax
+	popq %rsi
+	leaq .l6(%rip),%rax
+	pushq %rax
+	popq %rdi
+	callq _concat
+	pushq %rax
+	popq %rdi
+	callq _concat
+	pushq %rax
+	popq %rsi
+	leaq .l7(%rip),%rax
+	pushq %rax
 	popq %rdi
 	callq _printf
 	movq $0, %rax #0 
-	jmp .l4 
-.l4:
+	jmp .l3 
+.l3:
 	movq %rbp, %rsp #epi
 	popq %rbp  
 	ret
+.l4:
+	.asciz "World"
+.l6:
+	.asciz "Hello"
+.l7:
+	.asciz "%s\n"
 .l5:
-	.asciz "%d\n"
+	.asciz " \u{0}"
 /*
 locals:{} ,
 params:{}

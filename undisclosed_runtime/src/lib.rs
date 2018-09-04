@@ -1,5 +1,7 @@
 extern crate libc;
-use libc::c_int;
+use libc::{c_char, c_int};
+use std::ffi::{CStr, CString};
+use std::str;
 
 #[no_mangle]
 pub extern "C" fn fib(n: c_int) -> c_int {
@@ -9,3 +11,4 @@ pub extern "C" fn fib(n: c_int) -> c_int {
         return (fib(n - 1) + fib(n - 2)) as c_int;
     }
 }
+

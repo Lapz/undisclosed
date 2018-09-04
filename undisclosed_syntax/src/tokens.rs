@@ -126,7 +126,7 @@ impl<'a> Display for TokenType<'a> {
             TokenType::FRETURN => write!(f, "->"),  // ->
             TokenType::BAR => write!(f, "|"),       // ->
             // Keywords,
-            TokenType::FUNCTION => write!(f, "fun"),
+            TokenType::FUNCTION => write!(f, "fn"),
             TokenType::AS => write!(f, "as"),
             TokenType::TYPE => write!(f, "type"),
             TokenType::BREAK => write!(f, "break"),

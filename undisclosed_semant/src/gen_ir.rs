@@ -331,6 +331,17 @@ impl Codegen {
 
                 let bop = gen_bin_op(op);
 
+                if expr.ty == Type::App(TyCon::String,vec![]) {
+                    let rhs = self.gen_expression(rhs, Temp::new(), instructions, locals, strings, ctx);
+                    let lhs = self.gen_expression(lhs, Temp::new(), instructions, locals, strings, ctx);
+
+
+
+//                    let label = Label::named(ctx.)
+
+//                    let call = ir::Instruction::Call()
+                }
+
                 if self.cmp {
                     self.cmp_op = gen_cmp_op(op)
                 }

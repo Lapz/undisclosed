@@ -209,10 +209,6 @@ fn run(
     if output.is_empty() {
         println!("{}", output);
     }
-
-    if !emit_asm {
-        remove_file("out.s").unwrap();
-    }
 }
 
 #[derive(StructOpt, Debug)]

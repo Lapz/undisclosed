@@ -1,17 +1,12 @@
-fn fib(n:i32) -> i32 {
-    if n <= 0 {
-        return -1;
-    }
+extern fn strcat(a:str,b:str) -> str;
 
-    if n == 1 || n == 2 {
-        return 1;
-    }
+fn add(a:str,b:str) -> str {
 
-    return fib(n-1)+ fib(n-2);
+    return  a+b;
 }
 
 fn main() -> i32 {
-    printf("%d\n",fib(10));
+    printf("%s\n","Hello"+" "+ "World");
     return 0;
 }
 
