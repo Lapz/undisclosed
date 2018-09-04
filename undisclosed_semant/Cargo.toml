@@ -1,0 +1,12 @@
+[package]
+name = "undisclosed_semant"
+version = "0.1.0"
+authors = ["rowlandsonpratt <striderman34@gmail.com>"]
+
+[dependencies]
+undisclosed_util = {path ="../undisclosed_util"}
+undisclosed_syntax = {path ="../undisclosed_syntax"}
+undisclosed_ir = {path="../undisclosed_ir"}
+undisclosed_x86 = {path="../undisclosed_x86"}
+
+# lazy_static = "1.0"

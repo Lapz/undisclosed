@@ -1,8 +1,7 @@
 [package]
-name = "undisclosed_test"
+name = "undisclosed_util"
 version = "0.1.0"
 authors = ["LenardPratt <striderman34@gmail.com>"]
 
-
 [dependencies]
-walkdir = "2"
+ansi_term = "0.10"

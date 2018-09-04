@@ -1,8 +1,0 @@
-[package]
-name = "underscore_ir"
-version = "0.1.0"
-authors = ["Lenard Pratt <striderman34@gmail.com>"]
-
-[dependencies]
-underscore_syntax = { path = "../underscore_syntax"}
-underscore_util = {path = "../underscore_util"}

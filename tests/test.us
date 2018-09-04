@@ -3,45 +3,16 @@ fn fib(n:i32) -> i32 {
         return -1;
     }
 
+    if n == 1 || n == 2 {
+        return 1;
+    }
+
     return fib(n-1)+ fib(n-2);
 }
 
-
 fn main() -> i32 {
-  
-
     printf("%d\n",fib(10));
-
     return 0;
-    // Expect:1
-    // Expect:2
-    // Expect:3
-    // Expect:5
-    // Expect:8
-    // Expect:13
-    // Expect:21
-    // Expect:34
-    // Expect:55
-    // Expect:89
-    // Expect:144
-    // Expect:233
-    // Expect:377
-    // Expect:610
-    // Expect:987
-    // Expect:1597
-    // Expect:2584
-    // Expect:4181
-    // Expect:6765
-    // Expect:10946
-    // Expect:17711
-    // Expect:28657
-    // Expect:46368
-    // Expect:75025
-    // Expect:121393
-    // Expect:196418
-    // Expect:317811
-    // Expect:514229
-    // Expect:832040 
 }
 
 

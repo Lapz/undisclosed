@@ -1,0 +1,8 @@
+[package]
+name = "undisclosed_ir"
+version = "0.1.0"
+authors = ["Lenard Pratt <striderman34@gmail.com>"]
+
+[dependencies]
+undisclosed_syntax = { path = "../undisclosed_syntax"}
+undisclosed_util = {path = "../undisclosed_util"}

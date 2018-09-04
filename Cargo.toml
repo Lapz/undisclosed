@@ -1,9 +1,9 @@
 [workspace]
 members = [
-    "underscore",
-    "underscore_semant",
-    "underscore_syntax", 
-    "underscore_util",  
-    "underscore_ir",
-    "underscore_x86",
+    "undisclosed",
+    "undisclosed_semant",
+    "undisclosed_syntax",
+    "undisclosed_util",
+    "undisclosed_ir",
+    "undisclosed_x86",
 ]

@@ -5,35 +5,35 @@
     "version": "0.2.0",
     "configurations": [
     { 
-        "name": "debug out.s",
+        "name": "debug binary",
         "type": "lldb",
         "request": "launch",
-        "program": "${workspaceFolder}/underscore/out",
-        "cwd":"${workspaceFolder}/underscore"
+        "program": "${workspaceFolder}/undisclosed/out",
+        "cwd":"${workspaceFolder}/undisclosed"
         
     },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug underscore",
+            "name": "Debug undisclosed",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=underscore"
+                    "--bin=undisclosed"
                 ]
             },
             "args": [],
-            "cwd": "./underscore/underscore"
+            "cwd": "./undisclosed/undisclosed"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug tests in underscore",
+            "name": "Debug tests in undisclosed",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=underscore"
+                    "--bin=undisclosed"
                 ]
             },
             "args": [],
@@ -42,11 +42,11 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug underscore_test",
+            "name": "Debug undisclosed_test",
             "cargo": {
                 "args": [
                     "build",
-                    "--test=underscore_test"
+                    "--test=undisclosed_test"
                 ]
             },
             "args": [],
@@ -55,12 +55,12 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug tests in underscore_test",
+            "name": "Debug tests in undisclosed_test",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--test=underscore_test"
+                    "--test=undisclosed_test"
                 ]
             },
             "args": [],
@@ -69,21 +69,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug tests in underscore_codegen",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib"
-                ]
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug tests in underscore_syntax",
+            "name": "Debug tests in undisclosed_codegen",
             "cargo": {
                 "args": [
                     "test",
@@ -97,7 +83,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug tests in underscore_util",
+            "name": "Debug tests in undisclosed_syntax",
             "cargo": {
                 "args": [
                     "test",
@@ -111,7 +97,21 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug tests in underscore_semant",
+            "name": "Debug tests in undisclosed_util",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib"
+                ]
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug tests in undisclosed_semant",
             "cargo": {
                 "args": [
                     "test",

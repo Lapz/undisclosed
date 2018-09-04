@@ -1,0 +1,30 @@
+[package]
+name = "undisclosed"
+version = "0.1.0"
+authors = ["LenardPratt <striderman34@gmail.com>"]
+
+[dependencies]
+structopt = "0.1.6"
+structopt-derive = "0.1.6"
+undisclosed_syntax =  {path="../undisclosed_syntax"}
+undisclosed_util =  {path="../undisclosed_util"}
+undisclosed_semant = {path ="../undisclosed_semant"}
+undisclosed_x86 = {path ="../undisclosed_x86"}
+undisclosed_ir = {path ="../undisclosed_ir"}
+libc = "*"
+
+[[test]]
+name ="undisclosed_test"
+path ="../tests/undisclosed_test.rs"
+harness = false
+
+
+
+[lib]
+name = "undisclosed_rt"
+path = "../undisclosed_runtime/src/lib.rs"
+crate-type = ["staticlib", "cdylib"]
+[dev-dependencies]
+walkdir = "2"
+ansi_term = "0.10"
+tempfile = "3"

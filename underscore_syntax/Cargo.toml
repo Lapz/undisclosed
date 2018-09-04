@@ -1,8 +1,0 @@
-[package]
-name = "underscore_syntax"
-version = "0.1.0"
-authors = ["LenardPratt <striderman34@gmail.com>"]
-
-[dependencies]
-underscore_util = {path ="../underscore_util"}
-rand = "0.5.0-pre.0"

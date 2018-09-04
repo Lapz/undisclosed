@@ -1,17 +1,17 @@
-# UNDERSCORE Compiler
+# Undisclosed Compiler
 
-[![Build Status](https://travis-ci.org/Lapz/underscore.svg?branch=master)](https://travis-ci.org/Lapz/underscore)
+[![Build Status](https://travis-ci.org/Lapz/underscore.svg?branch=master)](https://travis-ci.org/Lapz/Undisclosed)
 
-The compiler for the underscore programming language. It is written in RUST and will be a statically interpreted language with a vm.
+The compiler for the Undisclosed programming language. It is written in RUST and will be a statically interpreted language with a vm.
 
 # Building
-UnderscoreC is written in Rust, so you'll need to grab a recent version of the [rust compiler](https://rustup.rs/) in order to compile it. 
+UUndisclosedC is written in Rust, so you'll need to grab a recent version of the [rust compiler](https://rustup.rs/) in order to compile it. 
 
 ```bash
-$ git clone https://github.com/Lapz/underscore
-$ cd underscore
+$ git clone https://github.com/Lapz/undisclosed
+$ cd undisclosed
 $ cargo install
-$ underscore foo.us
+$ undisclosed foo.us
 $ ./out
 ```
 

@@ -181,7 +181,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "underscore"
+name = "undisclosed"
 version = "0.1.0"
 dependencies = [
  "ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -189,53 +189,53 @@ dependencies = [
  "structopt 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt-derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempfile 3.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "underscore_ir 0.1.0",
- "underscore_semant 0.1.0",
- "underscore_syntax 0.1.0",
- "underscore_util 0.1.0",
- "underscore_x86 0.1.0",
+ "undisclosed_ir 0.1.0",
+ "undisclosed_semant 0.1.0",
+ "undisclosed_syntax 0.1.0",
+ "undisclosed_util 0.1.0",
+ "undisclosed_x86 0.1.0",
  "walkdir 2.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "underscore_ir"
+name = "undisclosed_ir"
 version = "0.1.0"
 dependencies = [
- "underscore_syntax 0.1.0",
- "underscore_util 0.1.0",
+ "undisclosed_syntax 0.1.0",
+ "undisclosed_util 0.1.0",
 ]
 
 [[package]]
-name = "underscore_semant"
+name = "undisclosed_semant"
 version = "0.1.0"
 dependencies = [
- "underscore_ir 0.1.0",
- "underscore_syntax 0.1.0",
- "underscore_util 0.1.0",
- "underscore_x86 0.1.0",
+ "undisclosed_ir 0.1.0",
+ "undisclosed_syntax 0.1.0",
+ "undisclosed_util 0.1.0",
+ "undisclosed_x86 0.1.0",
 ]
 
 [[package]]
-name = "underscore_syntax"
+name = "undisclosed_syntax"
 version = "0.1.0"
 dependencies = [
  "rand 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "underscore_util 0.1.0",
+ "undisclosed_util 0.1.0",
 ]
 
 [[package]]
-name = "underscore_util"
+name = "undisclosed_util"
 version = "0.1.0"
 dependencies = [
  "ansi_term 0.10.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
-name = "underscore_x86"
+name = "undisclosed_x86"
 version = "0.1.0"
 dependencies = [
- "underscore_ir 0.1.0",
- "underscore_util 0.1.0",
+ "undisclosed_ir 0.1.0",
+ "undisclosed_util 0.1.0",
 ]
 
 [[package]]
