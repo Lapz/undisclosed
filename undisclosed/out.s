@@ -22,12 +22,12 @@ _add:
 	ret
 /*
 locals:{
-    t4: -24,
-    t5: -32
+    t5: -32,
+    t4: -24
 } ,
 params:{
-    t5: RSI,
-    t4: RDI
+    t4: RDI,
+    t5: RSI
 }
 */
 _main:
@@ -59,14 +59,14 @@ _main:
 	movq %rbp, %rsp #epi
 	popq %rbp  
 	ret
+.l5:
+	.asciz " "
 .l4:
 	.asciz "World"
 .l6:
 	.asciz "Hello"
 .l7:
 	.asciz "%s\n"
-.l5:
-	.asciz " \u{0}"
 /*
 locals:{} ,
 params:{}

@@ -388,7 +388,9 @@ impl Infer {
 
                         let ty = lhs.ty.clone();
 
+
                         if lhs.ty == Type::App(TyCon::String,vec![]) || rhs.ty == Type::App(TyCon::String,vec![]) {
+
                             (t::Expression::Call(ctx.symbol("concat"),vec![lhs,rhs]),Type::App(TyCon::String,vec![]))
                         } else {
                             (t::Expression::Binary(lhs, op.value, rhs), ty)

@@ -35,13 +35,13 @@
             ],
             linkage: External,
             locals: {
-                t2: -16,
-                t1: -8
+                t1: -8,
+                t2: -16
             },
             strings: {},
             params: {
-                t2: RSI,
-                t1: RDI
+                t1: RDI,
+                t2: RSI
             }
         },
         Function {
@@ -165,7 +165,7 @@
                 Call(
                     Named(
                         Symbol(
-                            0
+                            16
                         )
                     )
                 ),
@@ -178,7 +178,7 @@
                 Call(
                     Named(
                         Symbol(
-                            0
+                            16
                         )
                     )
                 ),
@@ -235,17 +235,17 @@
             locals: {},
             strings: {
                 Int(
-                    4
-                ): "World!",
+                    7
+                ): "%s\n",
                 Int(
                     5
                 ): " ",
                 Int(
-                    6
-                ): "Hello",
+                    4
+                ): "World",
                 Int(
-                    7
-                ): "%s\n"
+                    6
+                ): "Hello"
             },
             params: {}
         }

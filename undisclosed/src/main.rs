@@ -145,8 +145,8 @@ fn run(
         Ok(mut ast) => {
             if dump_file.is_some() {
                 let mut file =
-                    File::create(dump_file.clone().unwrap()).expect("Couldn't create file");
-                file.write(format!("../{:#?}", ast).as_bytes())
+                    File::create(dump_file.as_ref().unwrap()).expect("Couldn't create file");
+                file.write(format!("{:#?}", ast).as_bytes())
                     .expect("Couldn't write to the file");
             }
             ast
@@ -162,7 +162,7 @@ fn run(
     let ir = match infer.infer(&mut ast, &hasher, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
-                let mut file = File::create(format!("{}.ir", dump_file.clone().unwrap()))
+                let mut file = File::create("lowered.uir")
                     .expect("Couldn't create file");
                 file.write(format!("../{:#?}.", ast).as_bytes())
                     .expect("Couldn't write to the file");
