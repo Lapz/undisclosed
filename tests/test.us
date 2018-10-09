@@ -1,16 +1,19 @@
 extern fn strcat(a:str,b:str) -> str;
 
-fn add(a:str,b:str) -> str {
+fn add(a:i32,b:i32) -> i32 {
 
     return  a+b;
 }
 
 fn main() -> i32 {
-
-
-    printf("%s\n","Hello"+" "+ "World");
+    let foo = "Hello"+" ";
+    foo = foo + "World";
+    foo = foo + " Nah";
+    foo = foo + " I got it to work";
+    puts(foo);
     return 0;
 }
+
 
 
 

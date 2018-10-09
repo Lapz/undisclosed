@@ -13,15 +13,16 @@ pub extern "C" fn fib(n: c_int) -> c_int {
 }
 
 #[no_mangle]
-pub unsafe extern "C"  fn concat(a: *const c_char, b: *const c_char) ->    *const c_char {
+pub unsafe extern "C"  fn concat(a: *const c_char, b: *const c_char) ->  *const c_char {
     let a_c_str: &CStr =  CStr::from_ptr(a) ;
     let b_c_str: &CStr =  CStr::from_ptr(b) ;
-    let a_str_slice: &str = a_c_str.to_str().unwrap();
-    let b_str_slice: &str = b_c_str.to_str().unwrap();
+    let mut a_str_slice: String = a_c_str.to_string_lossy().into_owned();
+    let b_str_slice: String = b_c_str.to_string_lossy().into_owned();
     let buf  = malloc(a_str_slice.len() + b_str_slice.len() + 1) as *mut c_char;
-    strcat(buf,a_c_str.as_ptr());
-    strcat(buf,b_c_str.as_ptr());
-    strcat(buf,b"\0".as_ptr() as *const i8);
+    a_str_slice.push_str(&b_str_slice);
+    a_str_slice.push('\0');
+
+    strcat(buf,a_str_slice.as_ptr() as *const i8);
 
 //
 //
@@ -32,8 +33,8 @@ pub unsafe extern "C"  fn concat(a: *const c_char, b: *const c_char) ->    *cons
 //
 //
 //    let ptr = a_buf.as_ptr() as *const i8;
-//    std::mem::forget(a_buf);
-//    std::mem::forget(b_buf);
+   std::mem::forget(a_str_slice);
+   std::mem::forget(b_str_slice);
 //
 
     buf

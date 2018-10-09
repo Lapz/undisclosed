@@ -20,8 +20,8 @@ _add:
 	ret
 /*
 locals:{
-    t5: -32,
-    t4: -24
+    t4: -24,
+    t5: -32
 } ,
 params:{
     t4: RDI,
@@ -37,29 +37,11 @@ _main:
 	popq %rsi
 	leaq .l5(%rip),%rax
 	pushq %rax
-	popq %rdi
-	callq _concat
-	movq %rax,-40(%rbp)
+	popq %rsi
 	leaq .l6(%rip),%rax
 	pushq %rax
-	popq %rsi
-	movq -40(%rbp),%rax
-	pushq %rax
 	popq %rdi
 	callq _concat
-	movq %rax,-40(%rbp)
-	leaq .l7(%rip),%rax
-	pushq %rax
-	popq %rsi
-	movq -40(%rbp),%rax
-	pushq %rax
-	popq %rdi
-	callq _concat
-	movq %rax,-40(%rbp)
-	leaq .l8(%rip),%rax
-	pushq %rax
-	popq %rsi
-	movq -40(%rbp),%rax
 	pushq %rax
 	popq %rdi
 	callq _concat
@@ -75,16 +57,12 @@ _main:
 	movq %rbp, %rsp #epi
 	popq %rbp  
 	ret
-.l6:
-	.asciz "World"
-.l7:
-	.asciz " Nah"
-.l8:
-	.asciz " I got it to work"
-.l5:
-	.asciz "Hello"
 .l4:
-	.asciz " "
+	.asciz "World"
+.l6:
+	.asciz "Hello"
+.l5:
+	.asciz "a"
 /*
 locals:{
     t9: -40
