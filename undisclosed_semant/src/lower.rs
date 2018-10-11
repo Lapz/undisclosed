@@ -1,9 +1,9 @@
 use ast::typed as t;
-use ir::tac::{Instruction, Label, Temp, Value,Function,Program,BinaryOp};
+use ir::tac::{BinaryOp, Function, Instruction, Label, Program, Temp, UnaryOp, Value};
 use std::collections::HashMap;
-use syntax::ast::{Linkage, Literal, Sign, Size,Op};
+use syntax::ast::{Linkage, Literal, Op, Sign, Size, UnaryOp as UnOp};
 use types::{TyCon, Type};
-use util::symbol::{Symbol,SymbolMap};
+use util::symbol::{Symbol, SymbolMap};
 // struct Builder<'a> {
 //     parameters: Vec<cfg::Reg>,
 //     registers: HashMap<cfg::Reg, cfg::Type>,
@@ -21,7 +21,7 @@ use util::symbol::{Symbol,SymbolMap};
 #[derive(Debug)]
 struct Builder<'a> {
     symbols: &'a SymbolMap<()>,
-    temps: Vec<()>,
+    locals: HashMap<Symbol, Label>,
     parameters: HashMap<Symbol, Label>,
     instructions: Option<Vec<Instruction>>,
 }
@@ -31,7 +31,7 @@ impl<'a> Builder<'a> {
         Builder {
             instructions: Some(vec![]),
             symbols,
-            temps: Vec::new(),
+            locals: HashMap::new(),
             parameters: HashMap::new(),
         }
     }
@@ -41,7 +41,10 @@ impl<'a> Builder<'a> {
     }
 
     pub fn params(&mut self) -> Vec<Label> {
-        self.parameters.iter().map(|(_,label)| label.clone()).collect()
+        self.parameters
+            .iter()
+            .map(|(_, label)| label.clone())
+            .collect()
     }
     pub fn emit_instruction(&mut self, inst: Instruction) {
         self.instructions.as_mut().unwrap().push(inst);
@@ -56,6 +59,10 @@ impl<'a> Builder<'a> {
 
     pub fn add_param(&mut self, symbol: Symbol) {
         self.parameters
+            .insert(symbol, Label::named(self.symbols.name(symbol)));
+    }
+    pub fn add_local(&mut self, symbol: Symbol) {
+        self.locals
             .insert(symbol, Label::named(self.symbols.name(symbol)));
     }
 
@@ -73,6 +80,17 @@ impl<'a> Builder<'a> {
                 self.build_expr(expr);
             }
 
+            Statement::Let { ident, ty, expr } => {
+                let label = Label::named(self.symbols.name(ident));
+                self.add_local(ident);
+
+                if let Some(expr) = expr {
+                    let expr = self.build_expr(expr);
+
+                    self.emit_store(Value::Name(label), expr);
+                }
+            }
+
             _ => unimplemented!(),
         }
     }
@@ -82,27 +100,93 @@ impl<'a> Builder<'a> {
 
         let ty = expr.ty;
         let expr = *expr.expr;
-    
+
         match expr {
+            Expression::Array(ref items) => {
+                let tmp = Temp::new();
+                let size = match &items[0].ty {
+                    Type::App(TyCon::Int(sign, size), _) => match size {
+                        Size::Bit8 => 1,
+                        Size::Bit32 => 4,
+                        Size::Bit64 => 8,
+                    },
+                    Type::App(TyCon::String, _) => 1,
+                    Type::Var(_) => 4,
+                    ref ty => unimplemented!("Unknown ty {:?}",ty),
+                };
+
+                self.emit_instruction(Instruction::Call(
+                    Value::Temp(tmp),
+                    Label::named("malloc".to_string()),
+                    vec![Value::Const(
+                        size * (items.len() as u64),
+                        Sign::Unsigned,
+                        Size::Bit32,
+                    )],
+                ));
+
+                for item in items {
+                    //TODO calculate each item offset and write the value to the particular place
+                }
+
+                Value::Temp(Temp::new())
+            }
+
+            Expression::Assign(var, expr) => {
+                let expr = self.build_expr(expr);
+                let var = self.build_var(var).expect("Undefined Variable");
+
+                self.emit_store(var.clone(), expr);
+
+                var
+            }
+
+            Expression::Binary(lhs, op, rhs) => {
+                let lhs = self.build_expr(lhs);
+                let rhs = self.build_expr(rhs);
+                let op = gen_bin_op(op);
+                let result = Temp::new();
+
+                self.emit_instruction(Instruction::Binary(result, lhs, op, rhs));
+                Value::Temp(result)
+            }
+
+            Expression::Call(callee, exprs) => {
+                let result = Temp::new();
+                let label = Label::named(self.symbols.name(callee));
+                let mut temps = Vec::with_capacity(exprs.len()); // Temps where the expressions are stored
+
+                for expr in exprs {
+                    temps.push(self.build_expr(expr))
+                }
+
+                self.emit_instruction(Instruction::Call(Value::Temp(result), label, temps));
+
+                Value::Temp(result)
+            }
+
+            Expression::Grouping { expr } => self.build_expr(expr),
+
             Expression::Literal(literal) => {
                 let tmp = Temp::new();
                 match literal {
                     Literal::Char(ch) => {
-                        
                         self.emit_store(
                             Value::Temp(tmp),
                             Value::Const(ch as u64, Sign::Unsigned, Size::Bit8),
                         );
                     }
                     Literal::False(_) => {
-                    
                         self.emit_store(
                             Value::Temp(tmp),
                             Value::Const(0, Sign::Unsigned, Size::Bit8),
                         );
                     }
                     Literal::Nil => {
-                        self.emit_store(Value::Temp(tmp),Value::Const(0x0000, Sign::Unsigned, Size::Bit8));
+                        self.emit_store(
+                            Value::Temp(tmp),
+                            Value::Const(0x0000, Sign::Unsigned, Size::Bit8),
+                        );
                     }
                     Literal::Number(number) => {
                         let val = match ty {
@@ -115,10 +199,10 @@ impl<'a> Builder<'a> {
                         };
 
                         self.emit_store(Value::Temp(tmp), val)
-                    },
+                    }
 
                     Literal::Str(string) => {
-                        let mut bytes = Vec::with_capacity(string.len() +1);
+                        let mut bytes = Vec::with_capacity(string.len() + 1);
 
                         bytes.extend(string.as_bytes());
                         bytes.push(b'\0');
@@ -127,7 +211,6 @@ impl<'a> Builder<'a> {
                     }
 
                     Literal::True(_) => {
-                    
                         self.emit_store(
                             Value::Temp(tmp),
                             Value::Const(1, Sign::Unsigned, Size::Bit8),
@@ -135,28 +218,46 @@ impl<'a> Builder<'a> {
                     }
                 };
 
-               Value::Temp(tmp)
-            },
+                Value::Temp(tmp)
+            }
 
-            Expression::Binary(lhs,op,rhs) => {
+            Expression::Unary(op, expr) => {
+                let dest = Temp::new();
 
-                let lhs = self.build_expr(lhs);
-                let rhs = self.build_expr(rhs);
-                let op = gen_bin_op(op);
-                let result = Temp::new();
+                let rhs = self.build_expr(expr);
 
-                self.emit_instruction(Instruction::Binary(result,lhs,op,rhs));
-                Value::Temp(result)
+                let op = gen_un_op(op);
+
+                self.emit_instruction(Instruction::Unary(Value::Temp(dest), rhs, op));
+
+                Value::Temp(dest)
+            }
+
+            Expression::Var(var) => self.build_var(var).expect("Undefined Var"),
+
+            ref e => unimplemented!("{:?}", e),
+        }
+    }
+
+    fn build_var(&mut self, v: t::Var) -> Option<Value> {
+        use t::Var;
+        match v {
+            Var::Simple(sym, _) => {
+                if let Some(label) = self.locals.get(&sym) {
+                    Some(Value::Name(label.clone()))
+                } else if let Some(label) = self.parameters.get(&sym) {
+                    Some(Value::Name(label.clone()))
+                } else {
+                    None
+                }
             }
 
             _ => unimplemented!(),
         }
-
-        
     }
 }
 
-fn build_function(function: t::Function, symbols: &SymbolMap<()>)  -> Function {
+fn build_function(function: t::Function, symbols: &SymbolMap<()>) -> Function {
     let mut builder = Builder::new(symbols);
 
     for param in function.params {
@@ -170,25 +271,31 @@ fn build_function(function: t::Function, symbols: &SymbolMap<()>)  -> Function {
     };
 
     Function {
-        name:function.name,
-        params:builder.params(),
-        body:builder.instructions(),
-        linkage:function.linkage
+        name: function.name,
+        params: builder.params(),
+        body: builder.instructions(),
+        linkage: function.linkage,
     }
 }
 
-pub fn build_program(symbols: &SymbolMap<()>,old_program:t::Program)  -> Program {
-    let mut new_program = Program {
-        functions:vec![]
-    };
+pub fn build_program(symbols: &SymbolMap<()>, old_program: t::Program) -> Program {
+    let mut new_program = Program { functions: vec![] };
 
     for function in old_program.functions {
-        new_program.functions.push(build_function(function,symbols));
+        new_program
+            .functions
+            .push(build_function(function, symbols));
     }
 
     new_program
 }
 
+fn gen_un_op(op: UnOp) -> UnaryOp {
+    match op {
+        UnOp::Minus => UnaryOp::Minus,
+        UnOp::Bang => UnaryOp::Bang,
+    }
+}
 
 fn gen_bin_op(op: Op) -> BinaryOp {
     match op {
