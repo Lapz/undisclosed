@@ -74,7 +74,8 @@ impl Compiler {
             &mut self.file,
             "/*\nlocals:{:#?} ,\nparams:{:#?}\n*/",
             locals, params
-        ).unwrap();
+        )
+        .unwrap();
     }
 
     pub fn emit_strings(&mut self, strings: &HashMap<Label, String>) {
@@ -89,7 +90,8 @@ impl Compiler {
             &mut self.file,
             "\tsubq ${}, %rsp #pro\n",
             (nparams + nlocals) * 16
-        ).unwrap();
+        )
+        .unwrap();
     }
 
     pub fn emit_func_epilogue(&mut self) {

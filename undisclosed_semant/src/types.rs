@@ -122,11 +122,10 @@ impl Type {
             Type::Var(ref v) => {
                 if ctx.get_tvar(*v).is_some() {
                     format!("{{integer}}")
-                }else {
+                } else {
                     format!("tvar{}", v.0)
                 }
-
-            },
+            }
             Type::Poly(ref vars, ref ret) => {
                 let mut fmt_string = String::new();
                 fmt_string.push_str("poly<");

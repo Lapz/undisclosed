@@ -328,18 +328,17 @@ impl Codegen {
                 ir::Instruction::Move(Temp::new(), Register::RBP(*locals.get(&temp).unwrap()))
             }
             t::Expression::Binary(ref lhs, ref op, ref rhs) => {
-
                 let bop = gen_bin_op(op);
 
-                if expr.ty == Type::App(TyCon::String,vec![]) {
-                    let rhs = self.gen_expression(rhs, Temp::new(), instructions, locals, strings, ctx);
-                    let lhs = self.gen_expression(lhs, Temp::new(), instructions, locals, strings, ctx);
+                if expr.ty == Type::App(TyCon::String, vec![]) {
+                    let rhs =
+                        self.gen_expression(rhs, Temp::new(), instructions, locals, strings, ctx);
+                    let lhs =
+                        self.gen_expression(lhs, Temp::new(), instructions, locals, strings, ctx);
 
+                    //                    let label = Label::named(ctx.)
 
-
-//                    let label = Label::named(ctx.)
-
-//                    let call = ir::Instruction::Call()
+                    //                    let call = ir::Instruction::Call()
                 }
 
                 if self.cmp {
@@ -354,8 +353,6 @@ impl Codegen {
             }
 
             t::Expression::Call(ref name, ref exprs) => {
-
-
                 for (i, expr) in exprs.iter().enumerate().rev() {
                     let gen_expr =
                         self.gen_expression(expr, temp, instructions, locals, strings, ctx);

@@ -113,19 +113,22 @@ impl Infer {
                 self.unify(ret1, &self.subst(ret2, &mut mappings), span, ctx)
             }
 
-            (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
-                Ok(())
-            } else {
-                let a = ctx.get_tvar(*v1).cloned(); // FIXME:Remove .cloned when NLL ;
-                let b = ctx.get_tvar(*v2).cloned(); // FIXME:Remove .cloned when NLL ;
+            (&Type::Var(ref v1), &Type::Var(ref v2)) => {
+                if v1 == v2 {
+                    Ok(())
+                } else {
+                    let a = ctx.get_tvar(*v1).cloned(); // FIXME:Remove .cloned when NLL ;
+                    let b = ctx.get_tvar(*v2).cloned(); // FIXME:Remove .cloned when NLL ;
 
-                if a != b {
-                    let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(ctx), rhs.print(ctx));
-                    ctx.error(msg, span);
-                    return Err(());
+                    if a != b {
+                        let msg =
+                            format!("Cannot unify `{}` vs `{}`", lhs.print(ctx), rhs.print(ctx));
+                        ctx.error(msg, span);
+                        return Err(());
+                    }
+
+                    Ok(())
                 }
-
-                Ok(())
             }
 
             (&Type::Var(_), &Type::App(TyCon::Int(_, _), _)) => Ok(()),

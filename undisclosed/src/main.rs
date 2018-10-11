@@ -7,17 +7,17 @@ extern crate undisclosed_syntax;
 extern crate undisclosed_util;
 extern crate undisclosed_x86 as x86;
 
+use ir::printer::Printer;
 use std::fs::remove_file;
 use std::io::{self, Write};
 use std::process::Command;
 use std::rc::Rc;
 use structopt::StructOpt;
-use undisclosed_semant::{Infer,build_program};
+use undisclosed_semant::{build_program, Infer};
 use undisclosed_syntax::lexer::Lexer;
 use undisclosed_syntax::parser::Parser;
 use undisclosed_util::emitter::Reporter;
 use undisclosed_util::symbol::{Hasher, SymbolMap};
-use ir::printer::Printer;
 use x86::Compiler;
 
 fn main() {
@@ -73,11 +73,10 @@ fn repl() {
             }
         };
 
-
         let mut s2 = SymbolMap::new(Rc::clone(&hasher));
         let mut printer = Printer::new(&s2);
 
-        let mut lowered = build_program(&s2,ir);
+        let mut lowered = build_program(&s2, ir);
 
         // let mut compiler = Compiler::new(&hasher);
 
@@ -169,8 +168,7 @@ fn run(
     let ir = match infer.infer(&mut ast, &hasher, &mut reporter) {
         Ok(ast) => {
             if dump_file.is_some() {
-                let mut file = File::create("lowered.uir")
-                    .expect("Couldn't create file");
+                let mut file = File::create("lowered.uir").expect("Couldn't create file");
                 file.write(format!("../{:#?}.", ast).as_bytes())
                     .expect("Couldn't write to the file");
             }
@@ -186,13 +184,13 @@ fn run(
     let mut s2 = SymbolMap::new(Rc::clone(&hasher));
     let mut printer = Printer::new(&s2);
 
-    let mut lowered = build_program(&s2,ir);
+    let mut lowered = build_program(&s2, ir);
 
     if emit_ir {
         let mut file = File::create("lowered.ir").expect("Couldn't create file");
 
-        file.write(&printer.print_program(&lowered).unwrap()).expect("Couldn't write to the file");
-        
+        file.write(&printer.print_program(&lowered).unwrap())
+            .expect("Couldn't write to the file");
     }
 
     // let mut compiler = Compiler::new(&hasher);

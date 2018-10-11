@@ -1,6 +1,6 @@
-use syntax::ast::{Sign, Size,Linkage};
+use std::fmt::{self, Debug, Display};
+use syntax::ast::{Linkage, Sign, Size};
 use util::symbol::Symbol;
-use std::fmt::{Display,Debug,self};
 
 static mut LABEL_COUNT: u32 = 0;
 
@@ -14,7 +14,7 @@ pub enum Label {
 }
 
 /// A temp label that can either be a temp location or a register
-#[derive(Clone, Copy, Hash, PartialEq,Default)]
+#[derive(Clone, Copy, Hash, PartialEq, Default)]
 pub struct Temp(u32);
 
 #[derive(Debug)]
@@ -25,7 +25,7 @@ pub struct Program {
 #[derive(Debug)]
 pub struct Function {
     pub name: Symbol,
-    pub params:Vec<Label>,
+    pub params: Vec<Label>,
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
 }
@@ -62,7 +62,7 @@ impl Temp {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Value {
     /// Integer Constant
     Const(u64, Sign, Size),
@@ -135,10 +135,10 @@ impl Debug for Temp {
 }
 
 impl Display for Label {
-    fn fmt(&self,f:&mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Label::Int(ref i) => write!(f, "l{}",i),
-            Label::Named(ref s) => write!(f, "{}",s)
+            Label::Int(ref i) => write!(f, "l{}", i),
+            Label::Named(ref s) => write!(f, "{}", s),
         }
     }
 }
@@ -224,7 +224,7 @@ mod test {
             Value::Const(2, Sign::Unsigned, Size::Bit32),
             BinaryOp::Mul,
             Value::Temp(t1),
-        ));  // t2 <- 2 * t1
+        )); // t2 <- 2 * t1
 
         insts.push(Instruction::Store(
             Value::Temp(t3),
