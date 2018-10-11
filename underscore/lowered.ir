@@ -1,18 +1,91 @@
-function s15(tv1) -> i32 {
-    t2 := t1
-    ret t2
-}
-function s16(str) -> str {
-    t4 := t3
-    ret t4
-}
-function s0(tv0) -> tv0 {
-    t6 := t5
-    ret t6
-}
-function s3() -> nil {
-    t9 := 10:i32
-    t8 := s15.call(t9)
-    t12 := [1,65]
-    t11 := s16.call(t12)
+Program {
+    functions: [
+        Function {
+            name: Symbol(
+                0
+            ),
+            body: [
+                StatementStart,
+                Store(
+                    Temp(
+                        Temp(
+                            0
+                        )
+                    ),
+                    Const(
+                        10,
+                        Signed,
+                        Bit32
+                    )
+                ),
+                StatementStart,
+                Store(
+                    Temp(
+                        Temp(
+                            1
+                        )
+                    ),
+                    Const(
+                        1,
+                        Unsigned,
+                        Bit8
+                    )
+                ),
+                StatementStart,
+                Store(
+                    Temp(
+                        Temp(
+                            2
+                        )
+                    ),
+                    Const(
+                        0,
+                        Unsigned,
+                        Bit8
+                    )
+                ),
+                StatementStart,
+                Store(
+                    Temp(
+                        Temp(
+                            3
+                        )
+                    ),
+                    Mem(
+                        [
+                            97,
+                            0
+                        ]
+                    )
+                ),
+                StatementStart,
+                Store(
+                    Temp(
+                        Temp(
+                            4
+                        )
+                    ),
+                    Const(
+                        0,
+                        Unsigned,
+                        Bit8
+                    )
+                ),
+                StatementStart,
+                Store(
+                    Temp(
+                        Temp(
+                            5
+                        )
+                    ),
+                    Const(
+                        99,
+                        Unsigned,
+                        Bit8
+                    )
+                )
+            ],
+            linkage: Normal
+        }
+    ]
 }

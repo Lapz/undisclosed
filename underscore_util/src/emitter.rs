@@ -129,7 +129,8 @@ fn print_highlight(input: &str, span: &Span, level: &Level, detail: i32) {
                 Level::Error => Red.bold().paint(carets),
             };
             println!("     {}{}", prefix, carets);
-        } else if line_idx > span.start.line as usize && line_idx < span.end.line as usize
+        } else if line_idx > span.start.line as usize
+            && line_idx < span.end.line as usize
             && !line.is_empty()
         {
             let carets = repeat_string("^", line.len());

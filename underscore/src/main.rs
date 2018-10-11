@@ -1,17 +1,17 @@
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
-extern crate underscore_x86;
 extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
+extern crate underscore_x86;
 #[macro_use]
 extern crate underscore_vm;
 
 use std::io::{self, Write};
 use std::rc::Rc;
 use structopt::StructOpt;
-use underscore_semant::{Codegen, Infer, TypeEnv};
+use underscore_semant::{Codegen, Infer, TypeEnv,build_program};
 use underscore_syntax::lexer::Lexer;
 use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
@@ -132,35 +132,11 @@ fn run(path: String, dump_file: Option<String>) {
         }
     };
 
-    let mut chunk = Chunk::new();
-    let mut constant = chunk.add_constant(&[12, 0, 0, 0], 1);
 
-    chunk.write(2, 1); //Constant32
-
-    chunk.write(constant as u8, 1); //index
-
-    constant = chunk.add_constant(&[25, 0, 0, 0], 1);
-
-    chunk.write(2, 1);//Constant32
-    chunk.write(constant as u8, 1);//index
-
-    chunk.write(7, 1); // Multiply
-    chunk.write(4, 1);
-
-    chunk.write(0, 2);
-    chunk.write(4, 2);
-
-    println!("{:?}",chunk);
-
-    let mut vm = VM::new(&mut chunk);
-
-    vm.run().expect("Err");
-    let mut codegen = Codegen::new(symbols);
-
-    let lowered = codegen.gen_program(ast);
+    let lowered = build_program(&symbols,ast);
 
     let mut file = File::create("lowered.ir").expect("Couldn't create file");
-    file.write(format!("{}", lowered).as_bytes())
+    file.write(format!("{:#?}", lowered).as_bytes())
         .expect("Couldn't write to the file");
 }
 

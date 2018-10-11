@@ -661,11 +661,7 @@ impl<'a, 'b> Parser<'a, 'b> {
             self.consume(&TokenType::SEMICOLON, "Expected ';'")?;
 
             let len = match self.advance() {
-                Some(Spanned {
-                    
-                    ref value,
-                    ..
-                }) => match value.token {
+                Some(Spanned { ref value, .. }) => match value.token {
                     TokenType::Number(ref n) => n.value as usize,
 
                     _ => unimplemented!(),
@@ -1376,7 +1372,8 @@ impl<'a, 'b> Parser<'a, 'b> {
 
         if !self.recognise(TokenType::RBRACE) {
             loop {
-                let (open_span, ident) = self.consume_get_ident_and_span("Expected a field name")?;
+                let (open_span, ident) =
+                    self.consume_get_ident_and_span("Expected a field name")?;
 
                 self.consume(&TokenType::COLON, "Expected a colon")?;
 

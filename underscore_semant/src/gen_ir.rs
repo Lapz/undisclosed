@@ -1,7 +1,9 @@
 use ast::typed as t;
-use ir::{ir,
-              optimize::Optimizer,
-              ir::{new_label_pair, new_named_label, Label, Temp}};
+use ir::{
+    ir,
+    ir::{new_label_pair, new_named_label, Label, Temp},
+    optimize::Optimizer,
+};
 use std::u64;
 use syntax::ast::{Literal, Op, Sign, Size, UnaryOp};
 use types::{TyCon, Type};
@@ -117,7 +119,12 @@ impl Codegen {
                                 ir::Value::Const(4 * (*len as u64), Sign::Unsigned, Size::Bit64),
                             ));
 
-                            instructions.push(ir::Instruction::BinOp(HP,ir::BinOp::Plus,  temp, HP));
+                            instructions.push(ir::Instruction::BinOp(
+                                HP,
+                                ir::BinOp::Plus,
+                                temp,
+                                HP,
+                            ));
                         }
                         _ => self.gen_expression(expr, id_temp, instructions),
                     }
@@ -232,7 +239,7 @@ impl Codegen {
                         self.gen_expression(lhs, lhs_temp, instructions);
                         self.gen_expression(rhs, rhs_temp, instructions);
                         let op = gen_bin_op(op);
-                        instructions.push(ir::Instruction::BinOp(lhs_temp,op,  rhs_temp, temp));
+                        instructions.push(ir::Instruction::BinOp(lhs_temp, op, rhs_temp, temp));
                     }
 
                     _ => {
@@ -271,13 +278,15 @@ impl Codegen {
             t::Expression::Grouping { ref expr } => self.gen_expression(expr, temp, instructions),
             t::Expression::Literal(ref literal) => {
                 let value = match *literal {
-                   Literal::Char(ref ch) => ir::Value::Const(*ch as u64, Sign::Unsigned, Size::Bit8),
+                    Literal::Char(ref ch) => {
+                        ir::Value::Const(*ch as u64, Sign::Unsigned, Size::Bit8)
+                    }
 
-                   Literal::True(ref b) |Literal::False(ref b) => {
+                    Literal::True(ref b) | Literal::False(ref b) => {
                         ir::Value::Const(*b as u64, Sign::Unsigned, Size::Bit8)
                     }
 
-                   Literal::Nil => ir::Value::Mem(vec![0x00000000]),
+                    Literal::Nil => ir::Value::Mem(vec![0x00000000]),
 
                     Literal::Number(ref number) => match number.ty {
                         Some((sign, size)) => ir::Value::Const(number.value, sign, size),
@@ -285,11 +294,13 @@ impl Codegen {
                             Type::App(TyCon::Int(sign, size), _) => {
                                 ir::Value::Const(number.value, sign, size)
                             }
-                            Type::Var(_) => ir::Value::Const(number.value, Sign::Signed, Size::Bit32),
+                            Type::Var(_) => {
+                                ir::Value::Const(number.value, Sign::Signed, Size::Bit32)
+                            }
                             _ => unreachable!(),
                         },
                     },
-                   Literal::Str(ref string) => {
+                    Literal::Str(ref string) => {
                         let mut bytes = vec![];
                         bytes.push(string.len() as u8);
                         bytes.extend(string.as_bytes());
@@ -306,7 +317,7 @@ impl Codegen {
                 self.gen_expression(expr, new_temp, instructions);
                 let op = gen_un_op(op);
 
-                instructions.push(ir::Instruction::UnOp(temp, op ,new_temp))
+                instructions.push(ir::Instruction::UnOp(temp, op, new_temp))
             }
 
             t::Expression::Var(ref var) => {
@@ -336,9 +347,9 @@ impl Codegen {
                     ir::Value::Const(4, Sign::Unsigned, Size::Bit64),
                 ));
 
-                instructions.push(ir::Instruction::BinOp(addr,ir::BinOp::Mul, temp, addr));
+                instructions.push(ir::Instruction::BinOp(addr, ir::BinOp::Mul, temp, addr));
 
-                instructions.push(ir::Instruction::BinOp(addr,ir::BinOp::Plus, base, addr));
+                instructions.push(ir::Instruction::BinOp(addr, ir::BinOp::Plus, base, addr));
 
                 addr
             }
@@ -387,9 +398,8 @@ impl Codegen {
                     self.gen_expression(lhs, lhs_temp, instructions);
                     self.gen_expression(rhs, rhs_temp, instructions);
                     instructions.push(ir::Instruction::CJump(
-                         lhs_temp,
+                        lhs_temp,
                         gen_cmp_op(op),
-                       
                         rhs_temp,
                         ltrue,
                         lfalse,
@@ -413,7 +423,6 @@ impl Codegen {
                 instructions.push(ir::Instruction::CJump(
                     expr_temp,
                     ir::CmpOp::EQ,
-                    
                     true_temp,
                     ltrue,
                     lfalse,

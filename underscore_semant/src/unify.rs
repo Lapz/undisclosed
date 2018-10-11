@@ -116,19 +116,22 @@ impl Infer {
                 self.unify(ret1, &self.subst(ret2, &mut mappings), reporter, span, env)
             }
 
-            (&Type::Var(ref v1), &Type::Var(ref v2)) => if v1 == v2 {
-                Ok(())
-            } else {
-                let a = env.look_tvar(*v1);
-                let b = env.look_tvar(*v2);
+            (&Type::Var(ref v1), &Type::Var(ref v2)) => {
+                if v1 == v2 {
+                    Ok(())
+                } else {
+                    let a = env.look_tvar(*v1);
+                    let b = env.look_tvar(*v2);
 
-                if a != b {
-                    let msg = format!("Cannot unify `{}` vs `{}`", lhs.print(env), rhs.print(env));
-                    reporter.error(msg, span);
-                    return Err(());
+                    if a != b {
+                        let msg =
+                            format!("Cannot unify `{}` vs `{}`", lhs.print(env), rhs.print(env));
+                        reporter.error(msg, span);
+                        return Err(());
+                    }
+                    Ok(())
                 }
-                Ok(())
-            },
+            }
 
             (&Type::Var(_), &Type::App(TyCon::Int(_, _), _)) => Ok(()),
 

@@ -4,8 +4,9 @@ use cast_check::*;
 //               translate::{Level, Translator}};
 use env::{Entry, Env, VarEntry, VarType};
 use std::collections::HashMap;
-use syntax::ast::{Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit,
-                  UnaryOp, Var};
+use syntax::ast::{
+    Call, Expression, Function, Literal, Op, Sign, Size, Statement, StructLit, UnaryOp, Var,
+};
 use types::{Field, TyCon, Type, TypeVar};
 use util::{emitter::Reporter, pos::Spanned};
 
@@ -569,7 +570,8 @@ impl Infer {
                                 if def_ty.name == lit_expr.value.ident.value {
                                     found = true;
 
-                                    let ty = self.infer_expr(&lit_expr.value.expr, env, reporter)?;
+                                    let ty =
+                                        self.infer_expr(&lit_expr.value.expr, env, reporter)?;
 
                                     self.unify(
                                         &self.subst(&def_ty.ty, &mut mappings),
@@ -609,7 +611,7 @@ impl Infer {
                                 reporter.error(msg, lit.span);
                                 return Err(());
                             } else if !found {
-                                return Err(()); // Unknown field 
+                                return Err(()); // Unknown field
                             }
 
                             Ok((

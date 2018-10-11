@@ -1,8 +1,7 @@
-use std::fmt::{self, Display,Debug};
-use syntax::ast::{Sign, Size};
+use std::fmt::{self, Debug, Display};
 use syntax::ast::Linkage;
+use syntax::ast::{Sign, Size};
 use util::symbol::{Symbol, Symbols};
-
 
 #[derive(Debug)]
 pub struct Program {
@@ -15,7 +14,6 @@ pub struct Function {
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
 }
-
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -30,10 +28,10 @@ pub enum Instruction {
     Cast(Temp, Sign, Size), //TODO take into account sign
 
     /// Binary operation and store in Temp
-    BinOp(Temp,BinOp, Temp, Temp),
+    BinOp(Temp, BinOp, Temp, Temp),
 
     /// Unary Op store in Temp
-    UnOp( Temp,UnOp, Temp),
+    UnOp(Temp, UnOp, Temp),
 
     /// Evaluate l1, l2 compare using CmpOp and then got to L or R
     CJump(Temp, CmpOp, Temp, Label, Label),
@@ -70,7 +68,7 @@ impl Instruction {
             Instruction::Store(ref temp, ref value) => format!("   {} := {}", temp, value),
             Instruction::Value(ref value) => format!("\n{}", value),
             Instruction::BinOp(ref t1, ref op, ref v1, ref v2) => {
-                format!("{} := {} {} {}", t1, op,v1, v2)
+                format!("{} := {} {} {}", t1, op, v1, v2)
             }
 
             Instruction::Block(ref temp, ref temps) => {
@@ -112,7 +110,7 @@ impl Instruction {
                 fmt_str
             }
             Instruction::Jump(ref label) => format!("\njump {}", symbols.name(*label)),
-            Instruction::CJump(ref t1, ref op ,ref t2, ref ltrue, ref lfalse) => format!(
+            Instruction::CJump(ref t1, ref op, ref t2, ref ltrue, ref lfalse) => format!(
                 "\nif {} {} {} then {} else {}",
                 t1,
                 op,
@@ -151,7 +149,6 @@ pub enum CmpOp {
     EQ,
     NE,
 }
-
 
 // use syntax::ast::Ident;
 
@@ -232,10 +229,7 @@ impl Display for Function {
 
         write!(f, "(")?;
 
-        
         write!(f, ")")?;
-
-        
 
         write!(f, " {{")?;
 

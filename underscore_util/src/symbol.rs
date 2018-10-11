@@ -17,7 +17,7 @@ pub struct SymbolMap<T: Copy + Eq + Hash + Default> {
     pub mappings: RefCell<HashMap<T, String>>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,Default)]
 /// A Scoped Map that takes any K and V
 pub struct Symbols<V: Clone> {
     pub strings: Rc<SymbolMap<Symbol>>,

@@ -24,7 +24,6 @@ macro_rules! to_num {
 
         let mut b: [u8; mem::size_of::<$type>()] = default::Default::default();
 
-    
         b.copy_from_slice($stack);
         unsafe { mem::transmute::<_, $type>(b) }
     }};
@@ -110,11 +109,15 @@ impl Chunk {
 
         let index = self.code[offset + 1] as usize;
 
-        println!("{:?}",index);
+        println!("{:?}", index);
 
         match size {
             1 => {
-                println!("{:16} {:04}", name, to_num!([&self.constants[index..index+1],offset] => i8));
+                println!(
+                    "{:16} {:04}",
+                    name,
+                    to_num!([&self.constants[index..index+1],offset] => i8)
+                );
             }
             4 => {
                 let mut slice = [0; 4];
@@ -168,24 +171,24 @@ mod test {
     #[test]
     fn it_work() {
         let mut chunk = Chunk::new();
-    let mut constant = chunk.add_constant(&[12, 0, 0, 0], 1);
+        let mut constant = chunk.add_constant(&[12, 0, 0, 0], 1);
 
-    chunk.write(2, 1); //Constant32
+        chunk.write(2, 1); //Constant32
 
-    chunk.write(constant as u8, 1); //index
+        chunk.write(constant as u8, 1); //index
 
-    constant = chunk.add_constant(&[25, 0, 0, 0], 1);
+        constant = chunk.add_constant(&[25, 0, 0, 0], 1);
 
-    chunk.write(2, 1);//Constant32
-    chunk.write(constant as u8, 1);//index
+        chunk.write(2, 1); //Constant32
+        chunk.write(constant as u8, 1); //index
 
-    chunk.write(7, 1); // Multiply
-    chunk.write(4, 1);
+        chunk.write(7, 1); // Multiply
+        chunk.write(4, 1);
 
-    chunk.write(0, 2);
-    chunk.write(4, 2);
+        chunk.write(0, 2);
+        chunk.write(4, 2);
 
-        println!("{:?}",chunk);
+        println!("{:?}", chunk);
         println!("{:?}", chunk);
         chunk.dissassemble("test");
     }

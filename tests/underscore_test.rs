@@ -52,7 +52,8 @@ fn main() {
             } else if underscorec
                 .status()
                 .expect("failed to execute process")
-                .success() && !output.contains(&expects)
+                .success()
+                && !output.contains(&expects)
             {
                 pass += 1;
             } else {
@@ -113,7 +114,8 @@ fn main() {
             underscorec
                 .status()
                 .expect("failed to execute process")
-                .success() != true
+                .success()
+                != true
         );
     }
 }
