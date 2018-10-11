@@ -15,7 +15,7 @@ pub struct Parser<'a, 'b> {
     reporter: Reporter,
     tokens: Peekable<IntoIter<Spanned<Token<'a>>>>,
     parsing_cond: bool,
-    SymbolMap: &'b mut SymbolMap<()>,
+    symbols: &'b mut SymbolMap<()>,
 }
 
 pub type ParserResult<T> = Result<T, ()>;
@@ -144,12 +144,12 @@ impl<'a, 'b> Parser<'a, 'b> {
     pub fn new(
         tokens: Vec<Spanned<Token<'a>>>,
         reporter: Reporter,
-        SymbolMap: &'b mut SymbolMap<()>,
+        symbols: &'b mut SymbolMap<()>,
     ) -> Self {
         Parser {
             tokens: tokens.into_iter().peekable(),
             parsing_cond: false,
-            SymbolMap,
+            symbols,
             reporter,
         }
     }
@@ -218,7 +218,7 @@ impl<'a, 'b> Parser<'a, 'b> {
     }
 
     fn ident(&mut self, name: &str) -> Symbol {
-        self.SymbolMap.symbol(name)
+        self.symbols.symbol(name)
     }
 
     fn random_ident(&mut self) -> Symbol {
@@ -227,7 +227,7 @@ impl<'a, 'b> Parser<'a, 'b> {
         let number: u32 = rng.gen_range(0, 999999);
         let s = format!("{}{:06}", letter, number);
 
-        self.SymbolMap.symbol(&s)
+        self.symbols.symbol(&s)
     }
 
     fn peek<F>(&mut self, mut check: F) -> bool

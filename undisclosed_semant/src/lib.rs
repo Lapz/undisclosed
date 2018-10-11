@@ -14,6 +14,7 @@ mod escape;
 mod gen_cfg;
 mod gen_ir;
 mod infer;
+mod lower;
 mod monomorphize;
 mod resolver;
 mod subst;
@@ -24,6 +25,8 @@ use ast::typed as t;
 use ctx::CompileCtx;
 // use escape::FindEscape;
 use gen_ir::Codegen;
+
+pub use lower::build_program;
 use monomorphize::Mono;
 use resolver::Resolver;
 use std::rc::Rc;
@@ -50,7 +53,7 @@ impl Infer {
         program: &mut Program,
         strings: &Rc<Hasher<Symbol>>,
         reporter: &mut Reporter,
-    ) -> InferResult<::ir::ir::Program> {
+    ) -> InferResult<::ast::typed::Program> {
         let mut ctx = CompileCtx::new(strings, reporter);
 
         let mut new_program = t::Program {
@@ -82,10 +85,10 @@ impl Infer {
 
         let mono_program = mono.monomorphize_program(new_program, &mut ctx);
 
-        let mut codegen = Codegen::new();
+        // let mut codegen = Codegen::new();
 
-        let ir = codegen.gen_program(mono_program, &mut ctx);
+        // let ir = codegen.gen_program(mono_program, &mut ctx);
 
-        Ok(ir)
+        Ok(mono_program)
     }
 }

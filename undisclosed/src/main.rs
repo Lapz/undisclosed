@@ -12,11 +12,12 @@ use std::io::{self, Write};
 use std::process::Command;
 use std::rc::Rc;
 use structopt::StructOpt;
-use undisclosed_semant::Infer;
+use undisclosed_semant::{Infer,build_program};
 use undisclosed_syntax::lexer::Lexer;
 use undisclosed_syntax::parser::Parser;
 use undisclosed_util::emitter::Reporter;
 use undisclosed_util::symbol::{Hasher, SymbolMap};
+use ir::printer::Printer;
 use x86::Compiler;
 
 fn main() {
@@ -72,31 +73,37 @@ fn repl() {
             }
         };
 
-        let mut compiler = Compiler::new(&hasher);
 
-        compiler.compile(ir);
+        let mut s2 = SymbolMap::new(Rc::clone(&hasher));
+        let mut printer = Printer::new(&s2);
 
-        let mut gcc = Command::new("gcc");
+        let mut lowered = build_program(&s2,ir);
 
-        gcc.args(&[
-            "-m64",
-            "-lz",
-            "../target/release/libundisclosed_rt.dylib",
-            "out.s",
-            "-o",
-            "out",
-        ]);
+        // let mut compiler = Compiler::new(&hasher);
 
-        gcc.output().expect("failed to execute process");
+        // compiler.compile(ir);
 
-        let mut out = Command::new("./out");
+        // let mut gcc = Command::new("gcc");
 
-        let out = out.output().expect("failed to run out");
+        // gcc.args(&[
+        //     "-m64",
+        //     "-lz",
+        //     "../target/release/libundisclosed_rt.dylib",
+        //     "out.s",
+        //     "-o",
+        //     "out",
+        // ]);
 
-        remove_file("out").unwrap();
-        remove_file("out.s").unwrap();
+        // gcc.output().expect("failed to execute process");
 
-        let output = String::from_utf8_lossy(&out.stdout);
+        // let mut out = Command::new("./out");
+
+        // let out = out.output().expect("failed to run out");
+
+        // remove_file("out").unwrap();
+        // remove_file("out.s").unwrap();
+
+        let output = String::from_utf8(printer.print_program(&lowered).unwrap()).unwrap();
 
         println!("{}", output);
     }
@@ -176,39 +183,46 @@ fn run(
         }
     };
 
+    let mut s2 = SymbolMap::new(Rc::clone(&hasher));
+    let mut printer = Printer::new(&s2);
+
+    let mut lowered = build_program(&s2,ir);
+
     if emit_ir {
         let mut file = File::create("lowered.ir").expect("Couldn't create file");
-        write!(file, "{}", ir).expect("Couldn't write to the file");
+
+        file.write(&printer.print_program(&lowered).unwrap()).expect("Couldn't write to the file");
+        
     }
 
-    let mut compiler = Compiler::new(&hasher);
+    // let mut compiler = Compiler::new(&hasher);
 
-    compiler.compile(ir);
+    // compiler.compile(ir);
 
-    let mut gcc = Command::new("gcc");
+    // let mut gcc = Command::new("gcc");
 
-    use std::path::Path;
+    // use std::path::Path;
 
-    let output_path = output_path.unwrap_or("./".into());
+    // let output_path = output_path.unwrap_or("./".into());
 
-    let path = Path::new(&output_path);
+    // let path = Path::new(&output_path);
 
-    let path = format!("{}/out", path.display());
-    gcc.args(&[
-        "-m64",
-        "-lz",
-        "../target/release/libundisclosed_rt.dylib",
-        "out.s",
-        "-o",
-        &path,
-    ]);
+    // let path = format!("{}/out", path.display());
+    // gcc.args(&[
+    //     "-m64",
+    //     "-lz",
+    //     "../target/release/libundisclosed_rt.dylib",
+    //     "out.s",
+    //     "-o",
+    //     &path,
+    // ]);
 
-    let output = gcc.output().expect("failed to execute process");
-    let output = String::from_utf8_lossy(&output.stdout);
+    // let output = gcc.output().expect("failed to execute process");
+    // let output = String::from_utf8_lossy(&output.stdout);
 
-    if output.is_empty() {
-        println!("{}", output);
-    }
+    // if output.is_empty() {
+    //     println!("{}", output);
+    // }
 }
 
 #[derive(StructOpt, Debug)]
@@ -220,7 +234,7 @@ pub struct Cli {
     #[structopt(short = "d", long = "dump")]
     pub file: Option<String>,
     /// Emit the intermeidate rep to a file
-    #[structopt(short = "ir", long = "emit_ir")]
+    #[structopt(short = "i", long = "emit_ir")]
     pub emit_ir: bool,
     /// Emit the assembly
     #[structopt(short = "a", long = "emit_asm")]

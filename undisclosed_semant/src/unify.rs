@@ -124,8 +124,9 @@ impl Infer {
                     ctx.error(msg, span);
                     return Err(());
                 }
+
                 Ok(())
-            },
+            }
 
             (&Type::Var(_), &Type::App(TyCon::Int(_, _), _)) => Ok(()),
 
