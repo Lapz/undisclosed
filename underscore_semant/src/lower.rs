@@ -1,7 +1,7 @@
 use ast::typed as t;
-use ir::tac::{Instruction, Label, Temp, Value,Function,Program};
+use ir::tac::{Instruction, Label, Temp, Value,Function,Program,BinaryOp};
 use std::collections::HashMap;
-use syntax::ast::{Linkage, Literal, Sign, Size};
+use syntax::ast::{Linkage, Literal, Sign, Size,Op};
 use types::{TyCon, Type};
 use util::symbol::Symbol;
 use util::symbol::Symbols;
@@ -40,6 +40,10 @@ impl<'a> Builder<'a> {
     pub fn instructions(&mut self) -> Vec<Instruction> {
         self.instructions.take().unwrap()
     }
+
+    pub fn params(&mut self) -> Vec<Label> {
+        self.parameters.iter().map(|(_,label)| label.clone()).collect()
+    }
     pub fn emit_instruction(&mut self, inst: Instruction) {
         self.instructions.as_mut().unwrap().push(inst);
     }
@@ -76,7 +80,11 @@ impl<'a> Builder<'a> {
 
     fn build_expr(&mut self, expr: t::TypedExpression) -> Value {
         use t::Expression;
-        match *expr.expr {
+
+        let ty = expr.ty;
+        let expr = *expr.expr;
+    
+        match expr {
             Expression::Literal(literal) => {
                 let tmp = Temp::new();
                 match literal {
@@ -98,7 +106,7 @@ impl<'a> Builder<'a> {
                         self.emit_store(Value::Temp(tmp),Value::Const(0x0000, Sign::Unsigned, Size::Bit8));
                     }
                     Literal::Number(number) => {
-                        let val = match expr.ty {
+                        let val = match ty {
                             Type::App(TyCon::Int(sign, size), _) => {
                                 Value::Const(number.value, sign, size)
                             }
@@ -129,6 +137,17 @@ impl<'a> Builder<'a> {
                 };
 
                Value::Temp(tmp)
+            },
+
+            Expression::Binary(lhs,op,rhs) => {
+
+                let lhs = self.build_expr(lhs);
+                let rhs = self.build_expr(rhs);
+                let op = gen_bin_op(op);
+                let result = Temp::new();
+
+                self.emit_instruction(Instruction::Binary(result,lhs,op,rhs));
+                Value::Temp(result)
             }
 
             _ => unimplemented!(),
@@ -153,6 +172,7 @@ fn build_function(function: t::Function, symbols: &Symbols<Temp>)  -> Function {
 
     Function {
         name:function.name,
+        params:builder.params(),
         body:builder.instructions(),
         linkage:function.linkage
     }
@@ -168,4 +188,17 @@ pub fn build_program(symbols: &Symbols<Temp>,old_program:t::Program)  -> Program
     }
 
     new_program
+}
+
+
+fn gen_bin_op(op: Op) -> BinaryOp {
+    match op {
+        Op::Plus => BinaryOp::Plus,
+        Op::Minus => BinaryOp::Minus,
+        Op::Star => BinaryOp::Mul,
+        Op::Slash => BinaryOp::Div,
+        Op::And => BinaryOp::And,
+        Op::Or => BinaryOp::Or,
+        _ => unreachable!(),
+    }
 }

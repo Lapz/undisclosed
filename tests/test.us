@@ -1,12 +1,7 @@
 
 
-fn main() {
-    10;
-    true;
-    false;
-    "a";
-    nil;
-    'c';
+fn main(a:i32) {
+    10+10;
 }
 
 

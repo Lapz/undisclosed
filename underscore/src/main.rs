@@ -5,6 +5,7 @@ extern crate underscore_semant;
 extern crate underscore_syntax;
 extern crate underscore_util;
 extern crate underscore_x86;
+extern crate underscore_ir;
 #[macro_use]
 extern crate underscore_vm;
 
@@ -17,6 +18,7 @@ use underscore_syntax::parser::Parser;
 use underscore_util::emitter::Reporter;
 use underscore_util::symbol::{SymbolMap, Symbols};
 use underscore_vm::{Chunk, VM};
+use underscore_ir::printer::Printer;
 
 fn main() {
     let opts = Cli::from_args();
@@ -134,9 +136,11 @@ fn run(path: String, dump_file: Option<String>) {
 
 
     let lowered = build_program(&symbols,ast);
+    let s2 = Symbols::new(Rc::clone(&strings));
+    let mut printer = Printer::new(&s2);
 
     let mut file = File::create("lowered.ir").expect("Couldn't create file");
-    file.write(format!("{:#?}", lowered).as_bytes())
+    file.write(&printer.print_program(&lowered).unwrap())
         .expect("Couldn't write to the file");
 }
 

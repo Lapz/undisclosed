@@ -4,3 +4,4 @@ extern crate underscore_util as util;
 pub mod ir;
 pub mod optimize;
 pub mod tac;
+pub mod printer;

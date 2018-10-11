@@ -1,5 +1,6 @@
 use syntax::ast::{Sign, Size,Linkage};
 use util::symbol::Symbol;
+use std::fmt::{Display,Debug,self};
 
 static mut LABEL_COUNT: u32 = 0;
 
@@ -13,7 +14,7 @@ pub enum Label {
 }
 
 /// A temp label that can either be a temp location or a register
-#[derive(Debug, Clone, Copy, Hash, PartialEq,Default)]
+#[derive(Clone, Copy, Hash, PartialEq,Default)]
 pub struct Temp(u32);
 
 #[derive(Debug)]
@@ -24,6 +25,7 @@ pub struct Program {
 #[derive(Debug)]
 pub struct Function {
     pub name: Symbol,
+    pub params:Vec<Label>,
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
 }
@@ -118,6 +120,85 @@ pub enum CmpOp {
     GTE,
     EQ,
     NE,
+}
+
+impl Display for Temp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "t{}", self.0)
+    }
+}
+
+impl Debug for Temp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "t{}", self.0)
+    }
+}
+
+impl Display for Label {
+    fn fmt(&self,f:&mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Label::Int(ref i) => write!(f, "l{}",i),
+            Label::Named(ref s) => write!(f, "{}",s)
+        }
+    }
+}
+
+impl Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Value::Const(ref v, ref sign, ref size) => write!(f, "{}{}{}", v, sign, size),
+            Value::Name(ref name) => write!(f, "{}", name),
+            Value::Temp(ref temp) => write!(f, "{}", temp),
+            Value::Mem(ref bytes) => {
+                write!(f, "[")?;
+
+                for (i, byte) in bytes.iter().enumerate() {
+                    if i + 1 == bytes.len() {
+                        write!(f, "{}", byte)?;
+                    } else {
+                        write!(f, "{},", byte)?;
+                    }
+                }
+
+                write!(f, "]")
+            }
+        }
+    }
+}
+
+impl Display for BinaryOp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            BinaryOp::Plus => write!(f, "+"),
+            BinaryOp::Minus => write!(f, "-"),
+            BinaryOp::Mul => write!(f, "*"),
+            BinaryOp::Div => write!(f, "/"),
+            BinaryOp::And => write!(f, "and"),
+            BinaryOp::Or => write!(f, "or"),
+        }
+    }
+}
+
+impl Display for CmpOp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CmpOp::LT => write!(f, "<"),
+            CmpOp::LTE => write!(f, "<="),
+            CmpOp::GT => write!(f, ">"),
+            CmpOp::GTE => write!(f, ">="),
+            CmpOp::NE => write!(f, "!="),
+            CmpOp::EQ => write!(f, "=="),
+        }
+    }
+}
+
+impl Display for UnaryOp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            UnaryOp::Bang => write!(f, "!"),
+            UnaryOp::Minus => write!(f, "-"),
+        }
+    }
 }
 
 #[cfg(test)]

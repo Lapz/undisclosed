@@ -10,8 +10,7 @@ underscore_syntax =  {path="../underscore_syntax"}
 underscore_util =  {path="../underscore_util"}
 underscore_semant = {path ="../underscore_semant"}
 underscore_x86 = {path ="../underscore_x86"}
-
-
+underscore_ir = {path="../underscore_ir"}
 
 [dependencies.underscore_vm]
 path = "../underscore_vm"
