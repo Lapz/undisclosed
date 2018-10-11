@@ -10,6 +10,7 @@ mod escape;
 mod gen_cfg;
 mod gen_ir;
 mod infer;
+mod lower;
 mod monomorphize;
 mod resolver;
 mod subst;
@@ -20,12 +21,14 @@ use ast::typed as t;
 pub use env::Env as TypeEnv;
 use env::Env;
 
+pub use lower::build_program;
 pub use gen_ir::Codegen;
 use monomorphize::Mono;
 use resolver::Resolver;
 use syntax::ast::Program;
 use types::Type;
 use util::emitter::Reporter;
+
 pub(crate) type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug)]
