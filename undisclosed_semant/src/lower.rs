@@ -102,7 +102,7 @@ impl<'a> Builder<'a> {
         let expr = *expr.expr;
 
         match expr {
-            Expression::Array(ref items) => {
+            Expression::Array(items) => {
                 let tmp = Temp::new();
                 let size = match &items[0].ty {
                     Type::App(TyCon::Int(sign, size), _) => match size {
@@ -112,24 +112,41 @@ impl<'a> Builder<'a> {
                     },
                     Type::App(TyCon::String, _) => 1,
                     Type::Var(_) => 4,
-                    ref ty => unimplemented!("Unknown ty {:?}",ty),
-                };
+                    ref ty => unimplemented!("Unknown ty {:?}", ty),
+                }; // Calculate the size of the elements
 
-                self.emit_instruction(Instruction::Call(
-                    Value::Temp(tmp),
-                    Label::named("malloc".to_string()),
-                    vec![Value::Const(
-                        size * (items.len() as u64),
-                        Sign::Unsigned,
-                        Size::Bit32,
-                    )],
-                ));
+                self.emit_instruction(Instruction::Array(Value::Temp(tmp), size * items.len()));
 
-                for item in items {
+                // self.emit_instruction(Instruction::Call(
+                //     Value::Temp(tmp),
+                //     Label::named("malloc".to_string()),
+                //     vec![Value::Const(
+                //         size * (items.len() as u64),
+                //         Sign::Unsigned,
+                //         Size::Bit32,
+                //     )],
+                // )); // Al
+
+                for (i, item) in items.into_iter().enumerate() {
+                    
+
+                    let result = self.build_expr(item); // get the expr
+                    let offset = Temp::new();
+
+                    self.emit_instruction(Instruction::Binary(
+                        offset,
+                        Value::Temp(tmp),
+                        BinaryOp::Plus,
+                        Value::Const(i as u64, Sign::Unsigned, Size::Bit32),
+                    )); // calculate the offset of the variable
+
+                    // Store the expr in the location which holds the array index
+                    self.emit_store(Value::Temp(offset), result);
+
                     //TODO calculate each item offset and write the value to the particular place
                 }
 
-                Value::Temp(Temp::new())
+                Value::Temp(tmp)
             }
 
             Expression::Assign(var, expr) => {

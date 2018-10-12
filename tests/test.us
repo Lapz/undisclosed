@@ -1,9 +1,10 @@
 
 
-fn main(a:i32) {
-    let a = [10];
-    2+5;
-    !true;
+fn main() {
+    let a = 3;
+    let b = 2;
+
+    a-2*b;
 }
 
 

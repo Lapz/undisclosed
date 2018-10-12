@@ -58,6 +58,7 @@ impl<'a> Printer<'a> {
 
     pub fn print_instructions(&mut self, i: &Instruction) -> io::Result<()> {
         match *i {
+            Instruction::Array(ref l, ref s) => write!(&mut self.buffer, "{} <- [{}]", l, s),
             Instruction::Label(ref l) => write!(&mut self.buffer, "{}", l),
             Instruction::StatementStart => Ok(()),
             Instruction::Jump(ref l) => write!(&mut self.buffer, "jmp @{}", l),
@@ -78,7 +79,7 @@ impl<'a> Printer<'a> {
                 write!(&mut self.buffer, "{} <- call {} ", dest, callee)?;
 
                 for arg in args {
-                    write!(&mut self.buffer,"{}",arg)?;
+                    write!(&mut self.buffer, "{}", arg)?;
                 }
 
                 Ok(())

@@ -1,11 +1,11 @@
-function main(a){	
-	t0 <- call malloc 4u32
-	a <- t1
+function main(){	
+	t0 <- 3i32
+	a <- t0
+	
+	t1 <- 2i32
+	b <- t1
 	
 	t2 <- 2i32
-	t3 <- 5i32
-	t4 <- t2 + t3
-	
-	t6 <- 1u8
-	t5 <- !t6
+	t3 <- t2 * b
+	t4 <- a - t3
 }

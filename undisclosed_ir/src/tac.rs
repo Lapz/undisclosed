@@ -77,6 +77,9 @@ pub enum Value {
 /// Instructions are of the form i <- a op b
 #[derive(Debug)]
 pub enum Instruction {
+    /// A stackallocated array of size whatever
+    /// Stored at a location
+    Array(Value, usize),
     Label(Label),
     StatementStart,
     Jump(Label),
