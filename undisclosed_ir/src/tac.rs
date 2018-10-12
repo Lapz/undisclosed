@@ -62,7 +62,7 @@ impl Temp {
     }
 }
 
-#[derive(Debug, PartialEq,Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     /// Integer Constant
     Const(u64, Sign, Size),
@@ -75,7 +75,7 @@ pub enum Value {
 }
 /// Instruction used in the IR
 /// Instructions are of the form i <- a op b
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Instruction {
     /// A stackallocated array of size whatever
     /// Stored at a location
@@ -97,25 +97,32 @@ pub enum Instruction {
 
     /// Evaluate l1, l2 compare using CmpOp and then got to L or R
     CJump(Value, CmpOp, Value, Label, Label),
+
+    JumpIf(Value, Label),
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum BinaryOp {
     Plus,
     Minus,
     Mul,
     Div,
-    And,
-    Or,
+    Gt,
+    Gte,
+    Lt,
+    Lte,
+    Equal,
+    NotEqual
+
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum UnaryOp {
     Bang,
     Minus,
 }
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum CmpOp {
     LT,
     GT,
@@ -176,8 +183,12 @@ impl Display for BinaryOp {
             BinaryOp::Minus => write!(f, "-"),
             BinaryOp::Mul => write!(f, "*"),
             BinaryOp::Div => write!(f, "/"),
-            BinaryOp::And => write!(f, "and"),
-            BinaryOp::Or => write!(f, "or"),
+            BinaryOp::Lt=> write!(f, "<"),
+            BinaryOp::Gt => write!(f, ">"),
+            BinaryOp::Lte => write!(f, "<="),
+            BinaryOp::Gte => write!(f, ">="),
+            BinaryOp::Equal => write!(f, "=="),
+            BinaryOp::NotEqual => write!(f, "!="),
         }
     }
 }

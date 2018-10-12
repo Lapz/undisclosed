@@ -18,12 +18,19 @@ use util::symbol::{Symbol, SymbolMap};
 //     var_mutability: HashMap<Symbol, Mut>,
 // }
 
+#[derive(Debug, Clone)]
+pub struct LoopDescription {
+    start: Label,
+    end: Label,
+}
+
 #[derive(Debug)]
 struct Builder<'a> {
     symbols: &'a SymbolMap<()>,
     locals: HashMap<Symbol, Label>,
     parameters: HashMap<Symbol, Label>,
     instructions: Option<Vec<Instruction>>,
+    current_loop: Option<LoopDescription>,
 }
 
 impl<'a> Builder<'a> {
@@ -33,6 +40,7 @@ impl<'a> Builder<'a> {
             symbols,
             locals: HashMap::new(),
             parameters: HashMap::new(),
+            current_loop: None,
         }
     }
 
@@ -76,8 +84,73 @@ impl<'a> Builder<'a> {
                 }
             }
 
+            Statement::Break => {
+                let description = self
+                    .current_loop
+                    .take()
+                    .expect("Using break outside a loop");
+                let label = description.end.clone();
+
+                self.current_loop = Some(description);
+
+                self.emit_instruction(Instruction::Jump(label))
+            }
+
+            Statement::Continue => {
+                let description = self
+                    .current_loop
+                    .take()
+                    .expect("Using break outside a loop");
+                let label = description.start.clone();
+
+                self.current_loop = Some(description);
+
+                self.emit_instruction(Instruction::Jump(label))
+            }
+
             Statement::Expr(expr) => {
                 self.build_expr(expr);
+            }
+
+            Statement::If {
+                cond,
+                then,
+                otherwise: Some(otherwise),
+            } => {
+                let then_label = Label::new();
+                let otherwise_label = Label::new();
+
+                let result = self.build_expr(cond);
+
+                self.emit_instruction(Instruction::JumpIf(result, otherwise_label.clone()));
+
+                self.emit_instruction(Instruction::Label(then_label));
+
+                self.build_statement(*then);
+
+                self.emit_instruction(Instruction::Label(otherwise_label));
+
+                self.build_statement(*otherwise)
+            },
+
+            Statement::If {
+                cond,
+                then,
+                otherwise: None,
+            } => {
+                let then_label = Label::new();
+                let otherwise_label = Label::new();
+
+                let result = self.build_expr(cond);
+
+                self.emit_instruction(Instruction::JumpIf(result, otherwise_label.clone()));
+
+                self.emit_instruction(Instruction::Label(then_label));
+
+                self.build_statement(*then);
+
+                self.emit_instruction(Instruction::Label(otherwise_label));
+
             }
 
             Statement::Let { ident, ty, expr } => {
@@ -91,7 +164,7 @@ impl<'a> Builder<'a> {
                 }
             }
 
-            _ => unimplemented!(),
+            ref e => unimplemented!("{:?}",e),
         }
     }
 
@@ -296,12 +369,7 @@ impl<'a> Builder<'a> {
 
                 let offset = Temp::new();
 
-                self.emit_instruction(Instruction::Binary(
-                    offset,
-                    label,
-                    BinaryOp::Plus,
-                    result,
-                )); // Store in temp location the indexed value
+                self.emit_instruction(Instruction::Binary(offset, label, BinaryOp::Plus, result)); // Store in temp location the indexed value
 
                 Some(Value::Temp(offset))
             }
@@ -355,8 +423,15 @@ fn gen_bin_op(op: Op) -> BinaryOp {
         Op::Minus => BinaryOp::Minus,
         Op::Star => BinaryOp::Mul,
         Op::Slash => BinaryOp::Div,
-        Op::And => BinaryOp::And,
-        Op::Or => BinaryOp::Or,
+        Op::LT => BinaryOp::Lt,
+        Op::GT => BinaryOp::Gt,
+        Op::LTE => BinaryOp::Lte,
+        Op::GTE => BinaryOp::Gte,
+        Op::Equal => BinaryOp::Equal,
+        Op::NEq => BinaryOp::NotEqual,
+        // Op::And => BinaryOp::And,
+        // Op::Or => BinaryOp::Or,
         _ => unreachable!(),
+        
     }
 }

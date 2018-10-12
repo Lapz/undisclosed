@@ -1,6 +1,7 @@
 use std::io::{self, Write};
 use tac::{Function, Instruction, Program, Temp};
 use util::symbol::SymbolMap;
+use std::iter::repeat;
 
 pub struct Printer<'a> {
     pub buffer: Vec<u8>,
@@ -20,7 +21,7 @@ impl<'a> Printer<'a> {
     pub fn print_program(mut self, p: &Program) -> io::Result<Vec<u8>> {
         for function in p.functions.iter() {
             self.print_function(function)?;
-            write!(&mut self.buffer,"")?;
+            write!(&mut self.buffer, "")?;
         }
 
         Ok(self.buffer)
@@ -45,8 +46,6 @@ impl<'a> Printer<'a> {
         write!(&mut self.buffer, "\n{{\n")?;
 
         for inst in f.body.iter() {
-            
-
             if inst == &Instruction::StatementStart {
                 continue;
             }
@@ -56,8 +55,6 @@ impl<'a> Printer<'a> {
             self.print_instructions(inst)?;
 
             write!(&mut self.buffer, "\n")?;
-
-            
         }
 
         write!(&mut self.buffer, "}}\n")?;
@@ -66,11 +63,22 @@ impl<'a> Printer<'a> {
     }
 
     pub fn print_instructions(&mut self, i: &Instruction) -> io::Result<()> {
+
+        write!(&mut self.buffer, "{}",repeat_string("\t",self.ident_level))?;
+
         match *i {
             Instruction::Array(ref l, ref s) => write!(&mut self.buffer, "{} <- [{}]", l, s),
-            Instruction::Label(ref l) => write!(&mut self.buffer, "{}", l),
-            Instruction::StatementStart => write!(&mut self.buffer, ""),
+            Instruction::Label(ref l) => {
+                self.ident_level += 1;
+                write!(&mut self.buffer, "{}:", l)
+                
+            },
+            Instruction::StatementStart => {
+                self.ident_level -= 1;
+                write!(&mut self.buffer, "")
+            },
             Instruction::Jump(ref l) => write!(&mut self.buffer, "jmp @{}", l),
+            Instruction::JumpIf(ref v, ref l) => write!(&mut self.buffer, "jmp @{} if {}", l, v),
             Instruction::Binary(ref res, ref lhs, ref op, ref rhs) => {
                 write!(&mut self.buffer, "{} <- {} {} {}", res, lhs, op, rhs)
             }
@@ -99,3 +107,8 @@ impl<'a> Printer<'a> {
         }
     }
 }
+
+fn repeat_string(s: &str, count: usize) -> String {
+    repeat(s).take(count).collect()
+}
+
