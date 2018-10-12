@@ -62,7 +62,7 @@ impl Temp {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq,Clone)]
 pub enum Value {
     /// Integer Constant
     Const(u64, Sign, Size),
@@ -75,7 +75,7 @@ pub enum Value {
 }
 /// Instruction used in the IR
 /// Instructions are of the form i <- a op b
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum Instruction {
     /// A stackallocated array of size whatever
     /// Stored at a location
@@ -99,7 +99,7 @@ pub enum Instruction {
     CJump(Value, CmpOp, Value, Label, Label),
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum BinaryOp {
     Plus,
     Minus,
@@ -109,13 +109,13 @@ pub enum BinaryOp {
     Or,
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum UnaryOp {
     Bang,
     Minus,
 }
 
-#[derive(Debug)]
+#[derive(Debug,PartialEq)]
 pub enum CmpOp {
     LT,
     GT,

@@ -1,11 +1,12 @@
-function main(){	
-	t0 <- 3i32
+function add(b,a)
+{
+}
+function main()
+{
+	t0 <- [0]
 	a <- t0
-	
 	t1 <- 2i32
 	b <- t1
-	
-	t2 <- 2i32
-	t3 <- t2 * b
-	t4 <- a - t3
+	t2 <- 0i32
+	t3 <- a + t2
 }

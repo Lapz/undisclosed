@@ -20,6 +20,7 @@ impl<'a> Printer<'a> {
     pub fn print_program(mut self, p: &Program) -> io::Result<Vec<u8>> {
         for function in p.functions.iter() {
             self.print_function(function)?;
+            write!(&mut self.buffer,"")?;
         }
 
         Ok(self.buffer)
@@ -41,17 +42,25 @@ impl<'a> Printer<'a> {
 
         write!(&mut self.buffer, ")")?;
 
-        write!(&mut self.buffer, "{{")?;
+        write!(&mut self.buffer, "\n{{\n")?;
 
         for inst in f.body.iter() {
+            
+
+            if inst == &Instruction::StatementStart {
+                continue;
+            }
+
             write!(&mut self.buffer, "\t")?;
 
             self.print_instructions(inst)?;
 
             write!(&mut self.buffer, "\n")?;
+
+            
         }
 
-        write!(&mut self.buffer, "}}")?;
+        write!(&mut self.buffer, "}}\n")?;
 
         Ok(())
     }
@@ -60,7 +69,7 @@ impl<'a> Printer<'a> {
         match *i {
             Instruction::Array(ref l, ref s) => write!(&mut self.buffer, "{} <- [{}]", l, s),
             Instruction::Label(ref l) => write!(&mut self.buffer, "{}", l),
-            Instruction::StatementStart => Ok(()),
+            Instruction::StatementStart => write!(&mut self.buffer, ""),
             Instruction::Jump(ref l) => write!(&mut self.buffer, "jmp @{}", l),
             Instruction::Binary(ref res, ref lhs, ref op, ref rhs) => {
                 write!(&mut self.buffer, "{} <- {} {} {}", res, lhs, op, rhs)
@@ -81,6 +90,8 @@ impl<'a> Printer<'a> {
                 for arg in args {
                     write!(&mut self.buffer, "{}", arg)?;
                 }
+
+                write!(&mut self.buffer, "")?;
 
                 Ok(())
             }

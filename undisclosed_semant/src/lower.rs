@@ -104,15 +104,19 @@ impl<'a> Builder<'a> {
         match expr {
             Expression::Array(items) => {
                 let tmp = Temp::new();
-                let size = match &items[0].ty {
-                    Type::App(TyCon::Int(sign, size), _) => match size {
-                        Size::Bit8 => 1,
-                        Size::Bit32 => 4,
-                        Size::Bit64 => 8,
-                    },
-                    Type::App(TyCon::String, _) => 1,
-                    Type::Var(_) => 4,
-                    ref ty => unimplemented!("Unknown ty {:?}", ty),
+                let size = if items.is_empty() {
+                    0
+                } else {
+                    match &items[0].ty {
+                        Type::App(TyCon::Int(sign, size), _) => match size {
+                            Size::Bit8 => 1,
+                            Size::Bit32 => 4,
+                            Size::Bit64 => 8,
+                        },
+                        Type::App(TyCon::String, _) => 1,
+                        Type::Var(_) => 4,
+                        ref ty => unimplemented!("Unknown ty {:?}", ty),
+                    }
                 }; // Calculate the size of the elements
 
                 self.emit_instruction(Instruction::Array(Value::Temp(tmp), size * items.len()));
@@ -128,8 +132,6 @@ impl<'a> Builder<'a> {
                 // )); // Al
 
                 for (i, item) in items.into_iter().enumerate() {
-                    
-
                     let result = self.build_expr(item); // get the expr
                     let offset = Temp::new();
 
@@ -269,6 +271,41 @@ impl<'a> Builder<'a> {
                 }
             }
 
+            Var::SubScript(sym, expr, ty) => {
+                let label = if let Some(label) = self.locals.get(&sym) {
+                    Value::Name(label.clone())
+                } else if let Some(label) = self.parameters.get(&sym) {
+                    Value::Name(label.clone())
+                } else {
+                    return None;
+                }; // get the variable
+
+                let size = match ty {
+                    Type::App(TyCon::Int(sign, size), _) => match size {
+                        Size::Bit8 => 1,
+                        Size::Bit32 => 4,
+                        Size::Bit64 => 8,
+                    },
+                    Type::App(TyCon::String, _) => 1,
+                    Type::Var(_) => 4,
+                    Type::Nil => 0,
+                    ref ty => unimplemented!("Unknown ty {:?}", ty),
+                }; // Work out the size
+
+                let result = self.build_expr(expr); // Build the index expr
+
+                let offset = Temp::new();
+
+                self.emit_instruction(Instruction::Binary(
+                    offset,
+                    label,
+                    BinaryOp::Plus,
+                    result,
+                )); // Store in temp location the indexed value
+
+                Some(Value::Temp(offset))
+            }
+
             _ => unimplemented!(),
         }
     }
@@ -281,11 +318,9 @@ fn build_function(function: t::Function, symbols: &SymbolMap<()>) -> Function {
         builder.add_param(param.name);
     }
 
-    if function.linkage == Linkage::External {
-
-    } else {
+    if function.linkage == Linkage::Normal {
         builder.build_statement(function.body);
-    };
+    }
 
     Function {
         name: function.name,
