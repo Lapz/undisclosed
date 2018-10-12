@@ -151,7 +151,9 @@ impl<'a> Builder<'a> {
 
                 self.emit_instruction(Instruction::Label(otherwise_label));
 
-            }
+            },
+
+            
 
             Statement::Let { ident, ty, expr } => {
                 let label = Label::named(self.symbols.name(ident));
@@ -162,9 +164,46 @@ impl<'a> Builder<'a> {
 
                     self.emit_store(Value::Name(label), expr);
                 }
-            }
+            },
 
-            ref e => unimplemented!("{:?}",e),
+            Statement::Return(expr) => {
+                let result = self.build_expr(expr);
+
+                // Store in into return register
+
+                let ret = Label::named("return".into());
+
+                self.emit_store(Value::Name(ret.clone()), result);
+
+                self.emit_instruction(Instruction::Return(ret))
+            },
+
+
+            Statement::While(cond,body) => {
+                let cond = self.build_expr(cond);
+
+
+                let test = Label::new();
+                let done = Label::new();
+
+                self.current_loop = Some(LoopDescription {
+                    start:test.clone(),
+                    end:done.clone()
+                });
+
+                self.emit_instruction(Instruction::Label(test.clone()));
+
+
+                self.emit_instruction(Instruction::JumpIf(cond,done.clone()));
+
+                self.build_statement(*body);
+
+                self.emit_instruction(Instruction::Jump(test));
+
+                self.emit_instruction(Instruction::Label(done));
+
+
+            }
         }
     }
 

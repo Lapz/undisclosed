@@ -5,7 +5,6 @@ use std::iter::repeat;
 
 pub struct Printer<'a> {
     pub buffer: Vec<u8>,
-    ident_level: usize,
     symbols: &'a SymbolMap<()>,
 }
 
@@ -13,7 +12,6 @@ impl<'a> Printer<'a> {
     pub fn new(symbols: &'a SymbolMap<()>) -> Self {
         Self {
             buffer: Vec::new(),
-            ident_level: 0,
             symbols,
         }
     }
@@ -64,17 +62,15 @@ impl<'a> Printer<'a> {
 
     pub fn print_instructions(&mut self, i: &Instruction) -> io::Result<()> {
 
-        write!(&mut self.buffer, "{}",repeat_string("\t",self.ident_level))?;
-
         match *i {
             Instruction::Array(ref l, ref s) => write!(&mut self.buffer, "{} <- [{}]", l, s),
             Instruction::Label(ref l) => {
-                self.ident_level += 1;
+               
                 write!(&mut self.buffer, "{}:", l)
                 
             },
             Instruction::StatementStart => {
-                self.ident_level -= 1;
+                
                 write!(&mut self.buffer, "")
             },
             Instruction::Jump(ref l) => write!(&mut self.buffer, "jmp @{}", l),
@@ -107,8 +103,3 @@ impl<'a> Printer<'a> {
         }
     }
 }
-
-fn repeat_string(s: &str, count: usize) -> String {
-    repeat(s).take(count).collect()
-}
-

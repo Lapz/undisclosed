@@ -3,12 +3,10 @@ function add(b,a)
 }
 function main()
 {
-	t0 <- 1i32
-	t1 <- 10i32
-	t2 <- t0 < t1
-	jmp @l1 if t2
+	t0 <- 1u8
 	l0:
-		t3 <- [0]
+	jmp @l1 if t0
+	jmp @l1
+	jmp @l0
 	l1:
-		t4 <- [0]
 }
