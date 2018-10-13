@@ -294,6 +294,28 @@ impl<'a> Builder<'a> {
                 self.emit_instruction(Instruction::Call(Value::Temp(result), label, temps));
 
                 Value::Temp(result)
+            },
+
+            Expression::Cast(expr,ty) => {
+
+                let result = self.build_expr(expr);
+
+                let (sign,size) = match ty {
+                    Type::App(TyCon::Int(sign, size), _) => {
+                            (sign, size)
+                    },
+                    Type::Var(_) => (Sign::Signed,Size::Bit32),
+
+                    Type::App(TyCon::Bool,_)  => (Sign::Unsigned,Size::Bit8),
+
+                    Type::App(TyCon::Char,_) => (Sign::Unsigned,Size::Bit8),
+
+                    _ => unreachable!() // Check cast_check for which types are possible
+                };
+
+                self.emit_instruction(Instruction::Cast(result.clone(),sign,size));
+                
+                result
             }
 
             Expression::Grouping { expr } => self.build_expr(expr),

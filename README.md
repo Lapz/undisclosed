@@ -104,6 +104,8 @@ _main:
 	[x] Compile Function calls,
 	[x] Compile extern function calls,
 	
+* Add escape analysis so values will be passed to a function explicity as a param. 
+For each function work out how many params escape
 # References
 
 * [rust](https://github.com/rust-lang/rust)
