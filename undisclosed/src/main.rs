@@ -193,6 +193,17 @@ fn run(
             .expect("Couldn't write to the file");
     }
 
+    // let mut cfg = build_cfg(lowered);
+
+    // if emit_ir {
+    //     let mut file = File::create("lowered.cfg").expect("Couldn't create file");
+
+    //     file.write(&format!("{:#?}",cfg).as_bytes())
+    //         .expect("Couldn't write to the file");
+    // }
+
+
+
     // let mut compiler = Compiler::new(&hasher);
 
     // compiler.compile(ir);

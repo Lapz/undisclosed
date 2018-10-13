@@ -75,7 +75,7 @@ pub enum Value {
 }
 /// Instruction used in the IR
 /// Instructions are of the form i <- a op b
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone,PartialEq)]
 pub enum Instruction {
     /// A stackallocated array of size whatever
     /// Stored at a location
@@ -101,7 +101,7 @@ pub enum Instruction {
     JumpIf(Value, Label),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug,Clone, PartialEq)]
 pub enum BinaryOp {
     Plus,
     Minus,
@@ -116,13 +116,13 @@ pub enum BinaryOp {
 
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug,Clone, PartialEq)]
 pub enum UnaryOp {
     Bang,
     Minus,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug,Clone, PartialEq)]
 pub enum CmpOp {
     LT,
     GT,

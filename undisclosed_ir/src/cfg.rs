@@ -1,90 +1,24 @@
-use ir::Instruction;
+use tac;
 
-#[derive(Default, Debug)]
-pub struct CFG {
-    nodes: Vec<NodeData>,
-    edges: Vec<EdgeData>,
+
+#[derive(Debug,Clone,Copy)]
+pub struct BlockID(pub usize);
+
+#[derive(Debug,Clone,Copy)]
+pub enum BlockEnd {
+    Jump(BlockID),
+    End,
 }
 
-pub type NodeIndex = usize;
-
-#[derive(Debug)]
-pub struct NodeData {
-    instruction: Instruction,
-    first_outgoing_edge: Option<EdgeIndex>,
+#[derive(Debug,Clone)]
+pub struct Block {
+    pub instructions:Vec<tac::Instruction>,
+    pub end:BlockEnd,
 }
 
-pub type EdgeIndex = usize;
-
-#[derive(Debug)]
-pub struct EdgeData {
-    target: NodeIndex,
-    next_outgoing_edge: Option<EdgeIndex>,
+#[derive(Debug,Default)]
+pub struct Builder {
+    blocks:Vec<Block>,
+    block_ids:usize,
+    current_block:Option<Block>,
 }
-
-// impl CFG {
-//     pub fn new() -> Self {
-//         Self::default()
-//     }
-//     pub fn add_node(&mut self, data: Instruction) -> NodeIndex {
-//         let index = self.nodes.len();
-//         self.nodes.push(NodeData {
-//             instruction: data,
-//             first_outgoing_edge: None,
-//         });
-//         index
-//     }
-
-//     pub fn add_edge(&mut self, source: NodeIndex, target: NodeIndex) {
-//         let edge_index = self.edges.len();
-//         let node_data = &mut self.nodes[source];
-//         self.edges.push(EdgeData {
-//             target: target,
-//             next_outgoing_edge: node_data.first_outgoing_edge,
-//         });
-//         node_data.first_outgoing_edge = Some(edge_index);
-//     }
-// }
-
-// pub fn construct_cfg(mut ir: ir::Program) -> CFG {
-//     let mut graph = CFG::new();
-
-//     println!("{:?}",ir);
-
-//     for func in ir.functions.iter_mut() {
-//        graph.add_node(func.body.remove(0));
-
-//     //    let mut indexs = vec![];
-
-//        for (i,instruction) in func.body.iter_mut().enumerate() {
-
-//            if has_label(&instruction) {
-
-//               graph.add_node(func.body[i].clone());
-//            }
-//        }
-
-//        println!("{:?}",func.body);
-
-//     //    for index in indexs {
-//     //        println!("index {}",func.body[index]);
-//     //     //    graph.add_node(func.body.remove(index-1));
-//     //    }
-
-//     }
-
-//     graph
-// }
-
-// fn has_label(instruction:&Instruction) -> bool {
-//     use self::Instruction::*;
-//     match instruction {
-//         Store(_,_) | Copy(_,_) => false,
-//         Cast(_,_,_) => false,
-//         BinOp(_,_,_,_) => false,
-//         UnOp(_,_,_) => false,
-//         Value(_)| Return(_)| Load(_) => false,
-//         Block(_,_) => false,
-//         _ => true,
-//     }
-// }

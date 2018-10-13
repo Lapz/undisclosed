@@ -1,9 +1,10 @@
-extern fn add(a:i32,b:i32) -> i32;
-
 fn main() {
-    let x = 'a' as i32;
+    
+    while(true) {
+        "A";
+    }
 
-    add(x,2);
+   
 }
 
 

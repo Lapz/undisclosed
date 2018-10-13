@@ -1,11 +1,8 @@
-function add(a,b)
-{
-}
 function main()
 {
-	t0 <- 97u8
-	t0 as i32
-	x <- t0
-	t2 <- 2i32
-	t1 <- call add xt2
+	t0 <- 1u8
+	l0:
+	t1 <- [65,0]
+	jmp @l0 if t0
+	l1:
 }

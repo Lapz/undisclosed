@@ -193,12 +193,11 @@ impl<'a> Builder<'a> {
 
                 self.emit_instruction(Instruction::Label(test.clone()));
 
-
-                self.emit_instruction(Instruction::JumpIf(cond,done.clone()));
-
                 self.build_statement(*body);
 
-                self.emit_instruction(Instruction::Jump(test));
+                self.emit_instruction(Instruction::JumpIf(cond,test.clone()));
+
+                
 
                 self.emit_instruction(Instruction::Label(done));
 
