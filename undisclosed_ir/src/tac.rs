@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
 use syntax::ast::{Sign, Size};
 pub use syntax::ast::Linkage;
@@ -7,7 +8,27 @@ static mut LABEL_COUNT: u32 = 0;
 
 static mut REGISTER_COUNT: u32 = 0;
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Default)]
+static mut BLOCK_COUNT: u32 = 0;
+
+#[derive(Debug, Clone)]
+pub struct LoopDescription {
+    start: BlockID,
+    end: BlockID,
+}
+
+#[derive(Debug, Clone)]
+pub enum BlockEnd {
+    Jump(BlockID),
+    Return(Value),
+    End,
+}
+
+#[derive(Debug, Clone)]
+pub struct Block {
+    pub instructions: Vec<Instruction>,
+    pub end: BlockEnd,
+}
+
 /// A label in the code.
 pub struct Label(u32);
 
@@ -24,8 +45,26 @@ pub struct Program {
 pub struct Function {
     pub name: Symbol,
     pub params: Vec<Register>,
+    pub blocks: HashMap<BlockID, Block>,
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Copy)]
+pub struct BlockID(pub u32);
+
+impl BlockID {
+    pub fn new() -> BlockID {
+        let count = unsafe { LABEL_COUNT };
+
+        let id = BlockID(count);
+
+        unsafe {
+            BLOCK_COUNT += 1;
+        }
+
+        id
+    }
 }
 
 impl Label {
@@ -208,6 +247,24 @@ impl Display for UnaryOp {
         }
     }
 }
+
+
+impl Display for BlockID {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "label_{}",self.0)
+    }
+}
+
+impl Display for BlockEnd {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            BlockEnd::End => write!(f, "end"),
+            BlockEnd::Jump(ref id) => write!(f,"goto {}",id),
+            BlockEnd::Return(ref id) => write!(f, "return {}",id),
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod test {

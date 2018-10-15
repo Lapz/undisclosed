@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 use std::iter::repeat;
-use tac::{Function, Instruction, Program};
+use tac::{Function, Instruction, Program,BlockEnd};
 use util::symbol::SymbolMap;
 
 pub struct Printer<'a> {
@@ -43,17 +43,30 @@ impl<'a> Printer<'a> {
 
         write!(&mut self.buffer, "\n{{\n")?;
 
-        for inst in f.body.iter() {
-            if inst == &Instruction::StatementStart {
-                continue;
+
+
+        for (id,block) in f.blocks.iter() {
+            write!(&mut self.buffer, "{}:",id);
+            
+
+            for inst in block.instructions.iter() {
+                write!(&mut self.buffer, "\t")?;
+                self.print_instructions(inst)?;
+                write!(&mut self.buffer, "\n")?;
             }
 
-            write!(&mut self.buffer, "\t")?;
 
-            self.print_instructions(inst)?;
+            match block.end {
+                BlockEnd::End => write!(&mut self.buffer, "\tend")?,
+                BlockEnd::Jump(ref id) => write!(&mut self.buffer, "\tgoto {}",id)?,
+                BlockEnd::Return(ref value) => {
+                    write!(&mut self.buffer, "\treturn {}",value)?
+                }
+            }
 
             write!(&mut self.buffer, "\n")?;
         }
+
 
         write!(&mut self.buffer, "}}\n")?;
 

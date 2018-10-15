@@ -191,6 +191,12 @@ fn run(
 
         file.write(&printer.print_program(&lowered).unwrap())
             .expect("Couldn't write to the file");
+
+        let mut file = File::create("lowered.cfg").expect("Couldn't create file");
+
+        file.write(&format!("{:#?}",lowered).as_bytes())
+            .expect("Couldn't write to the file");
+
     }
 
     // let mut cfg = build_cfg(lowered);

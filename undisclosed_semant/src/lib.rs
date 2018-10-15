@@ -7,7 +7,6 @@ extern crate undisclosed_x86 as x86;
 
 mod ast;
 mod cast_check;
-mod cfg;
 mod ctx;
 mod env;
 mod escape;
