@@ -1,18 +1,15 @@
-use ir::Instruction;
-use ir::Value;
+use tac::Instruction;
+use tac::Program;
 use temp::Label;
 pub struct Optimizer {}
 
 impl Optimizer {
-    pub fn strength_reduction(ir: &mut Vec<Instruction>) {
-        // ir.retain(|&ref instruction| match instruction {
-        //     &Instruction::Copy(ref lhs, ref rhs) => match (lhs, rhs) {
-        //         (_, Value::Temp(ref rhs)) => !(lhs == rhs),
-        //         _ => true,
-        //     },
+    pub fn strength_reduction(ir: Program) -> Program {
+        for f in ir.functions.iter() {
+            for inst in f.body.iter() {}
+        }
 
-        //     _ => true,
-        // });
+        ir
     }
 
     pub fn unused_labels(targets: &mut Vec<Label>, ir: &mut Vec<Instruction>) {

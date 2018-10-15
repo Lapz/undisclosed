@@ -1,8 +1,38 @@
+function fib(t0)
+{
+	t1 <- 0i32
+	t2 <- s1 <= t1
+	jmp @l1 if t2
+	l0:
+	t4 <- 1i32
+	t3 <- -t4
+	return @t3
+	l1:
+	t6 <- 1i32
+	t7 <- s1 == t6
+	t5 <- t7
+	jmp @l4 if t7
+	t8 <- 2i32
+	t9 <- s1 == t8
+	t5 <- t9
+	l4:
+	jmp @l3 if t5
+	l2:
+	t10 <- 2i32
+	return @t10
+	l3:
+	t12 <- 1i32
+	t13 <- s1 - t12
+	t11 <- call s0 t13
+	t15 <- 2i32
+	t16 <- s1 - t15
+	t14 <- call s0 t16
+	t17 <- t11 + t14
+	return @t17
+}
 function main()
 {
-	t0 <- 1u8
-	l0:
-	t1 <- [65,0]
-	jmp @l0 if t0
-	l1:
+	t19 <- [97,0]
+	t20 <- [97,0]
+	t18 <- call s14 t19t20
 }

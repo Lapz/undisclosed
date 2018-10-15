@@ -1,7 +1,7 @@
 use std::io::{self, Write};
-use tac::{Function, Instruction, Program, Temp};
-use util::symbol::SymbolMap;
 use std::iter::repeat;
+use tac::{Function, Instruction, Program};
+use util::symbol::SymbolMap;
 
 pub struct Printer<'a> {
     pub buffer: Vec<u8>,
@@ -61,20 +61,15 @@ impl<'a> Printer<'a> {
     }
 
     pub fn print_instructions(&mut self, i: &Instruction) -> io::Result<()> {
-
         match *i {
             Instruction::Array(ref l, ref s) => write!(&mut self.buffer, "{} <- [{}]", l, s),
-            Instruction::Label(ref l) => {
-               
-                write!(&mut self.buffer, "{}:", l)
-                
-            },
-            Instruction::StatementStart => {
-                
-                write!(&mut self.buffer, "")
-            },
+            Instruction::Label(ref l) => write!(&mut self.buffer, "{}:", l),
+            Instruction::StatementStart => write!(&mut self.buffer, ""),
             Instruction::Jump(ref l) => write!(&mut self.buffer, "jmp @{}", l),
             Instruction::JumpIf(ref v, ref l) => write!(&mut self.buffer, "jmp @{} if {}", l, v),
+            Instruction::JumpNot(ref v, ref l) => {
+                write!(&mut self.buffer, "jmp @{} if not {}", l, v)
+            }
             Instruction::Binary(ref res, ref lhs, ref op, ref rhs) => {
                 write!(&mut self.buffer, "{} <- {} {} {}", res, lhs, op, rhs)
             }

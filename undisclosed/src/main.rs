@@ -73,10 +73,10 @@ fn repl() {
             }
         };
 
-        let mut s2 = SymbolMap::new(Rc::clone(&hasher));
-        let mut printer = Printer::new(&s2);
+        let s2 = SymbolMap::new(Rc::clone(&hasher));
+        let printer = Printer::new(&s2);
 
-        let mut lowered = build_program(&s2, ir);
+        let lowered = build_program(&s2, ir);
 
         // let mut compiler = Compiler::new(&hasher);
 
@@ -181,10 +181,10 @@ fn run(
         }
     };
 
-    let mut s2 = SymbolMap::new(Rc::clone(&hasher));
-    let mut printer = Printer::new(&s2);
+    let s2 = SymbolMap::new(Rc::clone(&hasher));
+    let printer = Printer::new(&s2);
 
-    let mut lowered = build_program(&s2, ir);
+    let lowered = build_program(&s2, ir);
 
     if emit_ir {
         let mut file = File::create("lowered.ir").expect("Couldn't create file");
@@ -201,8 +201,6 @@ fn run(
     //     file.write(&format!("{:#?}",cfg).as_bytes())
     //         .expect("Couldn't write to the file");
     // }
-
-
 
     // let mut compiler = Compiler::new(&hasher);
 

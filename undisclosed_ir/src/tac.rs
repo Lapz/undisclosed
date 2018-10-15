@@ -1,21 +1,19 @@
 use std::fmt::{self, Debug, Display};
-use syntax::ast::{Linkage, Sign, Size};
+use syntax::ast::{Sign, Size};
+pub use syntax::ast::Linkage;
 use util::symbol::Symbol;
 
 static mut LABEL_COUNT: u32 = 0;
 
-static mut TEMP_COUNT: u32 = 0;
+static mut REGISTER_COUNT: u32 = 0;
 
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Default)]
 /// A label in the code.
-#[derive(Debug, Clone, Hash, PartialEq)]
-pub enum Label {
-    Named(String),
-    Int(u32),
-}
+pub struct Label(u32);
 
 /// A temp label that can either be a temp location or a register
 #[derive(Clone, Copy, Hash, PartialEq, Default)]
-pub struct Temp(u32);
+pub struct Register(u32);
 
 #[derive(Debug)]
 pub struct Program {
@@ -25,20 +23,16 @@ pub struct Program {
 #[derive(Debug)]
 pub struct Function {
     pub name: Symbol,
-    pub params: Vec<Label>,
+    pub params: Vec<Register>,
     pub body: Vec<Instruction>,
     pub linkage: Linkage,
 }
 
 impl Label {
-    pub fn named(name: String) -> Label {
-        Label::Named(name)
-    }
-
     pub fn new() -> Label {
         let count = unsafe { LABEL_COUNT };
 
-        let label = Label::Int(count);
+        let label = Label(count);
 
         unsafe {
             LABEL_COUNT += 1;
@@ -48,14 +42,14 @@ impl Label {
     }
 }
 
-impl Temp {
-    pub fn new() -> Temp {
-        let count = unsafe { TEMP_COUNT };
+impl Register {
+    pub fn new() -> Register {
+        let count = unsafe { REGISTER_COUNT };
 
-        let temp = Temp(count);
+        let temp = Register(count);
 
         unsafe {
-            TEMP_COUNT += 1;
+            REGISTER_COUNT += 1;
         }
 
         temp
@@ -67,15 +61,15 @@ pub enum Value {
     /// Integer Constant
     Const(u64, Sign, Size),
     /// A named variable
-    Name(Label),
-    /// A Temporary similar to a register
-    Temp(Temp),
+    Name(Symbol),
+    /// A Registerorary similar to a register
+    Register(Register),
     //  Contents of a word of memory at address
     Mem(Vec<u8>),
 }
 /// Instruction used in the IR
 /// Instructions are of the form i <- a op b
-#[derive(Debug, Clone,PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Instruction {
     /// A stackallocated array of size whatever
     /// Stored at a location
@@ -83,7 +77,7 @@ pub enum Instruction {
     Label(Label),
     StatementStart,
     Jump(Label),
-    Binary(Temp, Value, BinaryOp, Value),
+    Binary(Register, Value, BinaryOp, Value),
     /// t1 = val
     Store(Value, Value),
 
@@ -91,17 +85,21 @@ pub enum Instruction {
     /// t1 = op a
     Unary(Value, Value, UnaryOp),
 
-    Return(Label),
+    Return(Value),
 
-    Call(Value, Label, Vec<Value>),
+    Call(Value, Value, Vec<Value>),
 
     /// Evaluate l1, l2 compare using CmpOp and then got to L or R
     CJump(Value, CmpOp, Value, Label, Label),
 
+    /// Jumps to a label if the condtion is true
     JumpIf(Value, Label),
+
+    /// Jumps to a label if the condition is false
+    JumpNot(Value, Label),
 }
 
-#[derive(Debug,Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOp {
     Plus,
     Minus,
@@ -112,17 +110,16 @@ pub enum BinaryOp {
     Lt,
     Lte,
     Equal,
-    NotEqual
-
+    NotEqual,
 }
 
-#[derive(Debug,Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum UnaryOp {
     Bang,
     Minus,
 }
 
-#[derive(Debug,Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum CmpOp {
     LT,
     GT,
@@ -132,13 +129,13 @@ pub enum CmpOp {
     NE,
 }
 
-impl Display for Temp {
+impl Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "t{}", self.0)
     }
 }
 
-impl Debug for Temp {
+impl Debug for Register {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "t{}", self.0)
     }
@@ -146,10 +143,7 @@ impl Debug for Temp {
 
 impl Display for Label {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Label::Int(ref i) => write!(f, "l{}", i),
-            Label::Named(ref s) => write!(f, "{}", s),
-        }
+        write!(f, "l{}", self.0)
     }
 }
 
@@ -158,7 +152,7 @@ impl Display for Value {
         match *self {
             Value::Const(ref v, ref sign, ref size) => write!(f, "{}{}{}", v, sign, size),
             Value::Name(ref name) => write!(f, "{}", name),
-            Value::Temp(ref temp) => write!(f, "{}", temp),
+            Value::Register(ref temp) => write!(f, "{}", temp),
             Value::Mem(ref bytes) => {
                 write!(f, "[")?;
 
@@ -183,7 +177,7 @@ impl Display for BinaryOp {
             BinaryOp::Minus => write!(f, "-"),
             BinaryOp::Mul => write!(f, "*"),
             BinaryOp::Div => write!(f, "/"),
-            BinaryOp::Lt=> write!(f, "<"),
+            BinaryOp::Lt => write!(f, "<"),
             BinaryOp::Gt => write!(f, ">"),
             BinaryOp::Lte => write!(f, "<="),
             BinaryOp::Gte => write!(f, ">="),
@@ -217,39 +211,39 @@ impl Display for UnaryOp {
 
 #[cfg(test)]
 mod test {
-    use super::{BinaryOp, Instruction, Label, Sign, Size, Temp, Value};
+    use super::{BinaryOp, Instruction, Label, Register, Sign, Size, Value};
     #[test]
     fn it_works() {
         // a - 2*b
 
         let mut insts = vec![];
-        let t1 = Temp::new(); // b
-        let t2 = Temp::new();
-        let t3 = Temp::new();
-        let t4 = Temp::new();
+        let t1 = Register::new(); // b
+        let t2 = Register::new();
+        let t3 = Register::new();
+        let t4 = Register::new();
 
         insts.push(Instruction::Store(
-            Value::Temp(t1),
-            Value::Name(Label::named("b".to_string())),
+            Value::Register(t1),
+            Value::Name(Symbol(1)),
         )); // t1 <-b
 
         insts.push(Instruction::Binary(
             t2,
             Value::Const(2, Sign::Unsigned, Size::Bit32),
             BinaryOp::Mul,
-            Value::Temp(t1),
+            Value::Register(t1),
         )); // t2 <- 2 * t1
 
         insts.push(Instruction::Store(
-            Value::Temp(t3),
-            Value::Name(Label::Named("b".to_string())),
+            Value::Register(t3),
+            Value::Name(Symbol(2)),
         )); // t3 <- a;
 
         insts.push(Instruction::Binary(
             t4,
-            Value::Temp(t2),
+            Value::Register(t2),
             BinaryOp::Minus,
-            Value::Temp(t3),
+            Value::Register(t3),
         )); // t4 <- t2 - t3
     }
 }

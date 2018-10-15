@@ -1,22 +1,9 @@
 use ast::typed as t;
-use ir::tac::{BinaryOp, Function, Instruction, Label, Program, Temp, UnaryOp, Value};
+use ir::tac::{BinaryOp, Function, Instruction, Label, Program, Register, UnaryOp, Value};
 use std::collections::HashMap;
 use syntax::ast::{Linkage, Literal, Op, Sign, Size, UnaryOp as UnOp};
 use types::{TyCon, Type};
 use util::symbol::{Symbol, SymbolMap};
-// struct Builder<'a> {
-//     parameters: Vec<cfg::Reg>,
-//     registers: HashMap<cfg::Reg, cfg::Type>,
-//     blocks: HashMap<cfg::BlockId, cfg::Block>,
-//     current_loop: Option<LoopDescr>,
-//     ctx: &'a mut CompileCtx,
-//     next_block_id: u32,
-//     next_reg: u32,
-//     var_registers: HashMap<Symbol, cfg::Reg>,
-//     register_vars: HashMap<cfg::Reg, Symbol>,
-//     current_block: Option<(cfg::BlockId, Vec<Spanned<cfg::Instruction>>)>,
-//     var_mutability: HashMap<Symbol, Mut>,
-// }
 
 #[derive(Debug, Clone)]
 pub struct LoopDescription {
@@ -27,8 +14,8 @@ pub struct LoopDescription {
 #[derive(Debug)]
 struct Builder<'a> {
     symbols: &'a SymbolMap<()>,
-    locals: HashMap<Symbol, Label>,
-    parameters: HashMap<Symbol, Label>,
+    locals: HashMap<Symbol, Register>,
+    parameters: HashMap<Symbol, Register>,
     instructions: Option<Vec<Instruction>>,
     current_loop: Option<LoopDescription>,
 }
@@ -48,7 +35,7 @@ impl<'a> Builder<'a> {
         self.instructions.take().unwrap()
     }
 
-    pub fn params(&mut self) -> Vec<Label> {
+    pub fn params(&mut self) -> Vec<Register> {
         self.parameters
             .iter()
             .map(|(_, label)| label.clone())
@@ -66,12 +53,13 @@ impl<'a> Builder<'a> {
     }
 
     pub fn add_param(&mut self, symbol: Symbol) {
-        self.parameters
-            .insert(symbol, Label::named(self.symbols.name(symbol)));
+        self.parameters.insert(symbol, Register::new());
     }
-    pub fn add_local(&mut self, symbol: Symbol) {
-        self.locals
-            .insert(symbol, Label::named(self.symbols.name(symbol)));
+    pub fn add_local(&mut self, symbol: Symbol) -> Register {
+        let reg = Register::new();
+        self.locals.insert(symbol, reg);
+
+        reg
     }
 
     pub fn build_statement(&mut self, s: t::Statement) {
@@ -131,7 +119,7 @@ impl<'a> Builder<'a> {
                 self.emit_instruction(Instruction::Label(otherwise_label));
 
                 self.build_statement(*otherwise)
-            },
+            }
 
             Statement::If {
                 cond,
@@ -150,58 +138,43 @@ impl<'a> Builder<'a> {
                 self.build_statement(*then);
 
                 self.emit_instruction(Instruction::Label(otherwise_label));
-
-            },
-
-            
+            }
 
             Statement::Let { ident, ty, expr } => {
-                let label = Label::named(self.symbols.name(ident));
-                self.add_local(ident);
+                let label = self.add_local(ident);
 
                 if let Some(expr) = expr {
                     let expr = self.build_expr(expr);
-
-                    self.emit_store(Value::Name(label), expr);
+                    self.emit_store(Value::Name(ident), expr);
                 }
-            },
+            }
 
             Statement::Return(expr) => {
                 let result = self.build_expr(expr);
 
                 // Store in into return register
 
-                let ret = Label::named("return".into());
+                self.emit_instruction(Instruction::Return(result))
+            }
 
-                self.emit_store(Value::Name(ret.clone()), result);
-
-                self.emit_instruction(Instruction::Return(ret))
-            },
-
-
-            Statement::While(cond,body) => {
+            Statement::While(cond, body) => {
                 let cond = self.build_expr(cond);
-
 
                 let test = Label::new();
                 let done = Label::new();
 
                 self.current_loop = Some(LoopDescription {
-                    start:test.clone(),
-                    end:done.clone()
+                    start: test.clone(),
+                    end: done.clone(),
                 });
 
                 self.emit_instruction(Instruction::Label(test.clone()));
 
                 self.build_statement(*body);
 
-                self.emit_instruction(Instruction::JumpIf(cond,test.clone()));
-
-                
+                self.emit_instruction(Instruction::JumpIf(cond, test.clone()));
 
                 self.emit_instruction(Instruction::Label(done));
-
-
             }
         }
     }
@@ -214,7 +187,7 @@ impl<'a> Builder<'a> {
 
         match expr {
             Expression::Array(items) => {
-                let tmp = Temp::new();
+                let tmp = Register::new();
                 let size = if items.is_empty() {
                     0
                 } else {
@@ -230,10 +203,10 @@ impl<'a> Builder<'a> {
                     }
                 }; // Calculate the size of the elements
 
-                self.emit_instruction(Instruction::Array(Value::Temp(tmp), size * items.len()));
+                self.emit_instruction(Instruction::Array(Value::Register(tmp), size * items.len()));
 
                 // self.emit_instruction(Instruction::Call(
-                //     Value::Temp(tmp),
+                //     Value::Register(tmp),
                 //     Label::named("malloc".to_string()),
                 //     vec![Value::Const(
                 //         size * (items.len() as u64),
@@ -244,22 +217,22 @@ impl<'a> Builder<'a> {
 
                 for (i, item) in items.into_iter().enumerate() {
                     let result = self.build_expr(item); // get the expr
-                    let offset = Temp::new();
+                    let offset = Register::new();
 
                     self.emit_instruction(Instruction::Binary(
                         offset,
-                        Value::Temp(tmp),
+                        Value::Register(tmp),
                         BinaryOp::Plus,
                         Value::Const(i as u64, Sign::Unsigned, Size::Bit32),
                     )); // calculate the offset of the variable
 
                     // Store the expr in the location which holds the array index
-                    self.emit_store(Value::Temp(offset), result);
+                    self.emit_store(Value::Register(offset), result);
 
                     //TODO calculate each item offset and write the value to the particular place
                 }
 
-                Value::Temp(tmp)
+                Value::Register(tmp)
             }
 
             Expression::Assign(var, expr) => {
@@ -271,72 +244,74 @@ impl<'a> Builder<'a> {
                 var
             }
 
-            Expression::Binary(lhs, op, rhs) => {
-                let lhs = self.build_expr(lhs);
-                let rhs = self.build_expr(rhs);
-                let op = gen_bin_op(op);
-                let result = Temp::new();
+            Expression::Binary(lhs, op, rhs) => match op {
+                Op::And => self.build_and(lhs, rhs),
+                Op::Or => self.build_or(lhs, rhs),
+                _ => {
+                    let lhs = self.build_expr(lhs);
+                    let rhs = self.build_expr(rhs);
 
-                self.emit_instruction(Instruction::Binary(result, lhs, op, rhs));
-                Value::Temp(result)
-            }
+                    let op = gen_bin_op(op);
+                    let result = Register::new();
+
+                    self.emit_instruction(Instruction::Binary(result, lhs, op, rhs));
+                    Value::Register(result)
+                }
+            },
 
             Expression::Call(callee, exprs) => {
-                let result = Temp::new();
-                let label = Label::named(self.symbols.name(callee));
+                let result = Register::new();
+                let ident = Value::Name(callee);
                 let mut temps = Vec::with_capacity(exprs.len()); // Temps where the expressions are stored
 
                 for expr in exprs {
                     temps.push(self.build_expr(expr))
                 }
 
-                self.emit_instruction(Instruction::Call(Value::Temp(result), label, temps));
+                self.emit_instruction(Instruction::Call(Value::Register(result), ident, temps));
 
-                Value::Temp(result)
-            },
+                Value::Register(result)
+            }
 
-            Expression::Cast(expr,ty) => {
-
+            Expression::Cast(expr, ty) => {
                 let result = self.build_expr(expr);
 
-                let (sign,size) = match ty {
-                    Type::App(TyCon::Int(sign, size), _) => {
-                            (sign, size)
-                    },
-                    Type::Var(_) => (Sign::Signed,Size::Bit32),
+                let (sign, size) = match ty {
+                    Type::App(TyCon::Int(sign, size), _) => (sign, size),
+                    Type::Var(_) => (Sign::Signed, Size::Bit32),
 
-                    Type::App(TyCon::Bool,_)  => (Sign::Unsigned,Size::Bit8),
+                    Type::App(TyCon::Bool, _) => (Sign::Unsigned, Size::Bit8),
 
-                    Type::App(TyCon::Char,_) => (Sign::Unsigned,Size::Bit8),
+                    Type::App(TyCon::Char, _) => (Sign::Unsigned, Size::Bit8),
 
-                    _ => unreachable!() // Check cast_check for which types are possible
+                    _ => unreachable!(), // Check cast_check for which types are possible
                 };
 
-                self.emit_instruction(Instruction::Cast(result.clone(),sign,size));
-                
+                self.emit_instruction(Instruction::Cast(result.clone(), sign, size));
+
                 result
             }
 
             Expression::Grouping { expr } => self.build_expr(expr),
 
             Expression::Literal(literal) => {
-                let tmp = Temp::new();
+                let tmp = Register::new();
                 match literal {
                     Literal::Char(ch) => {
                         self.emit_store(
-                            Value::Temp(tmp),
+                            Value::Register(tmp),
                             Value::Const(ch as u64, Sign::Unsigned, Size::Bit8),
                         );
                     }
                     Literal::False(_) => {
                         self.emit_store(
-                            Value::Temp(tmp),
+                            Value::Register(tmp),
                             Value::Const(0, Sign::Unsigned, Size::Bit8),
                         );
                     }
                     Literal::Nil => {
                         self.emit_store(
-                            Value::Temp(tmp),
+                            Value::Register(tmp),
                             Value::Const(0x0000, Sign::Unsigned, Size::Bit8),
                         );
                     }
@@ -350,7 +325,7 @@ impl<'a> Builder<'a> {
                             _ => unreachable!(),
                         };
 
-                        self.emit_store(Value::Temp(tmp), val)
+                        self.emit_store(Value::Register(tmp), val)
                     }
 
                     Literal::Str(string) => {
@@ -359,30 +334,30 @@ impl<'a> Builder<'a> {
                         bytes.extend(string.as_bytes());
                         bytes.push(b'\0');
 
-                        self.emit_store(Value::Temp(tmp), Value::Mem(bytes));
+                        self.emit_store(Value::Register(tmp), Value::Mem(bytes));
                     }
 
                     Literal::True(_) => {
                         self.emit_store(
-                            Value::Temp(tmp),
+                            Value::Register(tmp),
                             Value::Const(1, Sign::Unsigned, Size::Bit8),
                         );
                     }
                 };
 
-                Value::Temp(tmp)
+                Value::Register(tmp)
             }
 
             Expression::Unary(op, expr) => {
-                let dest = Temp::new();
+                let dest = Register::new();
 
                 let rhs = self.build_expr(expr);
 
                 let op = gen_un_op(op);
 
-                self.emit_instruction(Instruction::Unary(Value::Temp(dest), rhs, op));
+                self.emit_instruction(Instruction::Unary(Value::Register(dest), rhs, op));
 
-                Value::Temp(dest)
+                Value::Register(dest)
             }
 
             Expression::Var(var) => self.build_var(var).expect("Undefined Var"),
@@ -391,14 +366,54 @@ impl<'a> Builder<'a> {
         }
     }
 
+    fn build_and(&mut self, l: t::TypedExpression, r: t::TypedExpression) -> Value {
+        let f_label = Label::new();
+
+        let result = Register::new();
+
+        let lhs = self.build_expr(l);
+
+        self.emit_store(Value::Register(result), lhs.clone());
+
+        self.emit_instruction(Instruction::JumpNot(lhs, f_label));
+
+        let rhs = self.build_expr(r);
+
+        self.emit_store(Value::Register(result), rhs);
+
+        self.emit_instruction(Instruction::Label(f_label));
+
+        Value::Register(result)
+    }
+
+    fn build_or(&mut self, l: t::TypedExpression, r: t::TypedExpression) -> Value {
+        let t_label = Label::new();
+
+        let result = Register::new();
+
+        let lhs = self.build_expr(l);
+
+        self.emit_store(Value::Register(result), lhs.clone());
+
+        self.emit_instruction(Instruction::JumpIf(lhs, t_label));
+
+        let rhs = self.build_expr(r);
+
+        self.emit_store(Value::Register(result), rhs);
+
+        self.emit_instruction(Instruction::Label(t_label));
+
+        Value::Register(result)
+    }
+
     fn build_var(&mut self, v: t::Var) -> Option<Value> {
         use t::Var;
         match v {
             Var::Simple(sym, _) => {
                 if let Some(label) = self.locals.get(&sym) {
-                    Some(Value::Name(label.clone()))
+                    Some(Value::Name(sym))
                 } else if let Some(label) = self.parameters.get(&sym) {
-                    Some(Value::Name(label.clone()))
+                    Some(Value::Name(sym))
                 } else {
                     None
                 }
@@ -406,9 +421,9 @@ impl<'a> Builder<'a> {
 
             Var::SubScript(sym, expr, ty) => {
                 let label = if let Some(label) = self.locals.get(&sym) {
-                    Value::Name(label.clone())
+                    Value::Name(sym)
                 } else if let Some(label) = self.parameters.get(&sym) {
-                    Value::Name(label.clone())
+                    Value::Name(sym)
                 } else {
                     return None;
                 }; // get the variable
@@ -427,11 +442,11 @@ impl<'a> Builder<'a> {
 
                 let result = self.build_expr(expr); // Build the index expr
 
-                let offset = Temp::new();
+                let offset = Register::new();
 
                 self.emit_instruction(Instruction::Binary(offset, label, BinaryOp::Plus, result)); // Store in temp location the indexed value
 
-                Some(Value::Temp(offset))
+                Some(Value::Register(offset))
             }
 
             _ => unimplemented!(),
@@ -492,6 +507,5 @@ fn gen_bin_op(op: Op) -> BinaryOp {
         // Op::And => BinaryOp::And,
         // Op::Or => BinaryOp::Or,
         _ => unreachable!(),
-        
     }
 }
