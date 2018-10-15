@@ -20,6 +20,7 @@ pub struct LoopDescription {
 pub enum BlockEnd {
     Jump(BlockID),
     Return(Value),
+    Branch(Value,BlockID,BlockID),
     End,
 }
 
@@ -46,7 +47,7 @@ pub struct Function {
     pub name: Symbol,
     pub params: Vec<Register>,
     pub blocks: HashMap<BlockID, Block>,
-    pub body: Vec<Instruction>,
+    pub start_block:Option<BlockID>,
     pub linkage: Linkage,
 }
 
@@ -55,7 +56,7 @@ pub struct BlockID(pub u32);
 
 impl BlockID {
     pub fn new() -> BlockID {
-        let count = unsafe { LABEL_COUNT };
+        let count = unsafe { BLOCK_COUNT };
 
         let id = BlockID(count);
 
@@ -113,7 +114,11 @@ pub enum Instruction {
     /// A stack allocated array of size whatever
     /// Stored at a location
     Array(Value, usize),
+    
     StatementStart,
+    
+    Drop(Register),
+
     Binary(Register, Value, BinaryOp, Value),
     /// t1 = val
     Store(Value, Value),
@@ -250,46 +255,7 @@ impl Display for BlockEnd {
             BlockEnd::End => write!(f, "end"),
             BlockEnd::Jump(ref id) => write!(f,"goto {}",id),
             BlockEnd::Return(ref id) => write!(f, "return {}",id),
+            BlockEnd::Branch(ref v,ref t_branch,ref f_branch) => write!(f, "branch {} {} {}",v,t_branch,f_branch)
         }
-    }
-}
-
-
-#[cfg(test)]
-mod test {
-    use super::{BinaryOp, Instruction, Label, Register, Sign, Size, Value};
-    #[test]
-    fn it_works() {
-        // a - 2*b
-
-        let mut insts = vec![];
-        let t1 = Register::new(); // b
-        let t2 = Register::new();
-        let t3 = Register::new();
-        let t4 = Register::new();
-
-        insts.push(Instruction::Store(
-            Value::Register(t1),
-            Value::Name(Symbol(1)),
-        )); // t1 <-b
-
-        insts.push(Instruction::Binary(
-            t2,
-            Value::Const(2, Sign::Unsigned, Size::Bit32),
-            BinaryOp::Mul,
-            Value::Register(t1),
-        )); // t2 <- 2 * t1
-
-        insts.push(Instruction::Store(
-            Value::Register(t3),
-            Value::Name(Symbol(2)),
-        )); // t3 <- a;
-
-        insts.push(Instruction::Binary(
-            t4,
-            Value::Register(t2),
-            BinaryOp::Minus,
-            Value::Register(t3),
-        )); // t4 <- t2 - t3
     }
 }

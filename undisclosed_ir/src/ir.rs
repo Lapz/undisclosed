@@ -8,7 +8,9 @@ use temp::{Label, Temp};
 pub struct Program {
     pub functions: Vec<Function>,
 }
-
+/// Each function is made up of some basics blocks
+/// Each block has an end which is a phi-node
+/// a jump or a return
 #[derive(Debug)]
 pub struct Function {
     pub name: Label,

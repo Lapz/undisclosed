@@ -6,7 +6,7 @@ pub struct Optimizer {}
 impl Optimizer {
     pub fn strength_reduction(ir: Program) -> Program {
         for f in ir.functions.iter() {
-            for inst in f.body.iter() {}
+            // for inst in f.body.iter() {}
         }
 
         ir

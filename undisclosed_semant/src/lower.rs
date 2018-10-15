@@ -1,14 +1,14 @@
 use ast::typed as t;
-use ir::tac::{BinaryOp, Function, Instruction, Label, Program, Register, UnaryOp, Value};
+use ir::tac::{BinaryOp, Function, Instruction, Label, Program, Register, UnaryOp, Value,BlockID,Block,BlockEnd};
 use std::collections::HashMap;
 use syntax::ast::{Linkage, Literal, Op, Sign, Size, UnaryOp as UnOp};
 use types::{TyCon, Type};
 use util::symbol::{Symbol, SymbolMap};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,Copy)]
 pub struct LoopDescription {
-    start:(BlockID,Label),
-    end: (BlockID,Label),
+    start:BlockID,
+    end:BlockID,
 }
 
 #[derive(Debug)]
@@ -16,7 +16,6 @@ struct Builder<'a> {
     symbols: &'a SymbolMap<()>,
     locals: HashMap<Symbol, Register>,
     parameters: HashMap<Symbol, Register>,
-    instructions: Option<Vec<Instruction>>,
     current_loop: Option<LoopDescription>,
     blocks: HashMap<BlockID, Block>,
     current_block: Option<(BlockID, Vec<Instruction>)>,
@@ -25,7 +24,6 @@ struct Builder<'a> {
 impl<'a> Builder<'a> {
     pub fn new(symbols: &'a SymbolMap<()>) -> Self {
         Builder {
-            instructions: Some(vec![]),
             symbols,
             locals: HashMap::new(),
             parameters: HashMap::new(),
@@ -35,9 +33,6 @@ impl<'a> Builder<'a> {
         }
     }
 
-    pub fn instructions(&mut self) -> Vec<Instruction> {
-        self.instructions.take().unwrap()
-    }
     
     pub fn blocks(self) -> HashMap<BlockID,Block> {
         self.blocks
@@ -52,13 +47,16 @@ impl<'a> Builder<'a> {
         if self.current_block.is_some() {
             panic!("Block is unfinished");
         }
+
+       
         
         self.current_block = Some((id,Vec::new()));
     }
 
     pub fn end_block(&mut self,end:BlockEnd) {
-        
+         
         let (id,inst) = self.current_block.take().unwrap();
+
 
         self.blocks.insert(id, Block {
             instructions:inst,
@@ -111,42 +109,33 @@ impl<'a> Builder<'a> {
             Statement::Break => {
                 let description = self
                     .current_loop
-                    .take()
                     .expect("Using break outside a loop");
 
                 let new = self.new_block();
 
-                self.start_block(new);
+                self.end_block(BlockEnd::Jump(description.end));
 
-                self.emit_instruction(Instruction::Jump(description.end.1.clone()));
+                self.start_block(new)
 
-                self.end_block(BlockEnd::Jump(description.end.0));
-
-                self.current_loop = Some(description);
-            
             }
 
             Statement::Continue => {
                 let description = self
                     .current_loop
-                    .take()
                     .expect("Using break outside a loop");
                 let label = description.start.clone();
 
                 let new = self.new_block();
 
+                self.end_block(BlockEnd::Jump(description.start));
+
                 self.start_block(new);
-
-                self.emit_instruction(Instruction::Jump(description.start.1.clone()));
-
-                self.end_block(BlockEnd::Jump(description.start.0));
-
-                self.current_loop = Some(description);
             }
 
             Statement::Expr(expr) => {
-                
                 self.build_expr(expr);
+
+
             }
 
             Statement::If {
@@ -154,20 +143,49 @@ impl<'a> Builder<'a> {
                 then,
                 otherwise: Some(otherwise),
             } => {
-                let then_label = Label::new();
-                let otherwise_label = Label::new();
 
-                let result = self.build_expr(cond);
+                let body = BlockID::new(); // then body
+                let other = BlockID::new(); // else body
+                let after = BlockID::new();
 
-                self.emit_instruction(Instruction::JumpIf(result, otherwise_label.clone()));
 
-                self.emit_instruction(Instruction::Label(then_label));
+                let c = self.build_expr(cond);
+
+
+
+                self.end_block(BlockEnd::Branch(c,body,other));
+
+
+                self.start_block(body);
 
                 self.build_statement(*then);
 
-                self.emit_instruction(Instruction::Label(otherwise_label));
+                self.end_block(BlockEnd::Jump(after));
 
-                self.build_statement(*otherwise)
+
+                self.start_block(other);
+
+
+                self.build_statement(*otherwise);
+
+                self.end_block(BlockEnd::Jump(after));
+
+                self.start_block(after);
+
+                // let then_label = Label::new();
+                // let otherwise_label = Label::new();
+
+                // let result = self.build_expr(cond);
+
+                // self.emit_instruction(Instruction::JumpIf(result, otherwise_label.clone()));
+
+                // self.emit_instruction(Instruction::Label(then_label));
+
+                // self.build_statement(*then);
+
+                // self.emit_instruction(Instruction::Label(otherwise_label));
+
+                // self.build_statement(*otherwise)
             }
 
             Statement::If {
@@ -175,71 +193,68 @@ impl<'a> Builder<'a> {
                 then,
                 otherwise: None,
             } => {
-                let then_label = Label::new();
-                let otherwise_label = Label::new();
+                // let then_label = Label::new();
+                // let otherwise_label = Label::new();
 
-                let result = self.build_expr(cond);
+                // let result = self.build_expr(cond);
 
-                self.emit_instruction(Instruction::JumpIf(result, otherwise_label.clone()));
+                // self.emit_instruction(Instruction::JumpIf(result, otherwise_label.clone()));
 
-                self.emit_instruction(Instruction::Label(then_label));
+                // self.emit_instruction(Instruction::Label(then_label));
 
-                self.build_statement(*then);
+                // self.build_statement(*then);
 
-                self.emit_instruction(Instruction::Label(otherwise_label));
+                // self.emit_instruction(Instruction::Label(otherwise_label));
             }
 
             Statement::Let { ident, ty, expr } => {
-                let label = self.add_local(ident);
+                let reg = self.add_local(ident);
 
                 if let Some(expr) = expr {
                     let expr = self.build_expr(expr);
-                    self.emit_store(Value::Name(ident), expr);
+                    self.emit_store(Value::Register(reg), expr);
                 }
             }
 
             Statement::Return(expr) => {
                 let result = self.build_expr(expr);
                 let new = self.new_block();
-
-                // Store in into return register
-
-                self.emit_instruction(Instruction::Return(result));
+    
                 self.end_block(BlockEnd::Return(result));
 
                 self.start_block(new);
             }
 
             Statement::While(cond, body) => {
-                let cond = self.build_expr(cond);
+                // let cond = self.build_expr(cond);
 
-                let test = Label::new(); // The labels of each block
-                let done = Label::new(); // The labels of each block
+                // let test = Label::new(); // The labels of each block
+                // let done = Label::new(); // The labels of each block
                 
-                let start = self.new_block();
-                let cond_id = self.new_block();
-                let end = self.new_block();
+                // let start = self.new_block();
+                // let cond_id = self.new_block();
+                // let end = self.new_block();
 
-                self.current_loop = Some(LoopDescription {
-                    start: (start,test.clone()),
-                    end: (end,done.clone()),
-                });
+                // self.current_loop = Some(LoopDescription {
+                //     start: (start,test.clone()),
+                //     end: (end,done.clone()),
+                // });
 
-                self.end_block(BlockEnd::Jump(start));
+                // self.end_block(BlockEnd::Jump(start));
 
-                self.start_block(start);
+                // self.start_block(start);
                 
-                self.emit_instruction(Instruction::Label(test.clone()));
+                // self.emit_instruction(Instruction::Label(test.clone()));
 
-                self.build_statement(*body);
+                // self.build_statement(*body);
 
-                self.end_block(BlockEnd::Jump(cond_id));
+                // self.end_block(BlockEnd::Jump(cond_id));
 
-                self.start_block(cond_id);
+                // self.start_block(cond_id);
 
-                self.emit_instruction(Instruction::JumpIf(cond, test.clone()));
+                // self.emit_instruction(Instruction::JumpIf(cond, test.clone()));
 
-                self.emit_instruction(Instruction::Label(done));
+                // self.emit_instruction(Instruction::Label(done));
 
             }
         }
@@ -437,17 +452,17 @@ impl<'a> Builder<'a> {
 
         let result = Register::new();
 
-        let lhs = self.build_expr(l);
+        // let lhs = self.build_expr(l);
 
-        self.emit_store(Value::Register(result), lhs.clone());
+        // self.emit_store(Value::Register(result), lhs.clone());
 
-        self.emit_instruction(Instruction::JumpNot(lhs, f_label));
+        // self.emit_instruction(Instruction::JumpNot(lhs, f_label));
 
-        let rhs = self.build_expr(r);
+        // let rhs = self.build_expr(r);
 
-        self.emit_store(Value::Register(result), rhs);
+        // self.emit_store(Value::Register(result), rhs);
 
-        self.emit_instruction(Instruction::Label(f_label));
+        // self.emit_instruction(Instruction::Label(f_label));
 
         Value::Register(result)
     }
@@ -457,17 +472,17 @@ impl<'a> Builder<'a> {
 
         let result = Register::new();
 
-        let lhs = self.build_expr(l);
+        // let lhs = self.build_expr(l);
 
-        self.emit_store(Value::Register(result), lhs.clone());
+        // self.emit_store(Value::Register(result), lhs.clone());
 
-        self.emit_instruction(Instruction::JumpIf(lhs, t_label));
+        // self.emit_instruction(Instruction::JumpIf(lhs, t_label));
 
-        let rhs = self.build_expr(r);
+        // let rhs = self.build_expr(r);
 
-        self.emit_store(Value::Register(result), rhs);
+        // self.emit_store(Value::Register(result), rhs);
 
-        self.emit_instruction(Instruction::Label(t_label));
+        // self.emit_instruction(Instruction::Label(t_label));
 
         Value::Register(result)
     }
@@ -527,22 +542,30 @@ fn build_function(function: t::Function, symbols: &SymbolMap<()>) -> Function {
         builder.add_param(param.name);
     }
 
-    if function.linkage == Linkage::Normal {
+   let start = if function.linkage == Linkage::Normal {
         let start = builder.new_block();
 
         builder.start_block(start);
         builder.build_statement(function.body);
-        // builder.end_block(BlockEnd::End);
 
-        
-    }
+        if builder.current_block.is_some() {
+
+            builder.end_block(BlockEnd::End);
+        }
+        Some(start)
+    }else {
+        None
+    };
+
+  
+    
 
     
 
     Function {
         name: function.name,
         params: builder.params(),
-        body: builder.instructions(),
+        start_block:start,
         blocks: builder.blocks(),
         linkage: function.linkage,
     }
