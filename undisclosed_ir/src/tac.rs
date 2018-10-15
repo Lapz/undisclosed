@@ -110,12 +110,10 @@ pub enum Value {
 /// Instructions are of the form i <- a op b
 #[derive(Debug, Clone, PartialEq)]
 pub enum Instruction {
-    /// A stackallocated array of size whatever
+    /// A stack allocated array of size whatever
     /// Stored at a location
     Array(Value, usize),
-    Label(Label),
     StatementStart,
-    Jump(Label),
     Binary(Register, Value, BinaryOp, Value),
     /// t1 = val
     Store(Value, Value),
@@ -127,15 +125,6 @@ pub enum Instruction {
     Return(Value),
 
     Call(Value, Value, Vec<Value>),
-
-    /// Evaluate l1, l2 compare using CmpOp and then got to L or R
-    CJump(Value, CmpOp, Value, Label, Label),
-
-    /// Jumps to a label if the condtion is true
-    JumpIf(Value, Label),
-
-    /// Jumps to a label if the condition is false
-    JumpNot(Value, Label),
 }
 
 #[derive(Debug, Clone, PartialEq)]
