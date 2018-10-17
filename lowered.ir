@@ -1,10 +1,9 @@
-Program { functions: [Function { name: Symbol(0), params: [], blocks: {BlockID(0): Block { instructions: [StatementStart, Store(Register(t0), Const(10, Signed, Bit32))], end: Return(Register(t0)) }, BlockID(1): Block { instructions: [], end: End }}, start_block: Some(BlockID(0)), linkage: Normal }] }
+Program { functions: [Function { name: Symbol(0), params: [], blocks: {BlockID(0): Block { instructions: [StatementStart, Store(Register(t0), Const(10, Signed, Bit32))], end: Return(Register(t0)) }}, start_block: Some(BlockID(0)), linkage: Normal }] }
 function main()
 {
 label_0:	
 	t0 <- 10i32
 	return t0
-label_1:	end
 }
 
 cfg graph

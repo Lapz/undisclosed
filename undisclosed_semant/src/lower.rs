@@ -548,10 +548,10 @@ fn build_function(function: t::Function, symbols: &SymbolMap<()>) -> Function {
         builder.start_block(start);
         builder.build_statement(function.body);
 
-        if builder.current_block.is_some() {
+        // if builder.current_block.is_some() {
 
-            builder.end_block(BlockEnd::End);
-        }
+        //     builder.end_block(BlockEnd::End);
+        // }
         Some(start)
     }else {
         None
