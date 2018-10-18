@@ -23,10 +23,9 @@ pub fn compile_function<T: Write>(f: Function, out: &mut T) -> io::Result<()> {
         return Ok(());
     }
 
+    write!(out, "{}:\n", f.name)?;
 
-    write!(out, "{}:\n",f.name)?;
-
-    write!(out,"pushq %rbp\n")?;
+    write!(out, "pushq %rbp\n")?;
 
     write!(out, "movq %rsp\n")?;
     write!(out, "movq %rsp,%rbp\n")?;

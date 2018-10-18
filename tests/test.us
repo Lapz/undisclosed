@@ -1,9 +1,14 @@
 fn main() -> i32{
-    
-   return 10;
-   
 
-   
+    while true {
+        "a";
+    } 
+
+    if(1<10) {
+        return 0;
+    }else {
+        return 1;
+    }
 }
 
 

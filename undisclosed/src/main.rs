@@ -102,8 +102,8 @@ fn repl() {
         // remove_file("out").unwrap();
         // remove_file("out.s").unwrap();
         let mut buffer = Vec::with_capacity(2048);
-        printer.print_program(&lowered,&mut buffer).unwrap();
-        
+        printer.print_program(&lowered, &mut buffer).unwrap();
+
         let output = String::from_utf8(buffer).unwrap();
 
         println!("{}", output);
@@ -191,17 +191,9 @@ fn run(
     if emit_ir {
         let mut file = File::create("lowered.ir").expect("Couldn't create file");
 
-        write!(file, "{:?}\n",lowered);
-
-        printer.print_program(&lowered,&mut file).expect("Couldn't write to the file");
-        
-        write!(file, "\ncfg graph\n");
-
-        let mut file = File::create("lowered.cfg").expect("Couldn't create file");
-
-        file.write(&format!("{:#?}",lowered).as_bytes())
+        printer
+            .print_program(&lowered, &mut file)
             .expect("Couldn't write to the file");
-
     }
 
     // let mut cfg = build_cfg(lowered);

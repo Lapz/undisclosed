@@ -13,5 +13,6 @@ mod translate;
 
 pub use temp::{Label, Temp};
 // pub use cfg::construct_cfg;
+pub use optimize::unused_blocks;
 pub use register::Register;
 pub use scopes::Scopes;

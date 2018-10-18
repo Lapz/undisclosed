@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::{self, Debug, Display};
-use syntax::ast::{Sign, Size};
 pub use syntax::ast::Linkage;
+use syntax::ast::{Sign, Size};
 use util::symbol::Symbol;
 
 static mut LABEL_COUNT: u32 = 0;
@@ -16,11 +16,11 @@ pub struct LoopDescription {
     end: BlockID,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BlockEnd {
     Jump(BlockID),
     Return(Value),
-    Branch(Value,BlockID,BlockID),
+    Branch(Value, BlockID, BlockID),
     End,
 }
 
@@ -47,7 +47,7 @@ pub struct Function {
     pub name: Symbol,
     pub params: Vec<Register>,
     pub blocks: HashMap<BlockID, Block>,
-    pub start_block:Option<BlockID>,
+    pub start_block: Option<BlockID>,
     pub linkage: Linkage,
 }
 
@@ -114,9 +114,9 @@ pub enum Instruction {
     /// A stack allocated array of size whatever
     /// Stored at a location
     Array(Value, usize),
-    
+
     StatementStart,
-    
+
     Drop(Register),
 
     Binary(Register, Value, BinaryOp, Value),
@@ -242,10 +242,9 @@ impl Display for UnaryOp {
     }
 }
 
-
 impl Display for BlockID {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "label_{}",self.0)
+        write!(f, "label_{}", self.0)
     }
 }
 
@@ -253,9 +252,11 @@ impl Display for BlockEnd {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             BlockEnd::End => write!(f, "end"),
-            BlockEnd::Jump(ref id) => write!(f,"goto {}",id),
-            BlockEnd::Return(ref id) => write!(f, "return {}",id),
-            BlockEnd::Branch(ref v,ref t_branch,ref f_branch) => write!(f, "branch {} {} {}",v,t_branch,f_branch)
+            BlockEnd::Jump(ref id) => write!(f, "goto {}", id),
+            BlockEnd::Return(ref id) => write!(f, "return {}", id),
+            BlockEnd::Branch(ref v, ref t_branch, ref f_branch) => {
+                write!(f, "branch {} {} {}", v, t_branch, f_branch)
+            }
         }
     }
 }

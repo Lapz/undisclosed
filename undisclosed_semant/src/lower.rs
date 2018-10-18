@@ -1,14 +1,17 @@
 use ast::typed as t;
-use ir::tac::{BinaryOp, Function, Instruction, Label, Program, Register, UnaryOp, Value,BlockID,Block,BlockEnd};
+use ir::tac::{
+    BinaryOp, Block, BlockEnd, BlockID, Function, Instruction, Label, Program, Register, UnaryOp,
+    Value,
+};
 use std::collections::HashMap;
 use syntax::ast::{Linkage, Literal, Op, Sign, Size, UnaryOp as UnOp};
 use types::{TyCon, Type};
 use util::symbol::{Symbol, SymbolMap};
 
-#[derive(Debug, Clone,Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct LoopDescription {
-    start:BlockID,
-    end:BlockID,
+    start: BlockID,
+    end: BlockID,
 }
 
 #[derive(Debug)]
@@ -33,8 +36,7 @@ impl<'a> Builder<'a> {
         }
     }
 
-    
-    pub fn blocks(self) -> HashMap<BlockID,Block> {
+    pub fn blocks(self) -> HashMap<BlockID, Block> {
         self.blocks
     }
 
@@ -42,26 +44,26 @@ impl<'a> Builder<'a> {
         BlockID::new()
     }
 
-    pub fn start_block(&mut self,id:BlockID) {
-
+    pub fn start_block(&mut self, id: BlockID) {
         if self.current_block.is_some() {
             panic!("Block is unfinished");
         }
 
-       
-        
-        self.current_block = Some((id,Vec::new()));
+        self.current_block = Some((id, Vec::new()));
     }
 
-    pub fn end_block(&mut self,end:BlockEnd) {
-         
-        let (id,inst) = self.current_block.take().unwrap();
+    pub fn end_block(&mut self, end: BlockEnd) {
+        let (id, inst) = self.current_block.take().unwrap();
 
+        
 
-        self.blocks.insert(id, Block {
-            instructions:inst,
-            end
-        });
+        self.blocks.insert(
+            id,
+            Block {
+                instructions: inst,
+                end,
+            },
+        );
     }
 
     pub fn params(&mut self) -> Vec<Register> {
@@ -71,11 +73,7 @@ impl<'a> Builder<'a> {
             .collect()
     }
     pub fn emit_instruction(&mut self, inst: Instruction) {
-        self.current_block
-            .as_mut()
-            .unwrap()
-            .1
-            .push(inst);
+        self.current_block.as_mut().unwrap().1.push(inst);
     }
 
     pub fn emit_store(&mut self, dest: Value, source: Value) {
@@ -107,22 +105,17 @@ impl<'a> Builder<'a> {
             }
 
             Statement::Break => {
-                let description = self
-                    .current_loop
-                    .expect("Using break outside a loop");
+                let description = self.current_loop.expect("Using break outside a loop");
 
                 let new = self.new_block();
 
                 self.end_block(BlockEnd::Jump(description.end));
 
                 self.start_block(new)
-
             }
 
             Statement::Continue => {
-                let description = self
-                    .current_loop
-                    .expect("Using break outside a loop");
+                let description = self.current_loop.expect("Using break outside a loop");
                 let label = description.start.clone();
 
                 let new = self.new_block();
@@ -134,8 +127,6 @@ impl<'a> Builder<'a> {
 
             Statement::Expr(expr) => {
                 self.build_expr(expr);
-
-
             }
 
             Statement::If {
@@ -143,18 +134,13 @@ impl<'a> Builder<'a> {
                 then,
                 otherwise: Some(otherwise),
             } => {
+                let c = self.build_expr(cond);
 
                 let body = BlockID::new(); // then body
                 let other = BlockID::new(); // else body
                 let after = BlockID::new();
 
-
-                let c = self.build_expr(cond);
-
-
-
-                self.end_block(BlockEnd::Branch(c,body,other));
-
+                self.end_block(BlockEnd::Branch(c, body, other));
 
                 self.start_block(body);
 
@@ -162,30 +148,13 @@ impl<'a> Builder<'a> {
 
                 self.end_block(BlockEnd::Jump(after));
 
-
                 self.start_block(other);
-
 
                 self.build_statement(*otherwise);
 
                 self.end_block(BlockEnd::Jump(after));
 
                 self.start_block(after);
-
-                // let then_label = Label::new();
-                // let otherwise_label = Label::new();
-
-                // let result = self.build_expr(cond);
-
-                // self.emit_instruction(Instruction::JumpIf(result, otherwise_label.clone()));
-
-                // self.emit_instruction(Instruction::Label(then_label));
-
-                // self.build_statement(*then);
-
-                // self.emit_instruction(Instruction::Label(otherwise_label));
-
-                // self.build_statement(*otherwise)
             }
 
             Statement::If {
@@ -193,18 +162,21 @@ impl<'a> Builder<'a> {
                 then,
                 otherwise: None,
             } => {
-                // let then_label = Label::new();
-                // let otherwise_label = Label::new();
+                let c = self.build_expr(cond);
 
-                // let result = self.build_expr(cond);
+                let body = BlockID::new();
 
-                // self.emit_instruction(Instruction::JumpIf(result, otherwise_label.clone()));
+                let after = BlockID::new();
 
-                // self.emit_instruction(Instruction::Label(then_label));
+                self.end_block(BlockEnd::Branch(c, body, after));
 
-                // self.build_statement(*then);
+                self.start_block(body);
 
-                // self.emit_instruction(Instruction::Label(otherwise_label));
+                self.build_statement(*then);
+
+                self.end_block(BlockEnd::Jump(after));
+
+                self.start_block(after);
             }
 
             Statement::Let { ident, ty, expr } => {
@@ -219,31 +191,49 @@ impl<'a> Builder<'a> {
             Statement::Return(expr) => {
                 let result = self.build_expr(expr);
                 let new = self.new_block();
-    
+
                 self.end_block(BlockEnd::Return(result));
 
                 self.start_block(new);
             }
 
             Statement::While(cond, body) => {
-                // let cond = self.build_expr(cond);
+                let cond_block = BlockID::new();
+                let body_block = BlockID::new();
+                let after = BlockID::new();
+
+                self.current_loop = Some(LoopDescription {
+                    start: cond_block,
+                    end: after,
+                });
+
+                self.end_block(BlockEnd::Jump(cond_block));
+
+                self.start_block(cond_block);
+
+                let c = self.build_expr(cond);
+
+                self.end_block(BlockEnd::Branch(c, body_block, after));
+
+                self.start_block(body_block);
+
+                self.build_statement(*body);
+
+                self.end_block(BlockEnd::Jump(cond_block));
+
+                self.start_block(after);
 
                 // let test = Label::new(); // The labels of each block
                 // let done = Label::new(); // The labels of each block
-                
+
                 // let start = self.new_block();
                 // let cond_id = self.new_block();
                 // let end = self.new_block();
 
-                // self.current_loop = Some(LoopDescription {
-                //     start: (start,test.clone()),
-                //     end: (end,done.clone()),
-                // });
-
                 // self.end_block(BlockEnd::Jump(start));
 
                 // self.start_block(start);
-                
+
                 // self.emit_instruction(Instruction::Label(test.clone()));
 
                 // self.build_statement(*body);
@@ -255,7 +245,6 @@ impl<'a> Builder<'a> {
                 // self.emit_instruction(Instruction::JumpIf(cond, test.clone()));
 
                 // self.emit_instruction(Instruction::Label(done));
-
             }
         }
     }
@@ -542,30 +531,25 @@ fn build_function(function: t::Function, symbols: &SymbolMap<()>) -> Function {
         builder.add_param(param.name);
     }
 
-   let start = if function.linkage == Linkage::Normal {
+    let start = if function.linkage == Linkage::Normal {
         let start = builder.new_block();
 
         builder.start_block(start);
         builder.build_statement(function.body);
 
-        // if builder.current_block.is_some() {
+        if builder.current_block.is_some() {
+            builder.end_block(BlockEnd::End);
+        }
 
-        //     builder.end_block(BlockEnd::End);
-        // }
         Some(start)
-    }else {
+    } else {
         None
     };
-
-  
-    
-
-    
 
     Function {
         name: function.name,
         params: builder.params(),
-        start_block:start,
+        start_block: start,
         blocks: builder.blocks(),
         linkage: function.linkage,
     }
@@ -579,6 +563,10 @@ pub fn build_program(symbols: &SymbolMap<()>, old_program: t::Program) -> Progra
             .functions
             .push(build_function(function, symbols));
     }
+
+    use ir::unused_blocks;
+
+    unused_blocks(&mut new_program.functions);
 
     new_program
 }

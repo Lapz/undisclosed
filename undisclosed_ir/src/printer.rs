@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 use std::iter::repeat;
-use tac::{Function, Instruction, Program,BlockEnd};
+use tac::{BlockEnd, Function, Instruction, Program};
 use util::symbol::SymbolMap;
 
 pub struct Printer<'a> {
@@ -9,21 +9,19 @@ pub struct Printer<'a> {
 
 impl<'a> Printer<'a> {
     pub fn new(symbols: &'a SymbolMap<()>) -> Self {
-        Self {
-            symbols,
-        }
+        Self { symbols }
     }
 
-    pub fn print_program<T:Write>(mut self, p: &Program,out:&mut T) -> io::Result<()> {
+    pub fn print_program<T: Write>(mut self, p: &Program, out: &mut T) -> io::Result<()> {
         for function in p.functions.iter() {
-            self.print_function(function,out)?;
+            self.print_function(function, out)?;
             write!(out, "")?;
         }
 
         Ok(())
     }
 
-    pub fn print_function<T:Write>(&mut self, f: &Function,out:&mut T) -> io::Result<()> {
+    pub fn print_function<T: Write>(&mut self, f: &Function, out: &mut T) -> io::Result<()> {
         write!(out, "function ")?;
         write!(out, "{}", &self.symbols.name(f.name))?;
 
@@ -41,40 +39,42 @@ impl<'a> Printer<'a> {
 
         write!(out, "\n{{\n")?;
 
+        match f.start_block {
+            Some(start) => {
+                write!(out, "start: {}\n", start)?;
+                write!(out, "\tgoto {}\n", start)?;
+            }
 
+            None => (),
+        }
 
-        for (id,block) in f.blocks.iter() {
-            write!(out, "{}:",id);
-            
+        for (id, block) in f.blocks.iter() {
+            write!(out, "{}:", id);
 
             for inst in block.instructions.iter() {
                 write!(out, "\t")?;
-                self.print_instructions(inst,out)?;
+                self.print_instructions(inst, out)?;
                 write!(out, "\n")?;
             }
 
-
             match block.end {
                 BlockEnd::End => write!(out, "\tend")?,
-                BlockEnd::Jump(ref id) => write!(out, "\tgoto {}",id)?,
-                BlockEnd::Return(ref value) => {
-                    write!(out, "\treturn {}",value)?
-                },
-                BlockEnd::Branch(ref value,ref t, ref f) => {
-                    write!(out, "\tbranch {} {} {}",value,t,f)?
+                BlockEnd::Jump(ref id) => write!(out, "\tgoto {}", id)?,
+                BlockEnd::Return(ref value) => write!(out, "\treturn {}", value)?,
+                BlockEnd::Branch(ref value, ref t, ref f) => {
+                    write!(out, "\tbranch {} {} {}", value, t, f)?
                 }
             }
 
             write!(out, "\n")?;
         }
 
-
         write!(out, "}}\n")?;
 
         Ok(())
     }
 
-    pub fn print_instructions<T:Write>(&mut self, i: &Instruction,out:&mut T) -> io::Result<()> {
+    pub fn print_instructions<T: Write>(&mut self, i: &Instruction, out: &mut T) -> io::Result<()> {
         match *i {
             Instruction::Array(ref l, ref s) => write!(out, "{} <- [{}]", l, s),
             Instruction::StatementStart => write!(out, ""),
@@ -82,10 +82,8 @@ impl<'a> Printer<'a> {
                 write!(out, "{} <- {} {} {}", res, lhs, op, rhs)
             }
 
-            Instruction::Drop(ref reg) => write!(out,"drop {}",reg), 
-            Instruction::Store(ref dest, ref source) => {
-                write!(out, "{} <- {}", dest, source)
-            }
+            Instruction::Drop(ref reg) => write!(out, "drop {}", reg),
+            Instruction::Store(ref dest, ref source) => write!(out, "{} <- {}", dest, source),
             Instruction::Cast(ref dest, ref sign, ref size) => {
                 write!(out, "{} as {}{}", dest, sign, size)
             }
@@ -104,7 +102,6 @@ impl<'a> Printer<'a> {
 
                 Ok(())
             }
-           
         }
     }
 }

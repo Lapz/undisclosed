@@ -1,5 +1,6 @@
-use tac::Instruction;
+use std::collections::{HashMap, HashSet};
 use tac::Program;
+use tac::{BlockEnd, BlockID, Function, Instruction};
 use temp::Label;
 pub struct Optimizer {}
 
@@ -32,5 +33,40 @@ impl Optimizer {
         //     }
         //     _ => true,
         // });
+    }
+}
+
+pub fn unused_blocks(functions: &mut Vec<Function>) {
+    let mut remove = Vec::new();
+
+    for f in functions.iter_mut() {
+        let mut exist = HashSet::new();
+
+        for (id, block) in f.blocks.iter() {
+            exist.insert(*id);
+            match block.end {
+                BlockEnd::Jump(jump_id) => {
+                    if !exist.insert(jump_id) {
+                        remove.push(*id);
+                    }
+                }
+                BlockEnd::End | BlockEnd::Return(_) => (),
+                BlockEnd::Branch(_, id1, id2) => {
+                    if !exist.insert(id1) && !block.instructions.is_empty() {
+                        remove.push(*id);
+                    } else if !exist.insert(id2) && !block.instructions.is_empty() {
+                        remove.push(*id)
+                    }
+                }
+            }
+
+             // removes empty blocks
+        }
+
+        for id in remove.iter() {
+            f.blocks.remove(&id);
+        }
+
+        remove.clear();
     }
 }
