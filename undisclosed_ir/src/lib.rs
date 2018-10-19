@@ -1,7 +1,7 @@
 extern crate undisclosed_syntax as syntax;
 extern crate undisclosed_util as util;
 
-pub mod asm;
+// pub mod asm;
 pub mod ir;
 pub mod optimize;
 pub mod printer;

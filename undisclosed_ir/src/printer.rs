@@ -42,7 +42,7 @@ impl<'a> Printer<'a> {
         match f.start_block {
             Some(start) => {
                 write!(out, "start: {}\n", start)?;
-                write!(out, "\tgoto {}\n", start)?;
+                write!(out, "goto {}\n", start)?;
             }
 
             None => (),
@@ -58,11 +58,11 @@ impl<'a> Printer<'a> {
             }
 
             match block.end {
-                BlockEnd::End => write!(out, "\tend")?,
-                BlockEnd::Jump(ref id) => write!(out, "\tgoto {}", id)?,
-                BlockEnd::Return(ref value) => write!(out, "\treturn {}", value)?,
+                BlockEnd::End => write!(out, "\n\tend")?,
+                BlockEnd::Jump(ref id) => write!(out, "\n\tgoto {}", id)?,
+                BlockEnd::Return(ref value) => write!(out, "\n\treturn {}", value)?,
                 BlockEnd::Branch(ref value, ref t, ref f) => {
-                    write!(out, "\tbranch {} {} {}", value, t, f)?
+                    write!(out, "\n\tbranch {} {} {}", value, t, f)?
                 }
             }
 

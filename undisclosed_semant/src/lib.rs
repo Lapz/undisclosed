@@ -1,5 +1,3 @@
-#![feature(option_replace)]
-
 extern crate undisclosed_ir as ir;
 extern crate undisclosed_syntax as syntax;
 extern crate undisclosed_util as util;
@@ -22,8 +20,6 @@ mod unify;
 
 use ast::typed as t;
 use ctx::CompileCtx;
-// use escape::FindEscape;
-// use gen_ir::Codegen;
 
 pub use lower::build_program;
 use monomorphize::Mono;
@@ -35,6 +31,7 @@ use util::{
     emitter::Reporter,
     symbol::{Hasher, Symbol},
 };
+
 pub(crate) type InferResult<T> = Result<T, ()>;
 
 #[derive(Debug)]

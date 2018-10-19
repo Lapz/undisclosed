@@ -64,7 +64,7 @@ pub fn unused_blocks(functions: &mut Vec<Function>) {
         }
 
         for id in remove.iter() {
-            f.blocks.remove(&id);
+            // f.blocks.remove(&id);
         }
 
         remove.clear();

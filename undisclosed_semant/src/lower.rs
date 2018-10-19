@@ -116,8 +116,7 @@ impl<'a> Builder<'a> {
 
             Statement::Continue => {
                 let description = self.current_loop.expect("Using break outside a loop");
-                let label = description.start.clone();
-
+                
                 let new = self.new_block();
 
                 self.end_block(BlockEnd::Jump(description.start));
@@ -221,30 +220,7 @@ impl<'a> Builder<'a> {
 
                 self.end_block(BlockEnd::Jump(cond_block));
 
-                self.start_block(after);
-
-                // let test = Label::new(); // The labels of each block
-                // let done = Label::new(); // The labels of each block
-
-                // let start = self.new_block();
-                // let cond_id = self.new_block();
-                // let end = self.new_block();
-
-                // self.end_block(BlockEnd::Jump(start));
-
-                // self.start_block(start);
-
-                // self.emit_instruction(Instruction::Label(test.clone()));
-
-                // self.build_statement(*body);
-
-                // self.end_block(BlockEnd::Jump(cond_id));
-
-                // self.start_block(cond_id);
-
-                // self.emit_instruction(Instruction::JumpIf(cond, test.clone()));
-
-                // self.emit_instruction(Instruction::Label(done));
+                self.start_block(after); 
             }
         }
     }

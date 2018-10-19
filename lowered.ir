@@ -1,15 +1,25 @@
 function main()
 {
 start: label_0
-	goto label_0
-label_7:	goto label_6
+goto label_0
+label_3:
+	end
+label_2:	
+	t4 <- 1i32
+
+	return t4
 label_0:	
-	goto label_1
-label_5:	
-	t6 <- 1i32
-	return t6
-label_4:	
-	t5 <- 0i32
-	return t5
-label_6:	end
+	t0 <- 1i32
+	t1 <- 10i32
+	t2 <- t0 < t1
+
+	branch t2 label_1 label_2
+label_5:
+	goto label_3
+label_1:	
+	t3 <- 0i32
+
+	return t3
+label_4:
+	goto label_3
 }
